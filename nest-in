@@ -363,7 +363,7 @@ read-target-declaration()
 	for target in "${targets[@]}"
 	do
 		local target_variable_name=$(variable-name-from-target "$target")
-		printf -v "NEST_DEPENDENCIES_${target_variable_name}" '%s\n' "${dependencies[@]}"
+		eval "NEST_DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
 	done
 
 	READ_TARGET_DECLARATION__TARGETS=("${targets[@]}")
@@ -441,8 +441,7 @@ dependencies-for-target()
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	local dependency_list_name="NEST_DEPENDENCIES_${variable_name}"
-	printf '%s\n' ${!dependency_list_name}
+	eval "printf '%s\n' \${NEST_DEPENDENCIES_${variable_name}[@]}"
 }
 
 scenario-for-target()
@@ -451,7 +450,7 @@ scenario-for-target()
 
 	local variable_name=$(variable-name-from-target "$target")
 	local scenario="NEST_SCENARIO_${variable_name}"
-	printf '%s\n' "${!scenario}"
+	printf '%s' "${!scenario}"
 }
 
 is-target-installed()
