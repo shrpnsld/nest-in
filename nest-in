@@ -49,9 +49,8 @@ HELP_MESSAGE=\
 
 ${TS_B}OPTIONS${TS_N}
   [${TS_U}targets${TS_N}...]  Specify targets to work with.
-  ${TS_B}-d${TS_N}            Show target dependencies.
-  ${TS_B}-s${TS_N}            Show target scenarios.
-  ${TS_B}-r${TS_N}            With ${TS_B}-d${TS_N} and ${TS_B}-s${TS_N} look recursively into dependencies.
+  ${TS_B}-d${TS_N}            Show dependencies for targets.
+  ${TS_B}-s${TS_N}            Show scenarios for targets.
   ${TS_B}--${TS_N} ${TS_U}file${TS_N}       Pass input file.
   ${TS_B}--${TS_N}            Read input from ${TS_B}stdin${TS_N}.
   ${TS_B}-k${TS_N}            Keep input at "${TS_B}$DEFAULT_INPUT_FILE_PATH${TS_N}".
@@ -67,8 +66,14 @@ ${TS_B}More information at${TS_N} ${TS_U}https://github.com/shrpnsld/nest-in${TS
 INPUT_FILE_PATH=''
 INPUT_DESRIPTOR=-1
 INPUT_TARGETS=()
+DO_WORK=:
 
 DELIMITER_PASSED=false
+
+do-work()
+{
+	"$DO_WORK" "$@"
+}
 
 #
 # Functions
@@ -109,15 +114,11 @@ parse-option()
 
 	case "$option" in
 		d)
-			:
+			DO_WORK=show-dependencies
 			;;
 
 		s)
-			:
-			;;
-
-		r)
-			:
+			DO_WORK=show-scenarios
 			;;
 
 		k)
@@ -211,6 +212,11 @@ validate-options()
 
 		exec 3< "$DEFAULT_INPUT_FILE_PATH"
 		INPUT_DESCRIPTOR=3
+	fi
+
+	if [ "$DO_WORK" == : ]
+	then
+		DO_WORK=build-nest
 	fi
 }
 
@@ -480,6 +486,55 @@ mark-target-as-installed()
 	printf -v "$target_installed" true
 }
 
+gather-dependencies()
+{
+	local target=$1
+
+	local dependencies=($(dependencies-for-target "$target"))
+	if [[ ${#dependencies[@]} == 0 ]]
+	then
+		return
+	fi
+
+	printf '  %s\n' "${dependencies[@]}"
+	for dependency in "${dependencies[@]}"
+	do
+		gather-dependencies "$dependency"
+	done
+}
+
+show-dependencies()
+{
+	local targets=("$@")
+
+	local target="${targets[0]}"
+	printf "${TS_U}%s${TS_N}\n" "$target"
+	gather-dependencies "$target" | sort | uniq
+
+	for target in "${targets[@]:1}"
+	do
+		printf '\n'
+		printf "${TS_U}%s${TS_N}\n" "$target"
+		gather-dependencies "$target" | sort | uniq
+	done
+}
+
+show-scenarios()
+{
+	local targets=("$@")
+
+	local target="${targets[0]}"
+	printf "${TS_U}%s${TS_N}\n" "$target"
+	scenario-for-target "$target"
+
+	for target in "${targets[@]:1}"
+	do
+		printf '\n'
+		printf "${TS_U}%s${TS_N}\n" "$target"
+		scenario-for-target "$target"
+	done
+}
+
 build-nest()
 {
 	local targets=("$@")
@@ -529,6 +584,6 @@ build-nest()
 		INPUT_TARGETS=("${GATHER_INFO__TARGETS[@]}")
 	fi
 
-	build-nest "${INPUT_TARGETS[@]}"
+	do-work "${INPUT_TARGETS[@]}"
 }
 
