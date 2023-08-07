@@ -436,6 +436,45 @@ gather-twigs()
 	IFS="$old_IFS"
 }
 
+array-contains-item()
+{
+	local item=$1
+	local array=("${@:2}")
+
+	local current
+	for current in ${array[@]}
+	do
+		if [ "$current" == "$item" ]
+		then
+			return 0
+		fi
+	done
+
+	return 1
+}
+
+validate-twigs()
+{
+	local targets=("$@")
+
+	local any_errors=false
+	local target
+	for target in "${targets[@]}"
+	do
+		local dependencies=($(dependencies-for-target "$target"))
+		for dependency in "${dependencies[@]}"
+		do
+			if ! array-contains-item "$dependency" "${targets[@]}"
+			then
+				printf-error 'unknown dependency "%s" for target "%s"' "$dependency" "$target"
+				any_errors=true
+			fi
+		done
+	done
+
+	! $any_errors
+}
+
 dependencies-for-target()
 {
 	local target=$1
@@ -577,6 +616,12 @@ start-nesting()
 
 { # Do the work
 	gather-twigs $INPUT_DESCRIPTOR
+	validate-twigs "${GATHER_INFO__TARGETS[@]}"
+	if [ $? != 0 ]
+	then
+		exit 1
+	fi
+
 	if [[ ${#INPUT_TARGETS[@]} == 0 ]]
 	then
 		INPUT_TARGETS=("${GATHER_INFO__TARGETS[@]}")
