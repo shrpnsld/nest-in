@@ -80,7 +80,8 @@ do-the-work()
 PARAMETER_TYPE_OPTION=1
 PARAMETER_TYPE_TARGET=2
 PARAMETER_TYPE_DELIMITER=3
-PARAMTER_TYPE_BAD=255
+PARAMETER_TYPE_BAD=255
+PARAMETER_TYPE_RETURN__PARAMETER=''
 parameter-type()
 {
 	local string=$1
@@ -92,17 +93,17 @@ parameter-type()
 
 	if [ "${string:0:1}" == '-' ]
 	then
-		printf '%s\n' "${string#-}"
+		PARAMETER_TYPE_RETURN__PARAMETER="${string#-}"
 		return $PARAMETER_TYPE_OPTION
 	fi
 
 	if [[ $string =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*$ ]]
 	then
-		printf '%s\n' "$string"
+		PARAMETER_TYPE_RETURN__PARAMETER="$string"
 		return $PARAMETER_TYPE_TARGET
 	fi
 
-	return $PARAMTER_TYPE_BAD
+	return $PARAMETER_TYPE_BAD
 }
 
 PARSE_OPTION_UNKNOWN_OPTION=255
@@ -143,8 +144,9 @@ parse-arguments()
 	for (( parameter_index = 0; parameter_index < ${#parameters[@]}; ++parameter_index ))
 	do
 		local parameter
-		parameter=$(parameter-type "${parameters[$parameter_index]}")
+		parameter-type "${parameters[$parameter_index]}"
 		local parameter_type=$?
+		parameter="$PARAMETER_TYPE_RETURN__PARAMETER")
 		case $parameter_type in
 			$PARAMETER_TYPE_OPTION)
 				local value="${parameters[$parameter_index + 1]}"
@@ -181,7 +183,7 @@ parse-arguments()
 				break
 				;;
 
-			$PARAMTER_TYPE_BAD)
+			$PARAMETER_TYPE_BAD)
 				printf-error 'bad parameter format "%s"' "$parameter"
 				return 1
 				;;
@@ -251,26 +253,30 @@ is-target-declaration()
 {
 	local line=$1
 
-	[[ $line =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*([\ \t]*[a-zA-Z]+[a-zA-Z0-9_\-]*)*[\ \t]*$ ]] ||
-	[[ $line =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*([\ \t]*[a-zA-Z]+[a-zA-Z0-9_\-]*)*[\ \t]*\/([\ \t]*[a-zA-Z]+[a-zA-Z0-9_\-]*)*[\ \t]*$ ]]
+	[[ $line =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*[\ \t]*$ ]] ||
+	[[ $line =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*[\ \t]*\/([\ \t]*[a-zA-Z]+[a-zA-Z0-9_\-]*)*[\ \t]*$ ]]
 }
 
-get-targets()
+READ_TARGET_RETURN__TARGET=''
+read-target()
 {
 	local line=$1
 
 	local old_IFS="$IFS"
 	IFS=$' '
 
-	line=(${line%/*})
-	printf '%s\n' "${line[@]}"
+	line=(${line[@]})
+	READ_TARGET_RETURN__TARGET="${line[0]}"
 
 	IFS="$old_IFS"
 }
 
-get-dependencies()
+READ_DEPENDENCIES_RETURN__DEPENDENCIES=()
+read-dependencies()
 {
 	local line=$1
+
+	READ_DEPENDENCIES_RETURN__DEPENDENCIES=()
 
 	if [[ $line != */* ]]
 	then
@@ -280,8 +286,7 @@ get-dependencies()
 	local old_IFS="$IFS"
 	IFS=$' '
 
-	line=(${line#*/})
-	printf '%s\n' "${line[@]}"
+	READ_DEPENDENCIES_RETURN__DEPENDENCIES=(${line#*/})
 
 	IFS="$old_IFS"
 }
@@ -345,12 +350,12 @@ next-non-empty-line()
 	done
 }
 
-READ_TARGET_DECLARATION__TARGETS=()
+READ_TARGET_DECLARATION_RETURN__TARGET=''
 read-target-declaration()
 {
 	local descriptor=$1
 
-	READ_TARGET_DECLARATION__TARGETS=()
+	READ_TARGET_DECLARATION_RETURN__TARGET=''
 
 	read-file $descriptor
 	local line="$READ_FILE__RETURN"
@@ -359,23 +364,24 @@ read-target-declaration()
 		return 1
 	fi
 
-	local targets=($(get-targets "$line"))
-	local dependencies=($(get-dependencies "$line"))
-	for target in "${targets[@]}"
-	do
-		local target_variable_name=$(variable-name-from-target "$target")
-		eval "NEST_DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
-	done
+	read-target "$line"
+	local target="$READ_TARGET_RETURN__TARGET"
 
-	READ_TARGET_DECLARATION__TARGETS=("${targets[@]}")
+	read-dependencies "$line"
+	local dependencies=("${READ_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "NEST_DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
+
+	READ_TARGET_DECLARATION_RETURN__TARGET="$target"
 }
 
-READ_TARGET_SCENARIO__SCENARIO=''
+READ_TARGET_SCENARIO_RETURN__SCENARIO=''
 read-target-scenario()
 {
 	local descriptor=$1
 
-	READ_TARGET_SCENARIO__SCENARIO=''
+	READ_TARGET_SCENARIO_RETURN__SCENARIO=''
 
 	while true
 	do
@@ -391,16 +397,16 @@ read-target-scenario()
 			return
 		fi
 
-		READ_TARGET_SCENARIO__SCENARIO+="$line"$'\n'
+		READ_TARGET_SCENARIO_RETURN__SCENARIO+="$line"$'\n'
 	done
 }
 
-GATHER_INFO__TARGETS=()
+GATHER_TWIGS_RETURN__TARGETS=()
 gather-twigs()
 {
 	local descriptor=$1
 
-	GATHER_INFO__TARGETS=()
+	GATHER_TWIGS_RETURN__TARGETS=()
 
 	local old_IFS="$IFS"
 	IFS=$'\n'
@@ -415,7 +421,7 @@ gather-twigs()
 				break
 			fi
 
-			GATHER_INFO__TARGETS+=("${READ_TARGET_DECLARATION__TARGETS[@]}")
+			GATHER_TWIGS_RETURN__TARGETS+=("$READ_TARGET_DECLARATION_RETURN__TARGET")
 		done
 
 		read-target-scenario $descriptor
@@ -424,13 +430,10 @@ gather-twigs()
 			break
 		fi
         
-		local target
-		for target in "${READ_TARGET_DECLARATION__TARGETS[@]}"
-		do
-			local variable_name=$(variable-name-from-target "$target")
-			printf -v "NEST_SCENARIO_${variable_name}" '%s' "$READ_TARGET_SCENARIO__SCENARIO"
-			mark-target-as-not-installed "$target"
-		done
+		local target="$READ_TARGET_DECLARATION_RETURN__TARGET"
+		local variable_name=$(variable-name-from-target "$target")
+		printf -v "NEST_SCENARIO_${variable_name}" '%s' "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
+		mark-target-as-not-installed "$target"
 	done
 
 	IFS="$old_IFS"
@@ -461,7 +464,8 @@ validate-twigs()
 	local target
 	for target in "${targets[@]}"
 	do
-		local dependencies=($(dependencies-for-target "$target"))
+		dependencies-for-target "$target"
+		local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
 		for dependency in "${dependencies[@]}"
 		do
 			if ! array-contains-item "$dependency" "${targets[@]}"
@@ -475,19 +479,21 @@ validate-twigs()
 	! $any_errors
 }
 
+DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES=()
 dependencies-for-target()
 {
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "printf '%s\n' \${NEST_DEPENDENCIES_${variable_name}[@]}"
+	eval "DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES=("\${NEST_DEPENDENCIES_${variable_name}[@]}")"
 }
 
 dependencies-for-target-recursive()
 {
 	local target=$1
 
-	local dependencies=($(dependencies-for-target "$target"))
+	dependencies-for-target "$target"
+	local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
 	if [[ ${#dependencies[@]} == 0 ]]
 	then
 		return
@@ -500,13 +506,13 @@ dependencies-for-target-recursive()
 	done
 }
 
+SCENARIO_FOR_TARGET_RETURN__SCENARIO=''
 scenario-for-target()
 {
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	local scenario="NEST_SCENARIO_${variable_name}"
-	printf '%s' "${!scenario}"
+	eval "SCENARIO_FOR_TARGET_RETURN__SCENARIO=(\"\$NEST_SCENARIO_${variable_name}\")"
 }
 
 is-target-installed()
@@ -558,13 +564,19 @@ show-scenarios()
 
 	local target="${targets[0]}"
 	printf "${TS_U}%s${TS_N}\n" "$target"
+
 	scenario-for-target "$target"
+	local scenario="$SCENARIO_FOR_TARGET_RETURN__SCENARIO"
+	printf '%s' "$scenario"
 
 	for target in "${targets[@]:1}"
 	do
 		printf '\n'
 		printf "${TS_U}%s${TS_N}\n" "$target"
+
 		scenario-for-target "$target"
+		local scenario="$SCENARIO_FOR_TARGET_RETURN__SCENARIO"
+		printf '%s' "$scenario"
 	done
 }
 
@@ -580,13 +592,15 @@ start-nesting()
 			continue
 		fi
 
-		local dependencies=($(dependencies-for-target "$target"))
+		dependencies-for-target "$target"
+		local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
 		if [ ${#dependencies[@]} != 0 ]
 		then
 			start-nesting "${dependencies[@]}"
 		fi
 
-		local scenario=$(scenario-for-target "$target")
+		scenario-for-target "$target"
+		local scenario="$SCENARIO_FOR_TARGET_RETURN__SCENARIO"
 
 		# the easiest way to do this, which also allows to keep variables between scenarios
 		printf '%s' "$scenario" > ./scenario.tmp
@@ -616,7 +630,9 @@ start-nesting()
 
 { # Do the work
 	gather-twigs $INPUT_DESCRIPTOR
-	validate-twigs "${GATHER_INFO__TARGETS[@]}"
+	targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
+
+	validate-twigs "${targets[@]}"
 	if [ $? != 0 ]
 	then
 		exit 1
@@ -624,7 +640,7 @@ start-nesting()
 
 	if [[ ${#INPUT_TARGETS[@]} == 0 ]]
 	then
-		INPUT_TARGETS=("${GATHER_INFO__TARGETS[@]}")
+		INPUT_TARGETS=("${targets[@]}")
 	fi
 
 	do-the-work "${INPUT_TARGETS[@]}"
