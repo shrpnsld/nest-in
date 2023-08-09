@@ -36,6 +36,13 @@ printf-message()
 	printf '\n'
 }
 
+printf-nest-in-message()
+{
+	printf-stderr "${TS_U}$SCRIPT_NAME${TS_N}: "
+	printf-stderr "$@"
+	printf-stderr '\n'
+}
+
 #
 # Constants
 
@@ -675,6 +682,8 @@ start-nesting()
 
 		scenario-for-target "$target"
 		local scenario="$SCENARIO_FOR_TARGET_RETURN__SCENARIO"
+
+		printf-nest-in-message 'working on %s...' "$target"
 
 		# the easiest way to do this,
 		# which also allows to keep user-set variables between scenarios
