@@ -78,10 +78,9 @@ NEST_IN__SYNTAX_NOTE=\
 #
 # Options
 
-NEST_IN__TWIGS_PATH=''
+NEST_IN__TWIGS_PATH="$NEST_IN__DEFAULT_TWIGS_PATH"
 NEST_IN__TWIGS_DESCRIPTOR=-1
 NEST_IN__INPUT_TARGETS=()
-NEST_IN__DELIMITER_PASSED=false
 
 NEST_IN__DO_THE_WORK=:
 do-the-work()
@@ -189,7 +188,6 @@ parse-arguments()
 
 			$PARAMETER_TYPE_DELIMITER)
 				(( ++parameter_index ))
-				NEST_IN__DELIMITER_PASSED=true
 				NEST_IN__TWIGS_PATH="${parameters[$parameter_index]}"
 				break
 				;;
@@ -202,23 +200,25 @@ parse-arguments()
 	done
 }
 
+open-twigs-file()
+{
+	local path=$1
+
+	exec 3< "$path"
+}
+
 validate-and-apply-options()
 {
-	if [ -n "$NEST_IN__TWIGS_PATH" ]
-	then
-		exec 3< "$NEST_IN__TWIGS_PATH"
-		NEST_IN__TWIGS_DESCRIPTOR=3
-	elif $NEST_IN__DELIMITER_PASSED
+	if [ -z "$NEST_IN__TWIGS_PATH" ]
 	then
 		NEST_IN__TWIGS_DESCRIPTOR=0
 	else
-		if ! [ -r "$NEST_IN__DEFAULT_TWIGS_PATH" ]
+		open-twigs-file "$NEST_IN__TWIGS_PATH" >/dev/null 2>&1
+		if [ $? != 0 ]
 		then
-			printf-error 'failed to open config file "%s"' "$NEST_IN__DEFAULT_TWIGS_PATH"
-			exit 1
+			printf-error 'failed to open config file "%s"' "$NEST_IN__TWIGS_PATH"
 		fi
 
-		exec 3< "$NEST_IN__DEFAULT_TWIGS_PATH"
 		NEST_IN__TWIGS_DESCRIPTOR=3
 	fi
 
