@@ -571,6 +571,20 @@ check-theres-no-circular-dependencies()
 	done
 }
 
+check-input-targets-exist()
+{
+	local gathered_targets=("$@")
+
+	for target in "${INPUT_TARGETS[@]}"
+	do
+		if ! array-contains-item "$target" "${gathered_targets[@]}"
+		then
+			printf-error 'unkown target "%s" in arguments' "$target"
+			return 1
+		fi
+	done
+}
+
 SCENARIO_FOR_TARGET_RETURN__SCENARIO=''
 scenario-for-target()
 {
@@ -711,6 +725,7 @@ start-nesting()
 
 	check-all-targets-exist "${gathered_targets[@]}" &&
 	check-theres-no-circular-dependencies "${gathered_targets[@]}" &&
+	check-input-targets-exist "${gathered_targets[@]}"
 	if [ $? != 0 ]
 	then
 		exit 1
