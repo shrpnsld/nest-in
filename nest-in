@@ -195,7 +195,7 @@ parse-arguments()
 	done
 }
 
-validate-options()
+validate-and-apply-options()
 {
 	if [ -n "$NEST_IN__TWIGS_PATH" ]
 	then
@@ -302,14 +302,14 @@ variable-name-from-target()
 	tr '-' '_' <<< "$string"
 }
 
-PEEK_FILE__RETURN=''
+PEEK_FILE_RETURN__LINE=''
 peek-file()
 {
 	local descriptor=$1
 
-	if [ -z "$PEEK_FILE__RETURN" ]
+	if [ -z "$PEEK_FILE_RETURN__LINE" ]
 	then
-		read -u $descriptor -r PEEK_FILE__RETURN
+		read -u $descriptor -r PEEK_FILE_RETURN__LINE
 		if [ $? != 0 ]
 		then
 			return 1
@@ -317,17 +317,17 @@ peek-file()
 	fi
 }
 
-READ_FILE__RETURN=''
+READ_FILE_RETURN__LINE=''
 read-file()
 {
 	local descriptor=$1
 
-	if [ -n "$PEEK_FILE__RETURN" ]
+	if [ -n "$PEEK_FILE_RETURN__LINE" ]
 	then
-		READ_FILE__RETURN="$PEEK_FILE__RETURN"
-		PEEK_FILE__RETURN=''
+		READ_FILE_RETURN__LINE="$PEEK_FILE_RETURN__LINE"
+		PEEK_FILE_RETURN__LINE=''
 	else
-		read -u $descriptor -r READ_FILE__RETURN
+		read -u $descriptor -r READ_FILE_RETURN__LINE
 		if [ $? != 0 ]
 		then
 			return 1
@@ -347,7 +347,7 @@ next-non-empty-line()
 			return 1
 		fi
 
-		if [ -n "$PEEK_FILE__RETURN" ]
+		if [ -n "$PEEK_FILE_RETURN__LINE" ]
 		then
 			break
 		fi
@@ -362,7 +362,7 @@ read-target-declaration()
 	READ_TARGET_DECLARATION_RETURN__TARGET=''
 
 	read-file $descriptor
-	local line="$READ_FILE__RETURN"
+	local line="$READ_FILE_RETURN__LINE"
 	if [ $? != 0 ]
 	then
 		return 1
@@ -395,7 +395,7 @@ read-target-scenario()
 			return 255
 		fi
 
-		local line="$READ_FILE__RETURN"
+		local line="$READ_FILE_RETURN__LINE"
 		if [ -z "$line" ]
 		then
 			return
@@ -419,7 +419,10 @@ gather-twigs()
 	do
 		while true
 		do
-			next-non-empty-line $descriptor && peek-file $descriptor && is-target-declaration "$PEEK_FILE__RETURN" && read-target-declaration $descriptor
+			next-non-empty-line $descriptor &&
+			peek-file $descriptor &&
+			is-target-declaration "$PEEK_FILE_RETURN__LINE" &&
+			read-target-declaration $descriptor
 			if [ $? != 0 ]
 			then
 				break
@@ -433,7 +436,7 @@ gather-twigs()
 		then
 			break
 		fi
-        
+
 		local target="$READ_TARGET_DECLARATION_RETURN__TARGET"
 		local variable_name=$(variable-name-from-target "$target")
 		printf -v "NEST_IN__SCENARIO_${variable_name}" '%s' "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
@@ -717,7 +720,7 @@ start-nesting()
 # Main
 
 { # Deal with arguments
-	parse-arguments "$@" && validate-options
+	parse-arguments "$@" && validate-and-apply-options
 	if [ $? != 0 ]
 	then
 		exit 1
