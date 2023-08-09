@@ -261,8 +261,15 @@ is-target-declaration()
 	[[ $line =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*[\ \t]*\/([\ \t]*[a-zA-Z]+[a-zA-Z0-9_\-]*)*[\ \t]*$ ]]
 }
 
-READ_TARGET_RETURN__TARGET=''
-read-target()
+is-scenario-declaration()
+{
+	local line=$1
+
+	[[ $line =~ ^[[:space:]]+[^[:space:]]+.*$ ]]
+}
+
+EXTRACT_TARGET_RETURN__TARGET=''
+extract-target()
 {
 	local line=$1
 
@@ -270,17 +277,17 @@ read-target()
 	IFS=$' '
 
 	line=(${line[@]})
-	READ_TARGET_RETURN__TARGET="${line[0]}"
+	EXTRACT_TARGET_RETURN__TARGET="${line[0]}"
 
 	IFS="$old_IFS"
 }
 
-READ_DEPENDENCIES_RETURN__DEPENDENCIES=()
-read-dependencies()
+EXTRACT_DEPENDENCIES_RETURN__DEPENDENCIES=()
+extract-dependencies()
 {
 	local line=$1
 
-	READ_DEPENDENCIES_RETURN__DEPENDENCIES=()
+	EXTRACT_DEPENDENCIES_RETURN__DEPENDENCIES=()
 
 	if [[ $line != */* ]]
 	then
@@ -290,7 +297,7 @@ read-dependencies()
 	local old_IFS="$IFS"
 	IFS=$' '
 
-	READ_DEPENDENCIES_RETURN__DEPENDENCIES=(${line#*/})
+	EXTRACT_DEPENDENCIES_RETURN__DEPENDENCIES=(${line#*/})
 
 	IFS="$old_IFS"
 }
@@ -354,31 +361,24 @@ next-non-empty-line()
 	done
 }
 
-READ_TARGET_DECLARATION_RETURN__TARGET=''
-read-target-declaration()
+PARSE_TARGET_DECLARATION_RETURN__TARGET=''
+parse-target-declaration()
 {
-	local descriptor=$1
+	local line=$1
 
-	READ_TARGET_DECLARATION_RETURN__TARGET=''
-
-	read-file $descriptor
-	if [ $? != 0 ]
-	then
-		return 1
-	fi
-
-	local line="$READ_FILE_RETURN__LINE"
-	read-target "$line"
-	local target="$READ_TARGET_RETURN__TARGET"
-	read-dependencies "$line"
-	local dependencies=("${READ_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
+	extract-target "$line"
+	local target="$EXTRACT_TARGET_RETURN__TARGET"
+	extract-dependencies "$line"
+	local dependencies=("${EXTRACT_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
 
 	local target_variable_name=$(variable-name-from-target "$target")
 	eval "NEST_IN__DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
 
-	READ_TARGET_DECLARATION_RETURN__TARGET="$target"
+	PARSE_TARGET_DECLARATION_RETURN__TARGET="$target"
 }
 
+READ_TARGET_SCENARIO_CODE__BAD_SYNTAX=1
+READ_TARGET_SCENARIO_CODE__EOF=2
 READ_TARGET_SCENARIO_RETURN__SCENARIO=''
 read-target-scenario()
 {
@@ -391,7 +391,7 @@ read-target-scenario()
 		read-file $descriptor
 		if [ $? != 0 ]
 		then
-			return 255
+			return $READ_TARGET_SCENARIO_CODE__EOF
 		fi
 
 		local line="$READ_FILE_RETURN__LINE"
@@ -401,6 +401,11 @@ read-target-scenario()
 		fi
 
 		READ_TARGET_SCENARIO_RETURN__SCENARIO+="$line"$'\n'
+
+		if ! is-scenario-declaration "$line"
+		then
+			return $READ_TARGET_SCENARIO_CODE__BAD_SYNTAX
+		fi
 	done
 }
 
@@ -422,13 +427,14 @@ gather-twigs()
 			next-non-empty-line $descriptor &&
 			peek-file $descriptor &&
 			is-target-declaration "$PEEK_FILE_RETURN__LINE" &&
-			read-target-declaration $descriptor
+			read-file $descriptor &&
+			parse-target-declaration "$READ_FILE_RETURN__LINE"
 			if [ $? != 0 ]
 			then
 				break
 			fi
 
-			target="$READ_TARGET_DECLARATION_RETURN__TARGET"
+			target="$PARSE_TARGET_DECLARATION_RETURN__TARGET"
 			GATHER_TWIGS_RETURN__TARGETS+=("$target")
 			unmark-target "$target" # basically create information about mark
 		done
