@@ -671,6 +671,14 @@ show-scenarios()
 	done
 }
 
+exec-scenario()
+{
+	# hiding local variables,
+	# and allowing exiting scenario with 'return'
+
+	eval "$1"
+}
+
 start-nesting()
 {
 	local targets=("$@")
@@ -694,12 +702,7 @@ start-nesting()
 		local scenario="$SCENARIO_FOR_TARGET_RETURN__SCENARIO"
 
 		printf-nest-in-message 'working on %s...' "$target"
-
-		# the easiest way to do this,
-		# which also allows to keep user-set variables between scenarios
-		printf '%s' "$scenario" > ./scenario.tmp
-		trap 'rm -f ./scenario.tmp' EXIT
-		. ./scenario.tmp
+		exec-scenario "$scenario"
 		if [ $? != 0 ]
 		then
 			printf-error 'failed to install "%s"' "$target"
