@@ -456,7 +456,7 @@ array-contains-item()
 	return 1
 }
 
-validate-twigs()
+check-all-targets-exist()
 {
 	local targets=("$@")
 
@@ -477,6 +477,75 @@ validate-twigs()
 	done
 
 	! $any_errors
+}
+
+FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH=''
+find-circular-dependencies-impl()
+{
+	local target_to_depend=$1
+	local targets=("${@:2}")
+
+	if array-contains-item "$target_to_depend" "${targets[@]}"
+	then
+		FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH="$target_to_depend"
+		return 0
+	fi
+
+	local target
+	for target in "${targets[@]}"
+	do
+		if is-target-marked "$target"
+		then
+			continue
+		fi
+
+		mark-target "$target"
+
+		dependencies-for-target "$target"
+		local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
+		find-circular-dependencies-impl "$target_to_depend" "${dependencies[@]}"
+		if [ $? == 0 ]
+		then
+			FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH="$target -> $FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
+			return 0
+		fi
+	done
+
+	return 1
+}
+
+find-circular-dependencies()
+{
+	local target=$1
+
+	dependencies-for-target "$target"
+	local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
+	find-circular-dependencies-impl "$target" "${dependencies[@]}"
+	local retval=$?
+	FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH="$target -> $FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
+	unmark-targets "${dependencies[@]}"
+	return $retval
+}
+
+check-theres-no-circular-dependencies()
+{
+	local targets=("$@")
+
+	local target
+	for target in "${targets[@]}"
+	do
+		if find-circular-dependencies "$target"
+		then
+			printf-error 'circular dependency was found: %s' "$FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
+			return 1
+		fi
+	done
+}
+
+check-twigs()
+{
+	check-all-targets-exist "${targets[@]}" &&
+	check-theres-no-circular-dependencies "${targets[@]}"
 }
 
 DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES=()
@@ -642,7 +711,7 @@ start-nesting()
 	gather-twigs $INPUT_DESCRIPTOR
 	targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
 
-	validate-twigs "${targets[@]}"
+	check-twigs
 	if [ $? != 0 ]
 	then
 		exit 1
