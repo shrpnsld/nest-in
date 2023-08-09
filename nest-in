@@ -362,15 +362,14 @@ read-target-declaration()
 	READ_TARGET_DECLARATION_RETURN__TARGET=''
 
 	read-file $descriptor
-	local line="$READ_FILE_RETURN__LINE"
 	if [ $? != 0 ]
 	then
 		return 1
 	fi
 
+	local line="$READ_FILE_RETURN__LINE"
 	read-target "$line"
 	local target="$READ_TARGET_RETURN__TARGET"
-
 	read-dependencies "$line"
 	local dependencies=("${READ_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
 
@@ -417,6 +416,7 @@ gather-twigs()
 
 	while true
 	do
+		local target
 		while true
 		do
 			next-non-empty-line $descriptor &&
@@ -428,7 +428,9 @@ gather-twigs()
 				break
 			fi
 
-			GATHER_TWIGS_RETURN__TARGETS+=("$READ_TARGET_DECLARATION_RETURN__TARGET")
+			target="$READ_TARGET_DECLARATION_RETURN__TARGET"
+			GATHER_TWIGS_RETURN__TARGETS+=("$target")
+			unmark-target "$target" # basically create information about mark
 		done
 
 		read-target-scenario $descriptor
@@ -437,10 +439,8 @@ gather-twigs()
 			break
 		fi
 
-		local target="$READ_TARGET_DECLARATION_RETURN__TARGET"
 		local variable_name=$(variable-name-from-target "$target")
 		printf -v "NEST_IN__SCENARIO_${variable_name}" '%s' "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
-		unmark-target "$target" # basically create information about mark
 	done
 
 	IFS="$old_IFS"
@@ -694,6 +694,7 @@ start-nesting()
 			continue
 		fi
 
+		printf-nest-in-message 'resolving dependencies for %s...' "$target"
 		dependencies-for-target "$target"
 		local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
 		if [ ${#dependencies[@]} != 0 ]
