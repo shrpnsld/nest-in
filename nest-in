@@ -39,7 +39,7 @@ printf-message()
 #
 # Constants
 
-CONFIG_DIR_PATH="~/.config/$SCRIPT_NAME"
+CONFIG_DIR_PATH="$HOME/.config/$SCRIPT_NAME"
 CONFIG_FILE_NAME='twigs.txt'
 DEFAULT_INPUT_FILE_PATH="$CONFIG_DIR_PATH/$CONFIG_FILE_NAME"
 
@@ -53,7 +53,6 @@ ${TS_B}OPTIONS${TS_N}
   ${TS_B}-s${TS_N}            Show scenarios for targets.
   ${TS_B}--${TS_N} ${TS_U}file${TS_N}       Read nesting info from ${TS_U}file${TS_N}.
   ${TS_B}--${TS_N}            Read nesting info from from ${TS_U}stdin${TS_N}.
-  ${TS_B}-v${TS_N}            Verbose mode.
   ${TS_B}-h${TS_N}            Show this message.
 
 ${TS_B}More information at${TS_N} ${TS_U}https://github.com/shrpnsld/nest-in${TS_N}
@@ -121,10 +120,6 @@ parse-option()
 			DO_THE_WORK=show-scenarios
 			;;
 
-		v)
-			:
-			;;
-
 		h)
 			printf "$HELP_MESSAGE"
 			exit
@@ -146,7 +141,7 @@ parse-arguments()
 		local parameter
 		parameter-type "${parameters[$parameter_index]}"
 		local parameter_type=$?
-		parameter="$PARAMETER_TYPE_RETURN__PARAMETER")
+		parameter="$PARAMETER_TYPE_RETURN__PARAMETER"
 		case $parameter_type in
 			$PARAMETER_TYPE_OPTION)
 				local value="${parameters[$parameter_index + 1]}"
@@ -681,11 +676,11 @@ start-nesting()
 		scenario-for-target "$target"
 		local scenario="$SCENARIO_FOR_TARGET_RETURN__SCENARIO"
 
-		# the easiest way to do this, which also allows to keep variables between scenarios
+		# the easiest way to do this,
+		# which also allows to keep user-set variables between scenarios
 		printf '%s' "$scenario" > ./scenario.tmp
+		trap 'rm -f ./scenario.tmp' EXIT
 		. ./scenario.tmp
-		rm ./scenario.tmp
-
 		if [ $? != 0 ]
 		then
 			printf-error 'failed to install "%s"' "$target"
