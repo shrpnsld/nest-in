@@ -68,6 +68,13 @@ NEST_IN__CONFIG_DIR_PATH="$HOME/.config/$NEST_IN__SCRIPT_NAME"
 NEST_IN__CONFIG_FILE_NAME='twigs.txt'
 NEST_IN__DEFAULT_TWIGS_PATH="$NEST_IN__CONFIG_DIR_PATH/$NEST_IN__CONFIG_FILE_NAME"
 
+NEST_IN__SYNTAX_NOTE=\
+"${NEST_IN__TS_U}Note${NEST_IN__TS_N}:
+  - only one target is allowed per declaration
+  - commands in scenario should be preceeded by any-sort of whitespace
+  - scenario should end with blank line"
+
+
 #
 # Options
 
@@ -309,6 +316,8 @@ variable-name-from-target()
 	tr '-' '_' <<< "$string"
 }
 
+READ_FILE_RETURN__LINE_NUMBER=0
+
 PEEK_FILE_RETURN__LINE=''
 peek-file()
 {
@@ -321,6 +330,8 @@ peek-file()
 		then
 			return 1
 		fi
+
+		(( ++READ_FILE_RETURN__LINE_NUMBER ))
 	fi
 }
 
@@ -339,6 +350,8 @@ read-file()
 		then
 			return 1
 		fi
+
+		(( ++READ_FILE_RETURN__LINE_NUMBER ))
 	fi
 }
 
@@ -439,8 +452,19 @@ gather-twigs()
 			unmark-target "$target" # basically create information about mark
 		done
 
+		if [ -n "$PEEK_FILE_RETURN__LINE" ] && ! is-scenario-declaration "$PEEK_FILE_RETURN__LINE"
+		then
+			printf-error '%s:%d, unkown declaration "%s"\n'"$NEST_IN__SYNTAX_NOTE" "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$PEEK_FILE_RETURN__LINE"
+			exit 1
+		fi
+
 		read-target-scenario $descriptor
-		if [ $? != 0 ]
+		local retval=$?
+		if [ $retval == $READ_TARGET_SCENARIO_CODE__BAD_SYNTAX ]
+		then
+			printf-error '%s:%d, malformed scenario for target "%s":\n%s\n'"$NEST_IN__SYNTAX_NOTE" "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$target" "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
+			exit 1
+		elif [ $retval == $READ_TARGET_SCENARIO_CODE__EOF ]
 		then
 			break
 		fi
