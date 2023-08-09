@@ -458,6 +458,33 @@ array-contains-item()
 	return 1
 }
 
+DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES=()
+dependencies-for-target()
+{
+	local target=$1
+
+	local variable_name=$(variable-name-from-target "$target")
+	eval "DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES=("\${NEST_DEPENDENCIES_${variable_name}[@]}")"
+}
+
+dependencies-for-target-recursive()
+{
+	local target=$1
+
+	dependencies-for-target "$target"
+	local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
+	if [[ ${#dependencies[@]} == 0 ]]
+	then
+		return
+	fi
+
+	printf '  %s\n' "${dependencies[@]}"
+	for dependency in "${dependencies[@]}"
+	do
+		dependencies-for-target-recursive "$dependency"
+	done
+}
+
 check-all-targets-exist()
 {
 	local targets=("$@")
@@ -541,39 +568,6 @@ check-theres-no-circular-dependencies()
 			printf-error 'circular dependency was found: %s' "$FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
 			return 1
 		fi
-	done
-}
-
-check-twigs()
-{
-	check-all-targets-exist "${targets[@]}" &&
-	check-theres-no-circular-dependencies "${targets[@]}"
-}
-
-DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES=()
-dependencies-for-target()
-{
-	local target=$1
-
-	local variable_name=$(variable-name-from-target "$target")
-	eval "DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES=("\${NEST_DEPENDENCIES_${variable_name}[@]}")"
-}
-
-dependencies-for-target-recursive()
-{
-	local target=$1
-
-	dependencies-for-target "$target"
-	local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
-	if [[ ${#dependencies[@]} == 0 ]]
-	then
-		return
-	fi
-
-	printf '  %s\n' "${dependencies[@]}"
-	for dependency in "${dependencies[@]}"
-	do
-		dependencies-for-target-recursive "$dependency"
 	done
 }
 
@@ -713,9 +707,10 @@ start-nesting()
 
 { # Do the work
 	gather-twigs $INPUT_DESCRIPTOR
-	targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
+	gathered_targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
 
-	check-twigs
+	check-all-targets-exist "${gathered_targets[@]}" &&
+	check-theres-no-circular-dependencies "${gathered_targets[@]}" &&
 	if [ $? != 0 ]
 	then
 		exit 1
@@ -723,9 +718,11 @@ start-nesting()
 
 	if [[ ${#INPUT_TARGETS[@]} == 0 ]]
 	then
-		INPUT_TARGETS=("${targets[@]}")
+		targets=("${gathered_targets[@]}")
+	else
+		targets=("${INPUT_TARGETS[@]}")
 	fi
 
-	do-the-work "${INPUT_TARGETS[@]}"
+	do-the-work "${targets[@]}"
 }
 
