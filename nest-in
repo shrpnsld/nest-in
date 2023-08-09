@@ -433,7 +433,7 @@ gather-twigs()
 		local target="$READ_TARGET_DECLARATION_RETURN__TARGET"
 		local variable_name=$(variable-name-from-target "$target")
 		printf -v "NEST_SCENARIO_${variable_name}" '%s' "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
-		mark-target-as-not-installed "$target"
+		unmark-target "$target" # basically create information about mark
 	done
 
 	IFS="$old_IFS"
@@ -515,31 +515,41 @@ scenario-for-target()
 	eval "SCENARIO_FOR_TARGET_RETURN__SCENARIO=(\"\$NEST_SCENARIO_${variable_name}\")"
 }
 
-is-target-installed()
+is-target-marked()
 {
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	local target_installed="NEST_INSTALLED_${variable_name}"
+	local target_installed="NESTS_MARKED_${variable_name}"
 	${!target_installed}
 }
 
-mark-target-as-not-installed()
+unmark-target()
 {
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	local target_installed="NEST_INSTALLED_${variable_name}"
+	local target_installed="NESTS_MARKED_${variable_name}"
 	printf -v "$target_installed" false
 }
 
-mark-target-as-installed()
+mark-target()
 {
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	local target_installed="NEST_INSTALLED_${variable_name}"
+	local target_installed="NESTS_MARKED_${variable_name}"
 	printf -v "$target_installed" true
+}
+
+unmark-targets()
+{
+	local targets=("$@")
+
+	for target in "${targets[@]}"
+	do
+		unmark-target "$target"
+	done
 }
 
 show-dependencies()
@@ -587,7 +597,7 @@ start-nesting()
 	local target
 	for target in "${targets[@]}"
 	do
-		if is-target-installed "$target"
+		if is-target-marked "$target"
 		then
 			continue
 		fi
@@ -613,7 +623,7 @@ start-nesting()
 			exit
 		fi
 
-		mark-target-as-installed "$target"
+		mark-target "$target"
 	done
 }
 
