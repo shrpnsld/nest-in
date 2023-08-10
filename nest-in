@@ -731,17 +731,24 @@ start-nesting()
 		if [ ${#dependencies[@]} != 0 ]
 		then
 			start-nesting "${dependencies[@]}"
+			if [ $? != 0 ]
+			then
+				return 1
+			fi
 		fi
 
 		scenario-for-target "$target"
 		local scenario="$SCENARIO_FOR_TARGET_RETURN__SCENARIO"
 
-		printf-nest-in-message 'working on %s...' "$target"
-		exec-scenario "$scenario"
-		if [ $? != 0 ]
+		if [ -n "$scenario" ]
 		then
-			printf-error 'failed to install "%s"' "$target"
-			exit
+			printf-nest-in-message 'working on %s...' "$target"
+			exec-scenario "$scenario"
+			if [ $? != 0 ]
+			then
+				printf-error 'failed to install "%s"' "$target"
+				return 1
+			fi
 		fi
 
 		mark-target "$target"
@@ -779,5 +786,11 @@ start-nesting()
 	fi
 
 	do-the-work "${targets[@]}"
+	if [ $? != 0 ]
+	then
+		exit 1
+	fi
+
+	printf-message '\nNesting finished.\nWelcome home!'
 }
 
