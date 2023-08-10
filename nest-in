@@ -587,7 +587,6 @@ find-circular-dependencies()
 	find-circular-dependencies-impl "$target" "${dependencies[@]}"
 	local retval=$?
 	FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH="$target -> $FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
-	unmark-targets "${dependencies[@]}"
 	return $retval
 }
 
@@ -603,6 +602,8 @@ check-theres-no-circular-dependencies()
 			printf-error 'circular dependency was found: %s' "$FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
 			return 1
 		fi
+
+		unmark-targets "${targets[@]}"
 	done
 }
 
