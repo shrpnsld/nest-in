@@ -340,7 +340,7 @@ variable-name-from-target()
 READ_FILE_RETURN__LINE_NUMBER=0
 
 PEEK_FILE_RETURN__LINE=''
-peek-file()
+file-peek-line()
 {
 	local descriptor=$1
 
@@ -357,7 +357,7 @@ peek-file()
 }
 
 READ_FILE_RETURN__LINE=''
-read-file()
+file-read-line()
 {
 	local descriptor=$1
 
@@ -382,7 +382,7 @@ next-non-empty-line()
 
 	while true
 	do
-		peek-file $descriptor
+		file-peek-line $descriptor
 		if [ $? != 0 ]
 		then
 			return 1
@@ -406,7 +406,7 @@ read-target-scenario()
 
 	while true
 	do
-		read-file $descriptor
+		file-read-line $descriptor
 		if [ $? != 0 ]
 		then
 			return $READ_TARGET_SCENARIO_CODE__EOF
@@ -443,9 +443,9 @@ gather-twigs()
 		while true
 		do
 			next-non-empty-line $descriptor &&
-			peek-file $descriptor &&
+			file-peek-line $descriptor &&
 			is-target-declaration "$PEEK_FILE_RETURN__LINE" &&
-			read-file $descriptor
+			file-read-line $descriptor
 			if [ $? != 0 ]
 			then
 				break
