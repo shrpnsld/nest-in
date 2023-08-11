@@ -264,8 +264,16 @@ is-target-declaration()
 {
 	local line=$1
 
-	[[ $line =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*[\ \t]*$ ]] ||
-	[[ $line =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*[\ \t]*\/([\ \t]*[a-zA-Z]+[a-zA-Z0-9_\-]*)*[\ \t]*$ ]]
+	# Example
+	# target-name
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*$ ]] ||
+	#            target-name...............
+
+	# Example
+	# target-name / dependency-name [condition:value] [condition]
+	#                                                     (                                       |                                          |                            )
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*\/([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]]+\:[[:alnum:]]+\]|[[:blank:]]+\[[[:alpha:]]+\])+[[:blank:]]*$ ]]
+	#            target-name................             /             dependency-name............              [requirement. :value....... ]              [requirement]..
 }
 
 is-scenario-declaration()
@@ -289,22 +297,35 @@ extract-target()
 	IFS="$old_IFS"
 }
 
-EXTRACT_DEPENDENCIES_RETURN__DEPENDENCIES=()
-extract-dependencies()
+EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS=()
+EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES=()
+extract-reqs-and-deps()
 {
 	local line=$1
 
-	EXTRACT_DEPENDENCIES_RETURN__DEPENDENCIES=()
+	EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS=()
+	EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES=()
 
 	if [[ $line != */* ]]
 	then
 		return
 	fi
 
+	line=${line#*/}
+
 	local old_IFS="$IFS"
 	IFS=$' '
 
-	EXTRACT_DEPENDENCIES_RETURN__DEPENDENCIES=(${line#*/})
+	local tokens=(${line#*/})
+	for token in "${tokens[@]}"
+	do
+		if [ "${token:0:1}" == '[' ]
+		then
+			EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS+=("$token")
+		else
+			EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES+=("$token")
+		fi
+	done
 
 	IFS="$old_IFS"
 }
@@ -381,8 +402,8 @@ parse-target-declaration()
 
 	extract-target "$line"
 	local target="$EXTRACT_TARGET_RETURN__TARGET"
-	extract-dependencies "$line"
-	local dependencies=("${EXTRACT_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
+	extract-reqs-and-deps "$line"
+	local dependencies=("${EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES[@]}")
 
 	local target_variable_name=$(variable-name-from-target "$target")
 	eval "NEST_IN__DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
