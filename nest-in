@@ -725,7 +725,7 @@ exec-scenario()
 	eval "$1"
 }
 
-start-nesting()
+start-nesting-impl()
 {
 	local targets=("$@")
 
@@ -742,7 +742,7 @@ start-nesting()
 		local dependencies=("${DEPENDENCIES_FOR_TARGET_RETURN__DEPENDENCIES[@]}")
 		if [ ${#dependencies[@]} != 0 ]
 		then
-			start-nesting "${dependencies[@]}"
+			start-nesting-impl "${dependencies[@]}"
 			if [ $? != 0 ]
 			then
 				return 1
@@ -767,6 +767,18 @@ start-nesting()
 	done
 }
 
+start-nesting()
+{
+	printf-message 'Nesting...'
+	start-nesting-impl "$@"
+	if [ $? != 0 ]
+	then
+		return 1
+	fi
+
+	printf-message '\nNesting finished.\nWelcome home!'
+}
+
 #
 # Main
 
@@ -779,6 +791,7 @@ start-nesting()
 }
 
 { # Do the work
+	printf-message 'Gathering twigs...'
 	gather-twigs $NEST_IN__TWIGS_DESCRIPTOR
 	gathered_targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
 
@@ -798,11 +811,5 @@ start-nesting()
 	fi
 
 	do-the-work "${targets[@]}"
-	if [ $? != 0 ]
-	then
-		exit 1
-	fi
-
-	printf-message '\nNesting finished.\nWelcome home!'
 }
 
