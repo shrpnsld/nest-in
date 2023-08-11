@@ -3,12 +3,12 @@
 #
 # Essentials
 
-NEST_IN__SCRIPT_NAME=nest-in
+readonly NEST_IN__SCRIPT_NAME=nest-in
 
-NEST_IN__TS_N='\e[0m'
-NEST_IN__TS_B='\e[1m'
-NEST_IN__TS_U='\e[4m'
-TS_ERROR='\e[0;31m'
+readonly NEST_IN__TS_N='\e[0m'
+readonly NEST_IN__TS_B='\e[1m'
+readonly NEST_IN__TS_U='\e[4m'
+readonly TS_ERROR='\e[0;31m'
 
 NEST_IN__TS_ERR=''
 NEST_IN__TS_ERR_END=''
@@ -17,6 +17,8 @@ then
 	NEST_IN__TS_ERR="$TS_ERROR"
 	NEST_IN__TS_ERR_END="$NEST_IN__TS_N"
 fi
+
+readonly NEST_IN__TS_ERR NEST_IN__TS_ERR_END
 
 printf-stderr()
 {
@@ -64,11 +66,11 @@ ${NEST_IN__TS_B}More information at${NEST_IN__TS_N} ${NEST_IN__TS_U}https://gith
 #
 # Constants
 
-NEST_IN__CONFIG_DIR_PATH="$HOME/.config/$NEST_IN__SCRIPT_NAME"
-NEST_IN__CONFIG_FILE_NAME='twigs.txt'
-NEST_IN__DEFAULT_TWIGS_PATH="$NEST_IN__CONFIG_DIR_PATH/$NEST_IN__CONFIG_FILE_NAME"
+readonly NEST_IN__CONFIG_DIR_PATH="$HOME/.config/$NEST_IN__SCRIPT_NAME"
+readonly NEST_IN__CONFIG_FILE_NAME='twigs.txt'
+readonly NEST_IN__DEFAULT_TWIGS_PATH="$NEST_IN__CONFIG_DIR_PATH/$NEST_IN__CONFIG_FILE_NAME"
 
-NEST_IN__SYNTAX_NOTE=\
+readonly NEST_IN__SYNTAX_NOTE=\
 "${NEST_IN__TS_U}Note${NEST_IN__TS_N}:
   - only one target is allowed per declaration
   - commands in scenario should be preceeded by any-sort of whitespace
@@ -91,10 +93,10 @@ do-the-work()
 #
 # Functions
 
-PARAMETER_TYPE_OPTION=1
-PARAMETER_TYPE_TARGET=2
-PARAMETER_TYPE_DELIMITER=3
-PARAMETER_TYPE_BAD=255
+readonly PARAMETER_TYPE_OPTION=1
+readonly PARAMETER_TYPE_TARGET=2
+readonly PARAMETER_TYPE_DELIMITER=3
+readonly PARAMETER_TYPE_BAD=255
 PARAMETER_TYPE_RETURN__PARAMETER=''
 parameter-type()
 {
@@ -395,8 +397,8 @@ next-non-empty-line()
 	done
 }
 
-READ_TARGET_SCENARIO_CODE__BAD_SYNTAX=1
-READ_TARGET_SCENARIO_CODE__EOF=2
+readonly READ_TARGET_SCENARIO_CODE__BAD_SYNTAX=1
+readonly READ_TARGET_SCENARIO_CODE__EOF=2
 READ_TARGET_SCENARIO_RETURN__SCENARIO=''
 read-target-scenario()
 {
