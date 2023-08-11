@@ -272,7 +272,7 @@ is-scenario-declaration()
 {
 	local line=$1
 
-	[[ $line =~ ^[[:space:]]+[^[:space:]]+.*$ ]]
+	[[ $line =~ ^[[:blank:]]+[^[:blank:]]+.*$ ]]
 }
 
 EXTRACT_TARGET_RETURN__TARGET=''
