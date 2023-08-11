@@ -395,22 +395,6 @@ next-non-empty-line()
 	done
 }
 
-PARSE_TARGET_DECLARATION_RETURN__TARGET=''
-parse-target-declaration()
-{
-	local line=$1
-
-	extract-target "$line"
-	local target="$EXTRACT_TARGET_RETURN__TARGET"
-	extract-reqs-and-deps "$line"
-	local dependencies=("${EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES[@]}")
-
-	local target_variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
-
-	PARSE_TARGET_DECLARATION_RETURN__TARGET="$target"
-}
-
 READ_TARGET_SCENARIO_CODE__BAD_SYNTAX=1
 READ_TARGET_SCENARIO_CODE__EOF=2
 READ_TARGET_SCENARIO_RETURN__SCENARIO=''
@@ -461,14 +445,21 @@ gather-twigs()
 			next-non-empty-line $descriptor &&
 			peek-file $descriptor &&
 			is-target-declaration "$PEEK_FILE_RETURN__LINE" &&
-			read-file $descriptor &&
-			parse-target-declaration "$READ_FILE_RETURN__LINE"
+			read-file $descriptor
 			if [ $? != 0 ]
 			then
 				break
 			fi
 
-			target="$PARSE_TARGET_DECLARATION_RETURN__TARGET"
+			local line="$READ_FILE_RETURN__LINE"
+			extract-target "$line"
+			target="$EXTRACT_TARGET_RETURN__TARGET"
+			extract-reqs-and-deps "$line"
+			local dependencies=("${EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES[@]}")
+
+			local target_variable_name=$(variable-name-from-target "$target")
+			eval "NEST_IN__DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
+
 			GATHER_TWIGS_RETURN__TARGETS+=("$target")
 			unmark-target "$target" # basically create information about mark
 		done
