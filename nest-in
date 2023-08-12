@@ -230,38 +230,6 @@ validate-and-apply-options()
 	fi
 }
 
-#PLATFORM_OS_NAME=''
-#detect-platform()
-#{
-#	if [ -f /etc/os-release ]
-#	then
-#		# freedesktop.org and systemd
-#		. /etc/os-release
-#		PLATFORM_OS_NAME=$NAME
-#		VER=$VERSION_ID
-#	elif type lsb_release >/dev/null 2>&1
-#	then
-#		# linuxbase.org
-#		PLATFORM_OS_NAME=$(lsb_release -si)
-#		VER=$(lsb_release -sr)
-#	elif [ -f /etc/lsb-release ]
-#	then
-#		# For some versions of Debian/Ubuntu without lsb_release command
-#		. /etc/lsb-release
-#		PLATFORM_OS_NAME=$DISTRIB_ID
-#		VER=$DISTRIB_RELEASE
-#	elif [ -f /etc/debian_version ]
-#	then
-#		# Older Debian/Ubuntu/etc.
-#		PLATFORM_OS_NAME=Debian
-#		VER=$(cat /etc/debian_version)
-#	else
-#		# Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
-#		PLATFORM_OS_NAME=$(uname -s)
-#		VER=$(uname -r)
-#	fi
-#}
-
 is-target-declaration()
 {
 	local line=$1
@@ -290,13 +258,7 @@ extract-target()
 {
 	local line=$1
 
-	local old_IFS="$IFS"
-	IFS=$' '
-
-	line=(${line[@]})
-	EXTRACT_TARGET_RETURN__TARGET="${line[0]}"
-
-	IFS="$old_IFS"
+	EXTRACT_TARGET_RETURN__TARGET="${line%% *}"
 }
 
 EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS=()
@@ -332,6 +294,23 @@ extract-reqs-and-deps()
 	IFS="$old_IFS"
 }
 
+array-contains-item()
+{
+	local item=$1
+	local array=("${@:2}")
+
+	local current
+	for current in ${array[@]}
+	do
+		if [ "$current" == "$item" ]
+		then
+			return 0
+		fi
+	done
+
+	return 1
+}
+
 variable-name-from-target()
 {
 	local string=$1
@@ -339,21 +318,114 @@ variable-name-from-target()
 	tr '-' '_' <<< "$string"
 }
 
+is-target-marked()
+{
+	local target=$1
+
+	local variable_name=$(variable-name-from-target "$target")
+	local target_marked="NEST_IN__MARKED_${variable_name}"
+	[[ ${!target_marked} != '' ]] && ${!target_marked}
+}
+
+unmark-target()
+{
+	local target=$1
+
+	local variable_name=$(variable-name-from-target "$target")
+	local target_marked="NEST_IN__MARKED_${variable_name}"
+	printf -v "$target_marked" false
+}
+
+mark-target()
+{
+	local target=$1
+
+	local variable_name=$(variable-name-from-target "$target")
+	local target_marked="NEST_IN__MARKED_${variable_name}"
+	printf -v "$target_marked" true
+}
+
+unmark-targets()
+{
+	local targets=("$@")
+
+	for target in "${targets[@]}"
+	do
+		unmark-target "$target"
+	done
+}
+
+TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=()
+target-dependencies()
+{
+	local target=$1
+
+	local variable_name=$(variable-name-from-target "$target")
+	eval "TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=(\"\${NEST_IN__DEPENDENCIES_${variable_name}[@]}\")"
+}
+
+target-dependencies-recursive()
+{
+	local target=$1
+
+	target-dependencies "$target"
+	local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
+	if [[ ${#dependencies[@]} == 0 ]]
+	then
+		return
+	fi
+
+	printf '  %s\n' "${dependencies[@]}"
+	for dependency in "${dependencies[@]}"
+	do
+		target-dependencies-recursive "$dependency"
+	done
+}
+
+set-target-dependencies()
+{
+	local target=$1
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "NEST_IN__DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
+}
+
+TARGET_SCENARIO_RETURN__SCENARIO=''
+target-scenario()
+{
+	local target=$1
+
+	local variable_name=$(variable-name-from-target "$target")
+	eval "TARGET_SCENARIO_RETURN__SCENARIO=(\"\$NEST_IN__SCENARIO_${variable_name}\")"
+}
+
+set-target-scenario()
+{
+	local target=$1
+	local scenario=$2
+
+	local variable_name=$(variable-name-from-target "$target")
+	printf -v "NEST_IN__SCENARIO_${variable_name}" '%s' "$scenario"
+}
+
 READ_FILE_RETURN__LINE_NUMBER=0
 
 PEEK_FILE_RETURN__LINE=''
+PEEK_FILE_RETURN__PEEKED=false
 file-peek-line()
 {
 	local descriptor=$1
 
-	if [ -z "$PEEK_FILE_RETURN__LINE" ]
+	if ! $PEEK_FILE_RETURN__PEEKED
 	then
 		read -u $descriptor -r PEEK_FILE_RETURN__LINE
 		if [ $? != 0 ]
 		then
+			PEEK_FILE_RETURN__PEEKED=false
 			return 1
 		fi
 
+		PEEK_FILE_RETURN__PEEKED=true
 		(( ++READ_FILE_RETURN__LINE_NUMBER ))
 	fi
 }
@@ -363,10 +435,11 @@ file-read-line()
 {
 	local descriptor=$1
 
-	if [ -n "$PEEK_FILE_RETURN__LINE" ]
+	if $PEEK_FILE_RETURN__PEEKED
 	then
 		READ_FILE_RETURN__LINE="$PEEK_FILE_RETURN__LINE"
 		PEEK_FILE_RETURN__LINE=''
+		PEEK_FILE_RETURN__PEEKED=false
 	else
 		read -u $descriptor -r READ_FILE_RETURN__LINE
 		if [ $? != 0 ]
@@ -374,6 +447,8 @@ file-read-line()
 			return 1
 		fi
 
+		PEEK_FILE_RETURN__LINE=''
+		PEEK_FILE_RETURN__PEEKED=false
 		(( ++READ_FILE_RETURN__LINE_NUMBER ))
 	fi
 }
@@ -394,6 +469,8 @@ next-non-empty-line()
 		then
 			break
 		fi
+
+		file-read-line $descriptor
 	done
 }
 
@@ -425,6 +502,36 @@ read-target-scenario()
 		if ! is-scenario-declaration "$line"
 		then
 			return $READ_TARGET_SCENARIO_CODE__BAD_SYNTAX
+		fi
+	done
+}
+
+PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE=()
+predicate-from-requirement()
+{
+	local requirement=$1
+
+	PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE=()
+
+	local old_IFS="$IFS"
+	IFS=$':'
+
+	PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE=(${requirement[@]})
+
+	IFS="$old_IFS"
+}
+
+check-requirements()
+{
+	local requirements=("$@")
+
+	for requirement in "${requirements[@]}"
+	do
+		predicate-from-requirement "$requirement"
+		local predicate=("${PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE[@]}")
+		if ! "${predicate[@]}"
+		then
+			return 1
 		fi
 	done
 }
@@ -482,62 +589,10 @@ gather-twigs()
 			break
 		fi
 
-		set-target-scenario "$target"
+		set-target-scenario "$target" "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
 	done
 
 	IFS="$old_IFS"
-}
-
-array-contains-item()
-{
-	local item=$1
-	local array=("${@:2}")
-
-	local current
-	for current in ${array[@]}
-	do
-		if [ "$current" == "$item" ]
-		then
-			return 0
-		fi
-	done
-
-	return 1
-}
-
-TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=()
-target-dependencies()
-{
-	local target=$1
-
-	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=(\"\${NEST_IN__DEPENDENCIES_${variable_name}[@]}\")"
-}
-
-target-dependencies-recursive()
-{
-	local target=$1
-
-	target-dependencies "$target"
-	local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-	if [[ ${#dependencies[@]} == 0 ]]
-	then
-		return
-	fi
-
-	printf '  %s\n' "${dependencies[@]}"
-	for dependency in "${dependencies[@]}"
-	do
-		target-dependencies-recursive "$dependency"
-	done
-}
-
-set-target-dependencies()
-{
-	local target=$1
-
-	local target_variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
 }
 
 check-all-targets-exist()
@@ -638,60 +693,6 @@ check-input-targets-exist()
 			printf-error 'unkown target "%s" in arguments' "$target"
 			return 1
 		fi
-	done
-}
-
-TARGET_SCENARIO_RETURN__SCENARIO=''
-target-scenario()
-{
-	local target=$1
-
-	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_SCENARIO_RETURN__SCENARIO=(\"\$NEST_IN__SCENARIO_${variable_name}\")"
-}
-
-set-target-scenario()
-{
-	local target=$1
-
-	local variable_name=$(variable-name-from-target "$target")
-	printf -v "NEST_IN__SCENARIO_${variable_name}" '%s' "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
-}
-
-is-target-marked()
-{
-	local target=$1
-
-	local variable_name=$(variable-name-from-target "$target")
-	local target_installed="NEST_IN__MARKED_${variable_name}"
-	${!target_installed}
-}
-
-unmark-target()
-{
-	local target=$1
-
-	local variable_name=$(variable-name-from-target "$target")
-	local target_installed="NEST_IN__MARKED_${variable_name}"
-	printf -v "$target_installed" false
-}
-
-mark-target()
-{
-	local target=$1
-
-	local variable_name=$(variable-name-from-target "$target")
-	local target_installed="NEST_IN__MARKED_${variable_name}"
-	printf -v "$target_installed" true
-}
-
-unmark-targets()
-{
-	local targets=("$@")
-
-	for target in "${targets[@]}"
-	do
-		unmark-target "$target"
 	done
 }
 
@@ -798,6 +799,8 @@ start-nesting()
 #
 # Main
 
+gather-system-info
+
 { # Deal with arguments
 	parse-arguments "$@" && validate-and-apply-options
 	if [ $? != 0 ]
@@ -809,6 +812,11 @@ start-nesting()
 { # Do the work
 	printf-message 'Gathering twigs...'
 	gather-twigs $NEST_IN__TWIGS_DESCRIPTOR
+	if [ $? != 0 ]
+	then
+		exit 1
+	fi
+
 	gathered_targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
 
 	check-all-targets-exist "${gathered_targets[@]}" &&
