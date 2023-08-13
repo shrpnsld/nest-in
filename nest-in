@@ -54,7 +54,7 @@ print-help()
 ${NEST_IN__TS_B}OPTIONS${NEST_IN__TS_N}
   [${NEST_IN__TS_U}targets${NEST_IN__TS_N}...]  Specify targets to work with.
   ${NEST_IN__TS_B}-d${NEST_IN__TS_N}            Show dependencies for targets.
-  ${NEST_IN__TS_B}-s${NEST_IN__TS_N}            Show scenarios for targets.
+  ${NEST_IN__TS_B}-s${NEST_IN__TS_N}            Show scripts for targets.
   ${NEST_IN__TS_B}--${NEST_IN__TS_N} ${NEST_IN__TS_U}file${NEST_IN__TS_N}       Read nesting info from ${NEST_IN__TS_U}file${NEST_IN__TS_N}.
   ${NEST_IN__TS_B}--${NEST_IN__TS_N}            Read nesting info from from ${NEST_IN__TS_U}stdin${NEST_IN__TS_N}.
   ${NEST_IN__TS_B}-h${NEST_IN__TS_N}            Show this message.
@@ -77,10 +77,10 @@ readonly NEST_IN__DECLARATION_SYNTAX_NOTE=\
   - target should be separated with its dependencies and requirements by '/'
   - each requirement shoud be listed inside '[' and ']'"
 
-readonly NEST_IN__SCENARIO_SYNTAX_NOTE=\
+readonly NEST_IN__SCRIPT_SYNTAX_NOTE=\
 "${NEST_IN__TS_U}Note${NEST_IN__TS_N}:
-  - commands in scenario should be preceeded by any-sort of whitespace
-  - scenario should end with a blank line"
+  - commands in script should be preceeded by any-sort of whitespace
+  - script should end with a blank line"
 
 
 #
@@ -285,7 +285,7 @@ parse-option()
 			;;
 
 		s)
-			NEST_IN__DO_THE_WORK=show-scenarios
+			NEST_IN__DO_THE_WORK=show-scripts
 			;;
 
 		h)
@@ -410,7 +410,7 @@ is-target-declaration()
 	#            target-name................             /             dependency-name............              [requirement.... :value..........]                 [requirement.... ]
 }
 
-is-scenario-declaration()
+is-script-declaration()
 {
 	local line=$1
 
@@ -597,22 +597,22 @@ set-target-has-requirements()
 	printf -v "$has_requirements" '%s' $value
 }
 
-TARGET_SCENARIO_RETURN__SCENARIO=''
-target-scenario()
+TARGET_SCRIPT_RETURN__SCRIPT=''
+target-script()
 {
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_SCENARIO_RETURN__SCENARIO=(\"\$NEST_IN__SCENARIO_${variable_name}\")"
+	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\$NEST_IN__SCRIPT_${variable_name}\")"
 }
 
-set-target-scenario()
+set-target-script()
 {
 	local target=$1
-	local scenario=$2
+	local script=$2
 
 	local variable_name=$(variable-name-from-target "$target")
-	printf -v "NEST_IN__SCENARIO_${variable_name}" '%s' "$scenario"
+	printf -v "NEST_IN__SCRIPT_${variable_name}" '%s' "$script"
 }
 
 FILE_READ_LINE_RETURN__LINE_NUMBER=0
@@ -681,7 +681,7 @@ next-non-empty-line()
 	done
 }
 
-skip-scenario()
+skip-script-declaration()
 {
 	local descriptor=$1
 
@@ -693,7 +693,7 @@ skip-scenario()
 			return 1
 		fi
 
-		if ! is-scenario-declaration "$FILE_PEEK_LINE_RETURN__LINE"
+		if ! is-script-declaration "$FILE_PEEK_LINE_RETURN__LINE"
 		then
 			break
 		fi
@@ -702,13 +702,13 @@ skip-scenario()
 	done
 }
 
-readonly READ_TARGET_SCENARIO_CODE__BAD_SYNTAX=1
-READ_TARGET_SCENARIO_RETURN__SCENARIO=''
-read-target-scenario()
+readonly READ_TARGET_SCRIPT_CODE__BAD_SYNTAX=1
+READ_TARGET_SCRIPT_RETURN__SCRIPT=''
+read-target-script()
 {
 	local descriptor=$1
 
-	READ_TARGET_SCENARIO_RETURN__SCENARIO=''
+	READ_TARGET_SCRIPT_RETURN__SCRIPT=''
 
 	while true
 	do
@@ -719,11 +719,11 @@ read-target-scenario()
 		fi
 
 		local line="$FILE_READ_LINE_RETURN__LINE"
-		READ_TARGET_SCENARIO_RETURN__SCENARIO+="$line"$'\n'
+		READ_TARGET_SCRIPT_RETURN__SCRIPT+="$line"$'\n'
 
-		if ! is-scenario-declaration "$line"
+		if ! is-script-declaration "$line"
 		then
-			return $READ_TARGET_SCENARIO_CODE__BAD_SYNTAX
+			return $READ_TARGET_SCRIPT_CODE__BAD_SYNTAX
 		fi
 	done
 }
@@ -821,7 +821,7 @@ gather-twigs()
 
 		if [ $requirements_fulfilled != 0 ]
 		then
-			skip-scenario $descriptor
+			skip-script-declaration $descriptor
 			if [ $? != 0 ]
 			then
 				break
@@ -862,7 +862,7 @@ gather-twigs()
 
 			if target-has-requirements "$target" && [[ ${#requirements[@]} == 0 ]]
 			then
-				skip-scenario $descriptor
+				skip-script-declaration $descriptor
 				if [ $? != 0 ]
 				then
 					break
@@ -888,20 +888,20 @@ gather-twigs()
 		fi
 
 		line="$FILE_PEEK_LINE_RETURN__LINE"
-		if ! is-scenario-declaration "$line"
+		if ! is-script-declaration "$line"
 		then
 			continue
 		fi
 
-		read-target-scenario $descriptor
-		if [ $? == $READ_TARGET_SCENARIO_CODE__BAD_SYNTAX ]
+		read-target-script $descriptor
+		if [ $? == $READ_TARGET_SCRIPT_CODE__BAD_SYNTAX ]
 		then
-			printf-error 'bad scenario format for "%s":\n%s\n'"$NEST_IN__SCENARIO_SYNTAX_NOTE" \
-				"$target" "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
+			printf-error 'bad script format for "%s":\n%s\n'"$NEST_IN__SCRIPT_SYNTAX_NOTE" \
+				"$target" "$READ_TARGET_SCRIPT_RETURN__SCRIPT"
 			return 1
 		fi
 
-		set-target-scenario "$target" "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
+		set-target-script "$target" "$READ_TARGET_SCRIPT_RETURN__SCRIPT"
 	done
 	IFS="$old_IFS"
 
@@ -1026,32 +1026,32 @@ show-dependencies()
 	done
 }
 
-show-scenarios()
+show-scripts()
 {
 	local targets=("$@")
 
 	local target="${targets[0]}"
 	printf "${NEST_IN__TS_U}%s${NEST_IN__TS_N}\n" "$target"
 
-	target-scenario "$target"
-	local scenario="$TARGET_SCENARIO_RETURN__SCENARIO"
-	printf '%s' "$scenario"
+	target-script "$target"
+	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
+	printf '%s' "$script"
 
 	for target in "${targets[@]:1}"
 	do
 		printf '\n'
 		printf "${NEST_IN__TS_U}%s${NEST_IN__TS_N}\n" "$target"
 
-		target-scenario "$target"
-		local scenario="$TARGET_SCENARIO_RETURN__SCENARIO"
-		printf '%s' "$scenario"
+		target-script "$target"
+		local script="$TARGET_SCRIPT_RETURN__SCRIPT"
+		printf '%s' "$script"
 	done
 }
 
-exec-scenario()
+exec-script()
 {
 	# hiding local variables,
-	# and allowing exiting scenario with 'return'
+	# and allowing exiting script with 'return'
 
 	eval "$1"
 }
@@ -1080,13 +1080,13 @@ start-nesting-impl()
 			fi
 		fi
 
-		target-scenario "$target"
-		local scenario="$TARGET_SCENARIO_RETURN__SCENARIO"
+		target-script "$target"
+		local script="$TARGET_SCRIPT_RETURN__SCRIPT"
 
-		if [ -n "$scenario" ]
+		if [ -n "$script" ]
 		then
 			printf-nest-in-message 'working on %s...' "$target"
-			exec-scenario "$scenario"
+			exec-script "$script"
 			if [ $? != 0 ]
 			then
 				printf-error 'failed to install "%s"' "$target"
