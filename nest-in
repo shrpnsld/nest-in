@@ -91,6 +91,151 @@ do-the-work()
 }
 
 #
+# Built-in requirements
+
+gather-system-info()
+{
+	case "$OSTYPE" in
+		darwin*)
+			NEST_IN__OS=macos
+			NEST_IN__LINUX_BASED_ON=''
+			NEST_IN__LINUX_DISTRIBUTION=''
+			NEST_IN__OS_VERSION=$(sw_vers --productVersion)
+			;;
+
+		linux-gnu*)
+			if [ -f /etc/debian_version ]
+			then
+				NEST_IN__OS='linux'
+				NEST_IN__LINUX_BASED_ON='debian'
+				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | tr '[:upper:]' '[:lower:]')
+				NEST_IN__OS_VERSION=`cat /etc/lsb-release | grep '^DISTRIB_RELEASE' | awk -F=  '{ print $2 }'`
+			#elif [ -f /etc/... ]
+			#	...
+			#then
+			else
+				NEST_IN__OS=unknown
+				NEST_IN__LINUX_BASED_ON=unknown
+				NEST_IN__LINUX_DISTRIBUTION=unknown
+				NEST_IN__OS_VERSION=unknown
+			fi
+			;;
+
+		cygwin)
+			NEST_IN__OS=cygwin
+			NEST_IN__LINUX_BASED_ON=''
+			NEST_IN__LIINUX_DISTRIBUTION=''
+			NEST_IN__OS_VERSION=''
+			;;
+
+		msys)
+			NEST_IN__OS=msys
+			NEST_IN__LINUX_BASED_ON=''
+			NEST_IN__LINUX_DISTRIBUTION=''
+			NEST_IN__OS_VERSION=''
+			;;
+	esac
+
+	readonly \
+		NEST_IN__OS \
+		NEST_IN__LINUX_BASED_ON \
+		NEST_IN__LINUX_DISTRIBUTION \
+		NEST_IN__OS_VERSION
+}
+
+is-callable()
+{
+	local program=$1
+
+	local type_of_object=$(type -tp "$program")
+	[[ $type_of_object == file ]] || [[ $type_of_object == function ]]
+}
+
+macos()
+{
+	local version=$1
+
+	[[ $NEST_IN__OS == 'macos' ]] &&
+	if [ -n "$version" ]
+	then
+		[[ $NEST_IN__OS_VERSION == $version* ]]
+	fi
+}
+
+linux()
+{
+	local based_on=$1
+	local distribution=$2
+	local version=$3
+
+	[[ $NEST_IN__OS == 'linux' ]] &&
+	if [ -n "$based_on" ]
+	then
+		[[ $NEST_IN__LINUX_BASED_ON == $based_on ]]
+	fi &&
+	if [ -n "$distribution" ]
+	then
+		[[ $NEST_IN__LINUX_DISTRIBUTION == $distribution ]]
+	fi &&
+	if [ -n "$version" ]
+	then
+		[[ $NEST_IN__OS_VERSION == $version* ]]
+	fi
+}
+
+debian()
+{
+	[[ $NEST_IN__LINUX_DISTRIBUTION == 'debian' ]]
+}
+
+ubuntu()
+{
+	local version=$1
+
+	[[ $NEST_IN__OS == 'ubuntu' ]] &&
+	if [ -n "$version" ]
+	then
+		[[ $NEST_IN__OS_VERSION == $version* ]]
+	fi
+}
+
+elementary()
+{
+	local version=$1
+
+	[[ $NEST_IN__OS == 'elementary' ]] &&
+	if [ -n "$version" ]
+	then
+		[[ $NEST_IN__OS_VERSION == $version* ]]
+	fi
+}
+
+cygwin()
+{
+	[[ $NEST_IN__OS == 'cygwin' ]]
+}
+
+has-apt()
+{
+	is-callable apt
+}
+
+has-pacman()
+{
+	is-callable packman
+}
+
+has-nix()
+{
+	is-callable nix
+}
+
+has-yum()
+{
+	is-callable yum
+}
+
+#
 # Functions
 
 readonly PARAMETER_TYPE_OPTION=1
@@ -241,9 +386,9 @@ is-target-declaration()
 
 	# Example
 	# target-name / dependency-name [condition:value] [condition]
-	#                                                     (                                       |                                          |                            )
-	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*\/([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]]+\:[[:alnum:]]+\]|[[:blank:]]+\[[[:alpha:]]+\])+[[:blank:]]*$ ]]
-	#            target-name................             /             dependency-name............              [requirement. :value....... ]              [requirement]..
+	#                                                     (                                       |                                                  |                               )
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*\/([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])+[[:blank:]]*$ ]]
+	#            target-name................             /             dependency-name............              [requirement.... :value..........]                 [requirement.... ]
 }
 
 is-scenario-declaration()
@@ -285,6 +430,8 @@ extract-reqs-and-deps()
 	do
 		if [ "${token:0:1}" == '[' ]
 		then
+			token=${token#[}
+			token=${token%]}
 			EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS+=("$token")
 		else
 			EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES+=("$token")
@@ -390,6 +537,25 @@ set-target-dependencies()
 	eval "NEST_IN__DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
 }
 
+target-has-requirements()
+{
+	local target=$1
+
+	local variable_name=$(variable-name-from-target "$target")
+	local has_requirements="NEST_IN__HAS_REQUIREMENTS_${variable_name}"
+	[[ ${!has_requirements} != '' ]] && [[ ${!has_requirements} == 0 ]]
+}
+
+set-target-has-requirements()
+{
+	local target=$1
+	local value=$2
+
+	local variable_name=$(variable-name-from-target "$target")
+	local has_requirements="NEST_IN__HAS_REQUIREMENTS_${variable_name}"
+	printf -v "$has_requirements" '%s' $value
+}
+
 TARGET_SCENARIO_RETURN__SCENARIO=''
 target-scenario()
 {
@@ -474,8 +640,28 @@ next-non-empty-line()
 	done
 }
 
+skip-scenario()
+{
+	local descriptor=$1
+
+	while true
+	do
+		file-peek-line $descriptor
+		if [ $? != 0 ]
+		then
+			return 1
+		fi
+
+		if ! is-scenario-declaration "$PEEK_FILE_RETURN__LINE"
+		then
+			break
+		fi
+
+		file-read-line $descriptor
+	done
+}
+
 readonly READ_TARGET_SCENARIO_CODE__BAD_SYNTAX=1
-readonly READ_TARGET_SCENARIO_CODE__EOF=2
 READ_TARGET_SCENARIO_RETURN__SCENARIO=''
 read-target-scenario()
 {
@@ -486,17 +672,12 @@ read-target-scenario()
 	while true
 	do
 		file-read-line $descriptor
-		if [ $? != 0 ]
-		then
-			return $READ_TARGET_SCENARIO_CODE__EOF
-		fi
-
-		local line="$READ_FILE_RETURN__LINE"
-		if [ -z "$line" ]
+		if [ $? != 0 ] || [ -z "$READ_FILE_RETURN__LINE" ]
 		then
 			return
 		fi
 
+		local line="$READ_FILE_RETURN__LINE"
 		READ_TARGET_SCENARIO_RETURN__SCENARIO+="$line"$'\n'
 
 		if ! is-scenario-declaration "$line"
@@ -521,6 +702,15 @@ predicate-from-requirement()
 	IFS="$old_IFS"
 }
 
+predicate-defined()
+{
+	local name=$1
+
+	declare -f "$name" > /dev/null
+}
+
+readonly CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME=255
+CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME=''
 check-requirements()
 {
 	local requirements=("$@")
@@ -529,6 +719,12 @@ check-requirements()
 	do
 		predicate-from-requirement "$requirement"
 		local predicate=("${PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE[@]}")
+		if ! predicate-defined "${predicate[0]}"
+		then
+			CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME="${predicate[0]}"
+			return $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME
+		fi
+
 		if ! "${predicate[@]}"
 		then
 			return 1
@@ -548,51 +744,107 @@ gather-twigs()
 
 	while true
 	do
-		local target
-		while true
-		do
-			next-non-empty-line $descriptor &&
-			file-peek-line $descriptor &&
-			is-target-declaration "$PEEK_FILE_RETURN__LINE" &&
-			file-read-line $descriptor
+		next-non-empty-line $descriptor &&
+		file-peek-line $descriptor
+		if [ $? != 0 ]
+		then
+			break
+		fi
+
+		local line="$PEEK_FILE_RETURN__LINE"
+		if ! is-target-declaration "$line"
+		then
+			# TODO: Add note about declaration syntax
+			printf-error 'declaration expected\n> %s %d| %s' "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$line"
+			return 1
+		fi
+
+		file-read-line $descriptor
+		line="$READ_FILE_RETURN__LINE"
+		extract-target "$line"
+		local target="$EXTRACT_TARGET_RETURN__TARGET"
+
+		extract-reqs-and-deps "$line"
+		local dependencies=("${EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES[@]}")
+		local requirements=("${EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS[@]}")
+
+		check-requirements "${requirements[@]}"
+		local requirements_fulfilled=$?
+		if [ $requirements_fulfilled == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		then
+			printf-error 'unknown requirement "%s" for "%s"\n> %s %d| %s' "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" "$target" "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$line"
+			return 1
+		fi
+
+		if [ $requirements_fulfilled != 0 ]
+		then
+			skip-scenario $descriptor
 			if [ $? != 0 ]
 			then
 				break
 			fi
 
-			local line="$READ_FILE_RETURN__LINE"
-			extract-target "$line"
-			target="$EXTRACT_TARGET_RETURN__TARGET"
-
-			extract-reqs-and-deps "$line"
-			local dependencies=("${EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES[@]}")
-			set-target-dependencies "$target" "${dependencies[@]}"
-
-			GATHER_TWIGS_RETURN__TARGETS+=("$target")
-			unmark-target "$target" # basically create information about mark
-		done
-
-		if [ -n "$PEEK_FILE_RETURN__LINE" ] && ! is-scenario-declaration "$PEEK_FILE_RETURN__LINE"
-		then
-			printf-error '%s:%d, unkown declaration "%s"\n'"$NEST_IN__SYNTAX_NOTE" "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$PEEK_FILE_RETURN__LINE"
-			exit 1
+			continue
 		fi
 
-		read-target-scenario $descriptor
-		local retval=$?
-		if [ $retval == $READ_TARGET_SCENARIO_CODE__BAD_SYNTAX ]
+		if is-target-marked "$target"
 		then
-			printf-error '%s:%d, malformed scenario for target "%s":\n%s\n'"$NEST_IN__SYNTAX_NOTE" "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$target" "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
-			exit 1
-		elif [ $retval == $READ_TARGET_SCENARIO_CODE__EOF ]
+			if target-has-requirements "$target" && [[ ${#requirements[@]} > 0 ]]
+			then
+				printf-error 'several declarations of "%s" have requirements fulfilled' "$target"
+				return 1
+			fi
+
+			if ! target-has-requirements "$target" && [[ ${#requirements[@]} == 0 ]]
+			then
+				printf-error 'duplicate declaration for "%s"\n> %s %d| %s' "$target" "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$line"
+				return 1
+			fi
+
+			if target-has-requirements "$target" && [[ ${#requirements[@]} == 0 ]]
+			then
+				skip-scenario $descriptor
+				if [ $? != 0 ]
+				then
+					break
+				fi
+
+				continue
+			fi
+		fi
+
+		set-target-dependencies "$target" "$dependencies"
+		[[ ${#requirements[@]} > 0 ]]
+		set-target-has-requirements "$target" $?
+
+		GATHER_TWIGS_RETURN__TARGETS+=("$target")
+		mark-target "$target"
+
+		file-peek-line $descriptor
+		if [ $? != 0 ]
 		then
 			break
 		fi
 
+		line="$PEEK_FILE_RETURN__LINE"
+		if ! is-scenario-declaration "$line"
+		then
+			continue
+		fi
+
+		read-target-scenario $descriptor
+		if [ $? == $READ_TARGET_SCENARIO_CODE__BAD_SYNTAX ]
+		then
+			# TODO: Show file and line info
+			printf-error 'malformed scenario for "%s":\n%s\n'"$NEST_IN__SYNTAX_NOTE" "$target" "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
+			return 1
+		fi
+
 		set-target-scenario "$target" "$READ_TARGET_SCENARIO_RETURN__SCENARIO"
 	done
-
 	IFS="$old_IFS"
+
+	unmark-targets "${GATHER_TWIGS_RETURN__TARGETS[@]}"
 }
 
 check-all-targets-exist()
@@ -609,7 +861,7 @@ check-all-targets-exist()
 		do
 			if ! array-contains-item "$dependency" "${targets[@]}"
 			then
-				printf-error 'unknown dependency "%s" for target "%s"' "$dependency" "$target"
+				printf-error 'unknown dependency "%s" for "%s"; or not all requirements were fulfilled for "%s"' "$dependency" "$target" "$dependency"
 				any_errors=true
 			fi
 		done
