@@ -460,6 +460,18 @@ extract-reqs-and-deps()
 	IFS="$old_IFS"
 }
 
+TRIM_STRING_RETURN__STRING=''
+trim-string()
+{
+	local string=$1
+
+	TRIM_STRING_RETURN__STRING=''
+
+    string="${string#"${string%%[![:space:]]*}"}"
+    string="${string%"${string##*[![:space:]]}"}"
+	TRIM_STRING_RETURN__STRING="$string"
+}
+
 array-contains-item()
 {
 	local item=$1
@@ -597,22 +609,22 @@ set-target-has-requirements()
 	printf -v "$has_requirements" '%s' $value
 }
 
-TARGET_SCRIPT_RETURN__SCRIPT=''
+TARGET_SCRIPT_RETURN__SCRIPT=()
 target-script()
 {
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\$NEST_IN__SCRIPT_${variable_name}\")"
+	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\${NEST_IN__SCRIPT_${variable_name}[@]}\")"
 }
 
 set-target-script()
 {
 	local target=$1
-	local script=$2
+	local script=("${@:2}")
 
 	local variable_name=$(variable-name-from-target "$target")
-	printf -v "NEST_IN__SCRIPT_${variable_name}" '%s' "$script"
+	eval "NEST_IN__SCRIPT_${variable_name}=(\"\${script[@]}\")"
 }
 
 FILE_READ_LINE_RETURN__LINE_NUMBER=0
@@ -703,12 +715,12 @@ skip-script-declaration()
 }
 
 readonly READ_TARGET_SCRIPT_CODE__BAD_SYNTAX=1
-READ_TARGET_SCRIPT_RETURN__SCRIPT=''
+READ_TARGET_SCRIPT_RETURN__SCRIPT=()
 read-target-script()
 {
 	local descriptor=$1
 
-	READ_TARGET_SCRIPT_RETURN__SCRIPT=''
+	READ_TARGET_SCRIPT_RETURN__SCRIPT=()
 
 	while true
 	do
@@ -719,7 +731,8 @@ read-target-script()
 		fi
 
 		local line="$FILE_READ_LINE_RETURN__LINE"
-		READ_TARGET_SCRIPT_RETURN__SCRIPT+="$line"$'\n'
+		trim-string "$line"
+		READ_TARGET_SCRIPT_RETURN__SCRIPT+=("$TRIM_STRING_RETURN__STRING")
 
 		if ! is-script-declaration "$line"
 		then
@@ -781,7 +794,7 @@ gather-twigs()
 	GATHER_TWIGS_RETURN__TARGETS=()
 
 	local old_IFS="$IFS"
-	IFS=$'\n'
+	IFS=
 
 	while true
 	do
@@ -894,14 +907,16 @@ gather-twigs()
 		fi
 
 		read-target-script $descriptor
+		local script=("${READ_TARGET_SCRIPT_RETURN__SCRIPT[@]}")
 		if [ $? == $READ_TARGET_SCRIPT_CODE__BAD_SYNTAX ]
 		then
-			printf-error 'bad script format for "%s":\n%s\n'"$NEST_IN__SCRIPT_SYNTAX_NOTE" \
-				"$target" "$READ_TARGET_SCRIPT_RETURN__SCRIPT"
+			printf-error 'bad script format for "%s":' "$target"
+			printf-stderr '%s\n' "${script[@]}"
+			printf-stderr "\n$NEST_IN__SCRIPT_SYNTAX_NOTE"
 			return 1
 		fi
 
-		set-target-script "$target" "$READ_TARGET_SCRIPT_RETURN__SCRIPT"
+		set-target-script "$target" "${script[@]}"
 	done
 	IFS="$old_IFS"
 
@@ -1034,8 +1049,8 @@ show-scripts()
 	printf "${NEST_IN__TS_U}%s${NEST_IN__TS_N}\n" "$target"
 
 	target-script "$target"
-	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
-	printf '%s' "$script"
+	local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
+	printf '  %s\n' "${script[@]}"
 
 	for target in "${targets[@]:1}"
 	do
@@ -1043,17 +1058,28 @@ show-scripts()
 		printf "${NEST_IN__TS_U}%s${NEST_IN__TS_N}\n" "$target"
 
 		target-script "$target"
-		local script="$TARGET_SCRIPT_RETURN__SCRIPT"
-		printf '%s' "$script"
+		local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
+		printf '  %s\n' "${script[@]}"
 	done
 }
 
+EXEC_SCRIPT_RETURN__FAILED_LINE=''
 exec-script()
 {
-	# hiding local variables,
-	# and allowing exiting script with 'return'
+	local nest_in__script=("$@")
 
-	eval "$1"
+	EXEC_SCRIPT_RETURN__FAILED_LINE=''
+
+	local nest_in__line
+	for nest_in__line in "${nest_in__script[@]}"
+	do
+		eval "$nest_in__line"
+		if [ $? != 0 ]
+		then
+			EXEC_SCRIPT_RETURN__FAILED_LINE="$nest_in__line"
+			return 1
+		fi
+	done
 }
 
 start-nesting-impl()
@@ -1081,15 +1107,14 @@ start-nesting-impl()
 		fi
 
 		target-script "$target"
-		local script="$TARGET_SCRIPT_RETURN__SCRIPT"
-
-		if [ -n "$script" ]
+		local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
+		if [[ ${#script[@]} > 0 ]]
 		then
 			printf-nest-in-message 'working on %s...' "$target"
-			exec-script "$script"
+			exec-script "${script[@]}"
 			if [ $? != 0 ]
 			then
-				printf-error 'failed to install "%s"' "$target"
+				printf-error 'failed to install "%s"\nthe following command failed:\n> %s' "$target" "$EXEC_SCRIPT_RETURN__FAILED_LINE"
 				return 1
 			fi
 		fi
