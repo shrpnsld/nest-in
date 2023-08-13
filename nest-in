@@ -574,48 +574,48 @@ set-target-scenario()
 	printf -v "NEST_IN__SCENARIO_${variable_name}" '%s' "$scenario"
 }
 
-READ_FILE_RETURN__LINE_NUMBER=0
+FILE_READ_LINE_RETURN__LINE_NUMBER=0
 
-PEEK_FILE_RETURN__LINE=''
-PEEK_FILE_RETURN__PEEKED=false
+FILE_PEEK_LINE_RETURN__LINE=''
+FILE_PEEK_LINE_RETURN__PEEKED=false
 file-peek-line()
 {
 	local descriptor=$1
 
-	if ! $PEEK_FILE_RETURN__PEEKED
+	if ! $FILE_PEEK_LINE_RETURN__PEEKED
 	then
-		read -u $descriptor -r PEEK_FILE_RETURN__LINE
+		read -u $descriptor -r FILE_PEEK_LINE_RETURN__LINE
 		if [ $? != 0 ]
 		then
-			PEEK_FILE_RETURN__PEEKED=false
+			FILE_PEEK_LINE_RETURN__PEEKED=false
 			return 1
 		fi
 
-		PEEK_FILE_RETURN__PEEKED=true
-		(( ++READ_FILE_RETURN__LINE_NUMBER ))
+		FILE_PEEK_LINE_RETURN__PEEKED=true
+		(( ++FILE_READ_LINE_RETURN__LINE_NUMBER ))
 	fi
 }
 
-READ_FILE_RETURN__LINE=''
+FILE_READ_LINE_RETURN__LINE=''
 file-read-line()
 {
 	local descriptor=$1
 
-	if $PEEK_FILE_RETURN__PEEKED
+	if $FILE_PEEK_LINE_RETURN__PEEKED
 	then
-		READ_FILE_RETURN__LINE="$PEEK_FILE_RETURN__LINE"
-		PEEK_FILE_RETURN__LINE=''
-		PEEK_FILE_RETURN__PEEKED=false
+		FILE_READ_LINE_RETURN__LINE="$FILE_PEEK_LINE_RETURN__LINE"
+		FILE_PEEK_LINE_RETURN__LINE=''
+		FILE_PEEK_LINE_RETURN__PEEKED=false
 	else
-		read -u $descriptor -r READ_FILE_RETURN__LINE
+		read -u $descriptor -r FILE_READ_LINE_RETURN__LINE
 		if [ $? != 0 ]
 		then
 			return 1
 		fi
 
-		PEEK_FILE_RETURN__LINE=''
-		PEEK_FILE_RETURN__PEEKED=false
-		(( ++READ_FILE_RETURN__LINE_NUMBER ))
+		FILE_PEEK_LINE_RETURN__LINE=''
+		FILE_PEEK_LINE_RETURN__PEEKED=false
+		(( ++FILE_READ_LINE_RETURN__LINE_NUMBER ))
 	fi
 }
 
@@ -631,7 +631,7 @@ next-non-empty-line()
 			return 1
 		fi
 
-		if [ -n "$PEEK_FILE_RETURN__LINE" ]
+		if [ -n "$FILE_PEEK_LINE_RETURN__LINE" ]
 		then
 			break
 		fi
@@ -652,7 +652,7 @@ skip-scenario()
 			return 1
 		fi
 
-		if ! is-scenario-declaration "$PEEK_FILE_RETURN__LINE"
+		if ! is-scenario-declaration "$FILE_PEEK_LINE_RETURN__LINE"
 		then
 			break
 		fi
@@ -672,12 +672,12 @@ read-target-scenario()
 	while true
 	do
 		file-read-line $descriptor
-		if [ $? != 0 ] || [ -z "$READ_FILE_RETURN__LINE" ]
+		if [ $? != 0 ] || [ -z "$FILE_READ_LINE_RETURN__LINE" ]
 		then
 			return
 		fi
 
-		local line="$READ_FILE_RETURN__LINE"
+		local line="$FILE_READ_LINE_RETURN__LINE"
 		READ_TARGET_SCENARIO_RETURN__SCENARIO+="$line"$'\n'
 
 		if ! is-scenario-declaration "$line"
@@ -751,16 +751,16 @@ gather-twigs()
 			break
 		fi
 
-		local line="$PEEK_FILE_RETURN__LINE"
+		local line="$FILE_PEEK_LINE_RETURN__LINE"
 		if ! is-target-declaration "$line"
 		then
 			# TODO: Add note about declaration syntax
-			printf-error 'declaration expected\n> %s %d| %s' "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$line"
+			printf-error 'declaration expected\n> %s %d| %s' "$NEST_IN__TWIGS_PATH" $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
 			return 1
 		fi
 
 		file-read-line $descriptor
-		line="$READ_FILE_RETURN__LINE"
+		line="$FILE_READ_LINE_RETURN__LINE"
 		extract-target "$line"
 		local target="$EXTRACT_TARGET_RETURN__TARGET"
 
@@ -772,7 +772,7 @@ gather-twigs()
 		local requirements_fulfilled=$?
 		if [ $requirements_fulfilled == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
 		then
-			printf-error 'unknown requirement "%s" for "%s"\n> %s %d| %s' "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" "$target" "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$line"
+			printf-error 'unknown requirement "%s" for "%s"\n> %s %d| %s' "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" "$target" "$NEST_IN__TWIGS_PATH" $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
 			return 1
 		fi
 
@@ -797,7 +797,7 @@ gather-twigs()
 
 			if ! target-has-requirements "$target" && [[ ${#requirements[@]} == 0 ]]
 			then
-				printf-error 'duplicate declaration for "%s"\n> %s %d| %s' "$target" "$NEST_IN__TWIGS_PATH" $READ_FILE_RETURN__LINE_NUMBER "$line"
+				printf-error 'duplicate declaration for "%s"\n> %s %d| %s' "$target" "$NEST_IN__TWIGS_PATH" $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
 				return 1
 			fi
 
@@ -826,7 +826,7 @@ gather-twigs()
 			break
 		fi
 
-		line="$PEEK_FILE_RETURN__LINE"
+		line="$FILE_PEEK_LINE_RETURN__LINE"
 		if ! is-scenario-declaration "$line"
 		then
 			continue
