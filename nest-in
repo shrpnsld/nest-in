@@ -83,6 +83,24 @@ do-the-work()
 	"$NEST_IN__DO_THE_WORK" "$@"
 }
 
+NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES=:
+deal-with-show-target-dependencies()
+{
+	"$NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES" "$@"
+}
+
+NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE=(:)
+deal-with-show-target-dependencies-newline()
+{
+	"${NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE[@]}"
+}
+
+NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT=:
+deal-with-show-target-script()
+{
+	"$NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT" "$@"
+}
+
 NEST_IN__DEAL_WITH_SCRIPT=exec-script
 deal-with-script()
 {
@@ -274,11 +292,13 @@ parse-option()
 
 	case "$option" in
 		d)
-			NEST_IN__DO_THE_WORK=show-dependencies
+			NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES=show-target-dependencies
+			NEST_IN__DO_THE_WORK=show-targets
 			;;
 
 		s)
-			NEST_IN__DO_THE_WORK=show-scripts
+			NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT=show-target-script
+			NEST_IN__DO_THE_WORK=show-targets
 			;;
 
 		n)
@@ -451,6 +471,11 @@ validate-and-apply-options()
 		fi
 
 		NEST_IN__TWIGS_DESCRIPTOR=3
+	fi
+
+	if [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES" != ':' ] && [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT" == ':' ]
+	then
+		NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE=(printf '\n')
 	fi
 
 	if [ "$NEST_IN__DO_THE_WORK" == : ]
@@ -677,22 +702,34 @@ target-dependencies()
 	eval "TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=(\"\${NEST_IN__DEPENDENCIES_${variable_name}[@]}\")"
 }
 
-target-dependencies-recursive()
+target-dependencies-recursive-impl()
 {
 	local target=$1
 
 	target-dependencies "$target"
 	local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-	if [[ ${#dependencies[@]} == 0 ]]
+	if [[ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 0 ]]
 	then
 		return
 	fi
 
-	printf '  %s\n' "${dependencies[@]}"
+	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES+=("${dependencies[@]}")
+
 	for dependency in "${dependencies[@]}"
 	do
-		target-dependencies-recursive "$dependency"
+		target-dependencies-recursive-impl "$dependency"
 	done
+}
+
+TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=()
+target-dependencies-recursive()
+{
+	local target=$1
+
+	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=()
+
+	target-dependencies-recursive-impl "$target"
+	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=($(IFS=$'\n' sort <<< "${TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES[*]}" | uniq))
 }
 
 set-target-dependencies()
@@ -1092,41 +1129,54 @@ check-input-targets-exist()
 	done
 }
 
-show-dependencies()
+show-target-dependencies()
 {
-	local targets=("$@")
+	local target=$1
+	local indent=$2
 
-	local target="${targets[0]}"
-	printf "${NEST_IN__TS_U}%s${NEST_IN__TS_N}\n" "$target"
-	target-dependencies-recursive "$target" | sort | uniq
+	target-dependencies-recursive "$target"
+	local dependencies=("${TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES[@]}")
 
-	for target in "${targets[@]:1}"
+	local dependency
+	for dependency in "${dependencies[@]}"
 	do
-		printf '\n'
-		printf "${NEST_IN__TS_U}%s${NEST_IN__TS_N}\n" "$target"
-		target-dependencies-recursive "$target" | sort | uniq
+		printf "\n%s%s" "$indent" "$dependency"
+		deal-with-show-target-script "$dependency" "$indent$indent"
 	done
+
+	deal-with-show-target-dependencies-newline
 }
 
-show-scripts()
+show-target-script()
 {
-	local targets=("$@")
-
-	local target="${targets[0]}"
-	printf "${NEST_IN__TS_U}%s${NEST_IN__TS_N}\n" "$target"
+	local target=$1
+	local indent=$2
 
 	target-script "$target"
 	local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-	printf '  %s\n' "${script[@]}"
+	if [[ ${#script[@]} == 0 ]]
+	then
+		return
+	fi
+
+	printf '\n'
+	printf "$indent"'%s\n' "${script[@]}"
+}
+
+show-targets()
+{
+	local targets=("$@")
+
+	local target="${targets[0]}"
+	printf "%s" "$target"
+	deal-with-show-target-script "$target" '    '
+	deal-with-show-target-dependencies "$target" '    '
 
 	for target in "${targets[@]:1}"
 	do
-		printf '\n'
-		printf "${NEST_IN__TS_U}%s${NEST_IN__TS_N}\n" "$target"
-
-		target-script "$target"
-		local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-		printf '  %s\n' "${script[@]}"
+		printf "\n%s" "$target"
+		deal-with-show-target-script "$target" '    '
+		deal-with-show-target-dependencies "$target" '    '
 	done
 }
 
