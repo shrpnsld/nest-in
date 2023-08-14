@@ -104,7 +104,7 @@ deal-with-show-target-script()
 NEST_IN__DEAL_WITH_SCRIPT=exec-script
 deal-with-script()
 {
-	$NEST_IN__DEAL_WITH_SCRIPT "$@"
+	"$NEST_IN__DEAL_WITH_SCRIPT" "$@"
 }
 
 #
@@ -370,6 +370,32 @@ parse-arguments()
 	done
 }
 
+validate-and-apply-options()
+{
+	if [ -z "$NEST_IN__TWIGS_PATH" ]
+	then
+		NEST_IN__TWIGS_DESCRIPTOR=0
+	else
+		open-twigs-file "$NEST_IN__TWIGS_PATH" >/dev/null 2>&1
+		if [ $? != 0 ]
+		then
+			printf-error 'failed to open config file "%s"' "$NEST_IN__TWIGS_PATH"
+		fi
+
+		NEST_IN__TWIGS_DESCRIPTOR=3
+	fi
+
+	if [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES" != ':' ] && [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT" == ':' ]
+	then
+		NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE=(printf '\n')
+	fi
+
+	if [ "$NEST_IN__DO_THE_WORK" == : ]
+	then
+		NEST_IN__DO_THE_WORK=start-nesting
+	fi
+}
+
 max-number()
 {
 	local first=$1
@@ -456,32 +482,6 @@ next-non-empty-line()
 
 		file-read-line $descriptor
 	done
-}
-
-validate-and-apply-options()
-{
-	if [ -z "$NEST_IN__TWIGS_PATH" ]
-	then
-		NEST_IN__TWIGS_DESCRIPTOR=0
-	else
-		open-twigs-file "$NEST_IN__TWIGS_PATH" >/dev/null 2>&1
-		if [ $? != 0 ]
-		then
-			printf-error 'failed to open config file "%s"' "$NEST_IN__TWIGS_PATH"
-		fi
-
-		NEST_IN__TWIGS_DESCRIPTOR=3
-	fi
-
-	if [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES" != ':' ] && [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT" == ':' ]
-	then
-		NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE=(printf '\n')
-	fi
-
-	if [ "$NEST_IN__DO_THE_WORK" == : ]
-	then
-		NEST_IN__DO_THE_WORK=start-nesting
-	fi
 }
 
 is-target-declaration()
