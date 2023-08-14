@@ -74,6 +74,7 @@ readonly NEST_IN__DECLARATION_SYNTAX_NOTE=\
 "${NEST_IN__TS_U}Note${NEST_IN__TS_N}:
   - declaration should not be preceeded by any whitespace
   - only one target is allowed per declaration
+  - target name can be followed by a '!'
   - target should be separated with its dependencies and requirements by '/'
   - each requirement shoud be listed inside '[' and ']'"
 
@@ -400,14 +401,14 @@ is-target-declaration()
 
 	# Example
 	# target-name
-	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*$ ]] ||
-	#            target-name...............
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*$ ]] ||
+	#            target-name...............             !
 
 	# Example
 	# target-name / dependency-name [condition:value] [condition]
 	#                                                     (                                       |                                                  |                               )
-	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*\/([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])+[[:blank:]]*$ ]]
-	#            target-name................             /             dependency-name............              [requirement.... :value..........]                 [requirement.... ]
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])+[[:blank:]]*$ ]]
+	#            target-name................            !              /             dependency-name............              [requirement.... :value..........]                 [requirement.... ]
 }
 
 is-script-declaration()
@@ -418,10 +419,15 @@ is-script-declaration()
 }
 
 EXTRACT_TARGET_RETURN__TARGET=''
+EXTRACT_TARGET_RETURN__IS_DESIGNATED=false
 extract-target()
 {
 	local line=$1
 
+	[[ $line == *!* ]]
+	EXTRACT_TARGET_RETURN__IS_DESIGNATED=$?
+
+	line="${line%%!*}"
 	EXTRACT_TARGET_RETURN__TARGET="${line%% *}"
 }
 
@@ -787,11 +793,13 @@ check-requirements()
 }
 
 GATHER_TWIGS_RETURN__TARGETS=()
+GATHER_TWIGS_RETURN__DESIGNATED_TARGETS=()
 gather-twigs()
 {
 	local descriptor=$1
 
 	GATHER_TWIGS_RETURN__TARGETS=()
+	GATHER_TWIGS_RETURN__DESIGNATED_TARGETS=()
 
 	local old_IFS="$IFS"
 	IFS=
@@ -817,6 +825,7 @@ gather-twigs()
 		line="$FILE_READ_LINE_RETURN__LINE"
 		extract-target "$line"
 		local target="$EXTRACT_TARGET_RETURN__TARGET"
+		local is_explicit=$EXTRACT_TARGET_RETURN__IS_DESIGNATED
 
 		extract-reqs-and-deps "$line"
 		local dependencies=("${EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES[@]}")
@@ -891,7 +900,12 @@ gather-twigs()
 
 		set-target-declaration "$target" "$line" $FILE_READ_LINE_RETURN__LINE_NUMBER
 
-		GATHER_TWIGS_RETURN__TARGETS+=("$target")
+		if [ $is_explicit == 0 ]
+		then
+			GATHER_TWIGS_RETURN__DESIGNATED_TARGETS+=("$target")
+		else
+			GATHER_TWIGS_RETURN__TARGETS+=("$target")
+		fi
 		mark-target "$target"
 
 		file-peek-line $descriptor
@@ -920,7 +934,7 @@ gather-twigs()
 	done
 	IFS="$old_IFS"
 
-	unmark-targets "${GATHER_TWIGS_RETURN__TARGETS[@]}"
+	unmark-targets "${GATHER_TWIGS_RETURN__TARGETS[@]}" "${GATHER_TWIGS_RETURN__DESIGNATED_TARGETS[@]}"
 }
 
 check-all-targets-exist()
@@ -1157,10 +1171,11 @@ gather-system-info
 	fi
 
 	gathered_targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
+	gathered_explicit_targets=("${GATHER_TWIGS_RETURN__DESIGNATED_TARGETS[@]}")
 
-	check-all-targets-exist "${gathered_targets[@]}" &&
-	check-theres-no-circular-dependencies "${gathered_targets[@]}" &&
-	check-input-targets-exist "${gathered_targets[@]}"
+	check-all-targets-exist "${gathered_targets[@]}" "${gathered_explicit_targets[@]}" &&
+	check-theres-no-circular-dependencies "${gathered_targets[@]}" "${gathered_explicit_targets[@]}" &&
+	check-input-targets-exist "${gathered_targets[@]}" "${gathered_explicit_targets[@]}"
 	if [ $? != 0 ]
 	then
 		exit 1
