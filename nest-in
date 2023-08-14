@@ -70,20 +70,6 @@ readonly NEST_IN__CONFIG_DIR_PATH="$HOME/.config/$NEST_IN__SCRIPT_NAME"
 readonly NEST_IN__CONFIG_FILE_NAME='twigs.txt'
 readonly NEST_IN__DEFAULT_TWIGS_PATH="$NEST_IN__CONFIG_DIR_PATH/$NEST_IN__CONFIG_FILE_NAME"
 
-readonly NEST_IN__DECLARATION_SYNTAX_NOTE=\
-"${NEST_IN__TS_U}Note${NEST_IN__TS_N}:
-  - declaration should not be preceeded by any whitespace
-  - only one target is allowed per declaration
-  - target name can be followed by a '!' (except special targets '+' and '-')
-  - target should be separated with its dependencies and requirements by '/'
-  - each requirement shoud be listed inside '[' and ']'"
-
-readonly NEST_IN__SCRIPT_SYNTAX_NOTE=\
-"${NEST_IN__TS_U}Note${NEST_IN__TS_N}:
-  - commands in script should be preceeded by any-sort of whitespace
-  - script should end with a blank line"
-
-
 #
 # Options
 
@@ -406,22 +392,23 @@ is-target-declaration()
 
 	# Example
 	# target-name! / [condition:value] [condition] another-target and-another
-	#                                                                   (                                       |                                                  |                               )
-	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])+[[:blank:]]*$ ]] ||
-	#            target-name................            !              /             dependency-name............              [requirement.... :value............ ]              [requirement.... ]
+	#                                                                               (                           |                                      |                   )(                                       |                                                  |                               )
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/[[:blank:]]*([[:alpha:]]+[[:alnum:]_\-]*|\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*[[:blank:]]*$ ]] ||
+	#            target-name................            !              /             dependency-name............  [requirement.... :value............ ]  [requirement.... ]              dependency-name............              [requirement.... :value............ ]              [requirement.... ]
 
 	[[ $line =~ ^(\+|\-)[[:blank:]]*$ ]] ||
 
-	#            (  |  )              (                                                  |                               )
-	[[ $line =~ ^(\+|\-)[[:blank:]]*\/([[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])+ ]]
-	#              +  -              /              [requirement.... :value............ ]              [requirement.... ]
+	# Example + / [condition] [another-one]
+	#            (  |  )                          (                                      |                   )(                                                  |                               )
+	[[ $line =~ ^(\+|\-)[[:blank:]]*\/[[:blank:]]*(\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*$ ]]
+	#              +  -              /              [requirement.... :value............ ]  [requirement.... ]               [requirement.... :value............ ]              [requirement.... ]
 }
 
 is-script-declaration()
 {
 	local line=$1
 
-	[[ $line =~ ^[[:blank:]]+[^[:blank:]]+.*$ ]]
+	[ -z "$line" ] || [[ $line =~ ^[[:blank:]]+.*$ ]]
 }
 
 EXTRACT_TARGET_RETURN__TARGET=''
@@ -430,9 +417,7 @@ extract-target()
 {
 	local line=$1
 
-	[[ $line == *!* ]]
-	EXTRACT_TARGET_RETURN__IS_DESIGNATED=$?
-
+	line="${line%%/*}"
 	line="${line%%!*}"
 	EXTRACT_TARGET_RETURN__TARGET="${line%% *}"
 }
@@ -762,10 +747,13 @@ skip-script-declaration()
 		fi
 
 		file-read-line $descriptor
+		if [ $? != 0 ]
+		then
+			return 1
+		fi
 	done
 }
 
-readonly READ_TARGET_SCRIPT_CODE__BAD_SYNTAX=1
 READ_TARGET_SCRIPT_RETURN__SCRIPT=()
 read-target-script()
 {
@@ -775,19 +763,28 @@ read-target-script()
 
 	while true
 	do
-		file-read-line $descriptor
-		if [ $? != 0 ] || [ -z "$FILE_READ_LINE_RETURN__LINE" ]
+		file-peek-line $descriptor
+		if [ $? != 0 ]
 		then
 			return
 		fi
 
-		local line="$FILE_READ_LINE_RETURN__LINE"
-		trim-string "$line"
-		READ_TARGET_SCRIPT_RETURN__SCRIPT+=("$TRIM_STRING_RETURN__STRING")
-
-		if ! is-script-declaration "$line"
+		if ! is-script-declaration "$FILE_PEEK_LINE_RETURN__LINE"
 		then
-			return $READ_TARGET_SCRIPT_CODE__BAD_SYNTAX
+			break
+		fi
+
+		file-read-line $descriptor
+		if [ $? != 0 ]
+		then
+			return
+		fi
+
+		trim-string "$FILE_READ_LINE_RETURN__LINE"
+		local line="${TRIM_STRING_RETURN__STRING}"
+		if [ -n "$line" ]
+		then
+			READ_TARGET_SCRIPT_RETURN__SCRIPT+=("$line")
 		fi
 	done
 }
@@ -861,7 +858,7 @@ gather-twigs()
 		local line="$FILE_PEEK_LINE_RETURN__LINE"
 		if ! is-target-declaration "$line"
 		then
-			printf-error 'bad declaration format\n> %s %d| %s\n\n'"$NEST_IN__DECLARATION_SYNTAX_NOTE" \
+			printf-error 'bad declaration format\n> %s %d| %s' \
 				"$NEST_IN__TWIGS_PATH" $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
 			return 1
 		fi
@@ -979,12 +976,9 @@ gather-twigs()
 
 		read-target-script $descriptor
 		local script=("${READ_TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-		if [ $? == $READ_TARGET_SCRIPT_CODE__BAD_SYNTAX ]
+		if [ $? != 0 ]
 		then
-			printf-error 'bad script format for "%s":' $(normalize-target-name "$target")
-			printf-stderr '%s\n' "${script[@]}"
-			printf-stderr "\n$NEST_IN__SCRIPT_SYNTAX_NOTE"
-			return 1
+			break
 		fi
 
 		set-target-script "$target" "${script[@]}"
