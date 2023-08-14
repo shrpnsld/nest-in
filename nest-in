@@ -40,9 +40,9 @@ printf-message()
 
 printf-nest-in-message()
 {
-	printf-stderr "${NEST_IN__TS_U}$NEST_IN__SCRIPT_NAME${NEST_IN__TS_N}: "
-	printf-stderr "$@"
-	printf-stderr '\n'
+	printf "${NEST_IN__TS_U}$NEST_IN__SCRIPT_NAME${NEST_IN__TS_N}: "
+	printf "$@"
+	printf '\n'
 }
 
 print-help()
