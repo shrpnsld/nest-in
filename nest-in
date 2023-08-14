@@ -405,10 +405,10 @@ is-target-declaration()
 	#            target-name...............             !
 
 	# Example
-	# target-name / dependency-name [condition:value] [condition]
-	#                                                     (                                       |                                                  |                               )
-	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])+[[:blank:]]*$ ]]
-	#            target-name................            !              /             dependency-name............              [requirement.... :value..........]                 [requirement.... ]
+	# target-name! / [condition:value] [condition] another-target and-another
+	#                                                                   (                                       |                                                  |                               )
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])+[[:blank:]]*$ ]] ||
+	#            target-name................            !              /             dependency-name............              [requirement.... :value............ ]              [requirement.... ]
 
 	[[ $line =~ ^(\+|\-)[[:blank:]]*$ ]] ||
 
@@ -1165,11 +1165,11 @@ nest-in-targets()
 			continue
 		fi
 
-		printf-nest-in-message 'resolving dependencies for %s...' "$target"
 		target-dependencies "$target"
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
 		if [ ${#dependencies[@]} != 0 ]
 		then
+			printf-nest-in-message 'resolving dependencies for %s...' "$target"
 			nest-in-targets "${dependencies[@]}"
 			if [ $? != 0 ]
 			then
@@ -1185,7 +1185,7 @@ nest-in-targets()
 			exec-script "${script[@]}"
 			if [ $? != 0 ]
 			then
-				printf-error 'failed to install "%s"\nthe following command failed:\n> %s' "$target" "$EXEC_SCRIPT_RETURN__FAILED_LINE"
+				printf-error 'failed to install "%s"\nthe following command returned non-zero:\n> %s' "$target" "$EXEC_SCRIPT_RETURN__FAILED_LINE"
 				return 1
 			fi
 		fi
