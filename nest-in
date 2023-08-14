@@ -376,13 +376,12 @@ validate-and-apply-options()
 	then
 		NEST_IN__TWIGS_DESCRIPTOR=0
 	else
-		open-twigs-file "$NEST_IN__TWIGS_PATH" >/dev/null 2>&1
+		NEST_IN__TWIGS_DESCRIPTOR=3
+		open-file $NEST_IN__TWIGS_DESCRIPTOR "$NEST_IN__TWIGS_PATH" >/dev/null 2>&1
 		if [ $? != 0 ]
 		then
 			printf-error 'failed to open config file "%s"' "$NEST_IN__TWIGS_PATH"
 		fi
-
-		NEST_IN__TWIGS_DESCRIPTOR=3
 	fi
 
 	if [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES" != ':' ] && [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT" == ':' ]
@@ -409,11 +408,13 @@ max-number()
 	fi
 }
 
-open-twigs-file()
+open-file()
 {
-	local path=$1
+	local descriptor=$1
+	local path=$2
 
-	exec 3< "$path"
+	eval "exec $descriptor< \"$path\""
+	trap "exec $descriptor>&-" EXIT
 }
 
 FILE_READ_LINE_RETURN__LINE_NUMBER=0
