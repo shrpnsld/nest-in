@@ -83,6 +83,12 @@ do-the-work()
 	"$NEST_IN__DO_THE_WORK" "$@"
 }
 
+NEST_IN__DEAL_WITH_SCRIPT=exec-script
+deal-with-script()
+{
+	$NEST_IN__DEAL_WITH_SCRIPT "$@"
+}
+
 #
 # Built-in requirements
 
@@ -273,6 +279,10 @@ parse-option()
 
 		s)
 			NEST_IN__DO_THE_WORK=show-scripts
+			;;
+
+		n)
+			NEST_IN__DEAL_WITH_SCRIPT=:
 			;;
 
 		h)
@@ -1168,7 +1178,7 @@ nest-in-targets()
 		if [[ ${#script[@]} > 0 ]]
 		then
 			printf-nest-in-message 'working on %s...' "$target"
-			exec-script "${script[@]}"
+			deal-with-script "${script[@]}"
 			if [ $? != 0 ]
 			then
 				printf-error 'failed to install "%s"\nthe following command returned non-zero:\n> %s' "$target" "$EXEC_SCRIPT_RETURN__FAILED_LINE"
@@ -1189,7 +1199,7 @@ start-nesting()
 	if [[ ${#script[@]} != 0 ]]
 	then
 		printf-nest-in-message 'first step...'
-		exec-script "${script[@]}"
+		deal-with-script "${script[@]}"
 		if [ $? != 0 ]
 		then
 			printf-error 'first step failed\nthe following command returned non-zero:\n> %s' "$EXEC_SCRIPT_RETURN__FAILED_LINE"
@@ -1208,7 +1218,7 @@ start-nesting()
 	if [[ ${#script[@]} != 0 ]]
 	then
 		printf-nest-in-message 'last step...'
-		exec-script "${script[@]}"
+		deal-with-script "${script[@]}"
 		if [ $? != 0 ]
 		then
 			printf-error 'last step failed\nthe following command returned non-zero:\n> %s' "$EXEC_SCRIPT_RETURN__FAILED_LINE"
