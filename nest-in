@@ -146,7 +146,7 @@ is-callable()
 {
 	local program=$1
 
-	local type_of_object=$(type -tp "$program")
+	local type_of_object=$(type -t "$program")
 	[[ $type_of_object == file ]] || [[ $type_of_object == function ]]
 }
 
