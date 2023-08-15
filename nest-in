@@ -55,6 +55,7 @@ ${NEST_IN__TS_B}OPTIONS${NEST_IN__TS_N}
   [${NEST_IN__TS_U}targets${NEST_IN__TS_N}...]  Specify targets to work with.
   ${NEST_IN__TS_B}-d${NEST_IN__TS_N}            Show dependencies for targets.
   ${NEST_IN__TS_B}-s${NEST_IN__TS_N}            Show scripts for targets.
+  ${NEST_IN__TS_B}-n${NEST_IN__TS_N}            Dry run.
   ${NEST_IN__TS_B}--${NEST_IN__TS_N} ${NEST_IN__TS_U}file${NEST_IN__TS_N}       Read nesting info from ${NEST_IN__TS_U}file${NEST_IN__TS_N}.
   ${NEST_IN__TS_B}--${NEST_IN__TS_N}            Read nesting info from from ${NEST_IN__TS_U}stdin${NEST_IN__TS_N}.
   ${NEST_IN__TS_B}-h${NEST_IN__TS_N}            Show this message.
@@ -160,7 +161,7 @@ gather-system-info()
 		NEST_IN__OS_VERSION
 }
 
-is-callable()
+has()
 {
 	local program=$1
 
@@ -230,26 +231,6 @@ elementary()
 cygwin()
 {
 	[[ $NEST_IN__OS == 'cygwin' ]]
-}
-
-has-apt()
-{
-	is-callable apt
-}
-
-has-pacman()
-{
-	is-callable packman
-}
-
-has-nix()
-{
-	is-callable nix
-}
-
-has-yum()
-{
-	is-callable yum
 }
 
 #
@@ -381,6 +362,7 @@ validate-and-apply-options()
 		if [ $? != 0 ]
 		then
 			printf-error 'failed to open config file "%s"' "$NEST_IN__TWIGS_PATH"
+			return 1
 		fi
 	fi
 
@@ -414,6 +396,11 @@ open-file()
 	local path=$2
 
 	eval "exec $descriptor< \"$path\""
+	if [ $? != 0 ]
+	then
+		return 1
+	fi
+
 	trap "exec $descriptor>&-" EXIT
 }
 
@@ -527,7 +514,7 @@ extract-target()
 
 readonly TARGET_TYPE_CODE__FIRST_STEP=1
 readonly TARGET_TYPE_CODE__LAST_STEP=2
-readonly TARGET_TYPE_CODE__DESIGNATED=3
+readonly TARGET_TYPE_CODE__DEDICATED=3
 readonly TARGET_TYPE_CODE__UNKNOWN=255
 target-type()
 {
@@ -539,7 +526,7 @@ target-type()
 		return $TARGET_TYPE_CODE__LAST_STEP
 	elif [[ $line == *!* ]]
 	then
-		return $TARGET_TYPE_CODE__DESIGNATED
+		return $TARGET_TYPE_CODE__DEDICATED
 	else
 		return $TARGET_TYPE_CODE__UNKNOWN
 	fi
@@ -875,13 +862,13 @@ check-requirements()
 }
 
 GATHER_TWIGS_RETURN__TARGETS=()
-GATHER_TWIGS_RETURN__DESIGNATED_TARGETS=()
+GATHER_TWIGS_RETURN__DEDICATED_TARGETS=()
 gather-twigs()
 {
 	local descriptor=$1
 
 	GATHER_TWIGS_RETURN__TARGETS=()
-	GATHER_TWIGS_RETURN__DESIGNATED_TARGETS=()
+	GATHER_TWIGS_RETURN__DEDICATED_TARGETS=()
 
 	local old_IFS="$IFS"
 	IFS=
@@ -993,9 +980,9 @@ gather-twigs()
 
 		set-target-declaration "$target" "$line" $FILE_READ_LINE_RETURN__LINE_NUMBER
 
-		if [ $target_type == $TARGET_TYPE_CODE__DESIGNATED ]
+		if [ $target_type == $TARGET_TYPE_CODE__DEDICATED ]
 		then
-			GATHER_TWIGS_RETURN__DESIGNATED_TARGETS+=("$target")
+			GATHER_TWIGS_RETURN__DEDICATED_TARGETS+=("$target")
 		elif [ $target_type != $TARGET_TYPE_CODE__FIRST_STEP ] && [ $target_type != $TARGET_TYPE_CODE__LAST_STEP ]
 		then
 			GATHER_TWIGS_RETURN__TARGETS+=("$target")
@@ -1025,7 +1012,7 @@ gather-twigs()
 	done
 	IFS="$old_IFS"
 
-	unmark-targets "${GATHER_TWIGS_RETURN__TARGETS[@]}" "${GATHER_TWIGS_RETURN__DESIGNATED_TARGETS[@]}"
+	unmark-targets "${GATHER_TWIGS_RETURN__TARGETS[@]}" "${GATHER_TWIGS_RETURN__DEDICATED_TARGETS[@]}"
 }
 
 check-all-targets-exist()
@@ -1302,7 +1289,7 @@ gather-system-info
 	fi
 
 	gathered_targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
-	gathered_explicit_targets=("${GATHER_TWIGS_RETURN__DESIGNATED_TARGETS[@]}")
+	gathered_explicit_targets=("${GATHER_TWIGS_RETURN__DEDICATED_TARGETS[@]}")
 
 	check-all-targets-exist "${gathered_targets[@]}" "${gathered_explicit_targets[@]}" &&
 	check-theres-no-circular-dependencies "${gathered_targets[@]}" "${gathered_explicit_targets[@]}" &&
