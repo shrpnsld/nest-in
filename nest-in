@@ -1175,6 +1175,7 @@ exec-script()
 
 	EXEC_SCRIPT_RETURN__FAILED_LINE=''
 
+	local nest_in__pwd="$PWD"
 	local nest_in__line
 	for nest_in__line in "${nest_in__script[@]}"
 	do
@@ -1185,6 +1186,8 @@ exec-script()
 			return 1
 		fi
 	done
+
+	cd "$nest_in__pwd"
 }
 
 nest-in-targets()
