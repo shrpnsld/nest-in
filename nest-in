@@ -122,17 +122,18 @@ gather-system-info()
 			;;
 
 		linux-gnu*)
+			NEST_IN__OS='linux'
 			if [ -f /etc/debian_version ]
 			then
-				NEST_IN__OS='linux'
 				NEST_IN__LINUX_BASED_ON='debian'
 				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | tr '[:upper:]' '[:lower:]')
-				NEST_IN__OS_VERSION=`cat /etc/lsb-release | grep '^DISTRIB_RELEASE' | awk -F=  '{ print $2 }'`
-			#elif [ -f /etc/... ]
-			#	...
-			#then
+				NEST_IN__OS_VERSION=$(cat /etc/lsb-release | grep '^DISTRIB_RELEASE' | awk -F=  '{ print $2 }')
+			elif [ -f /etc/redhdat-release ]
+			then
+				NEST_IN__LINUX_BASED_ON='redhat'
+				NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 } /etc/redhat-release' | tr '[:upper:]' '[:lower:]')
+				NEST_IN__OS_VERSION=$(awk '{ print $3 } /etc/redhat-release')
 			else
-				NEST_IN__OS=unknown
 				NEST_IN__LINUX_BASED_ON=unknown
 				NEST_IN__LINUX_DISTRIBUTION=unknown
 				NEST_IN__OS_VERSION=unknown
@@ -142,7 +143,7 @@ gather-system-info()
 		cygwin)
 			NEST_IN__OS=cygwin
 			NEST_IN__LINUX_BASED_ON=''
-			NEST_IN__LIINUX_DISTRIBUTION=''
+			NEST_IN__LINUX_DISTRIBUTION=''
 			NEST_IN__OS_VERSION=''
 			;;
 
@@ -159,6 +160,15 @@ gather-system-info()
 		NEST_IN__LINUX_BASED_ON \
 		NEST_IN__LINUX_DISTRIBUTION \
 		NEST_IN__OS_VERSION
+}
+
+os()
+{
+	local name=$1
+
+	[[ $NEST_IN__OS == $name ]] ||
+	[[ $NEST_IN__LINUX_BASED_ON == $name ]] ||
+	[[ $NEST_IN__LINUX_DISTRIBUTION == $name ]]
 }
 
 has()
@@ -203,29 +213,42 @@ linux()
 
 debian()
 {
-	[[ $NEST_IN__LINUX_DISTRIBUTION == 'debian' ]]
+	linux 'debian' "$@"
 }
 
 ubuntu()
 {
-	local version=$1
-
-	[[ $NEST_IN__OS == 'ubuntu' ]] &&
-	if [ -n "$version" ]
-	then
-		[[ $NEST_IN__OS_VERSION == $version* ]]
-	fi
+	linux 'ubuntu' "$@"
 }
 
 elementary()
 {
-	local version=$1
+	debian 'elementary' "$@"
+}
 
-	[[ $NEST_IN__OS == 'elementary' ]] &&
-	if [ -n "$version" ]
-	then
-		[[ $NEST_IN__OS_VERSION == $version* ]]
-	fi
+kali()
+{
+	debian 'elementary' "$@"
+}
+
+redhat()
+{
+	linux 'redhat' "$@"
+}
+
+fedora()
+{
+	redhat 'fedora' "$@"
+}
+
+suse()
+{
+	linux 'suse' "$@"
+}
+
+mandrake()
+{
+	linux 'mandrake' "$@"
 }
 
 cygwin()
