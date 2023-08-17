@@ -275,7 +275,7 @@ gather-system-info()
 			NEST_IN__OS_VERSION=$(sw_vers --productVersion)
 			;;
 
-		linux-gnu*)
+		linux*)
 			NEST_IN__OS='linux'
 			gather-linux-info
 			;;
