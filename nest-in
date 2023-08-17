@@ -169,7 +169,101 @@ deal-with-script()
 }
 
 #
-# Built-in requirements
+# Requirements
+
+extract-value()
+{
+	local value=$1
+	local line=$2
+
+	line="${line#${value}=}"
+	line="${line#\"*}"
+	line="${line%*\"}"
+
+	printf '%s' "$line"
+}
+
+gather-linux-info()
+{
+	if [ ! -r /etc/os-release ]
+	then
+		NEST_IN__LINUX_FAMILY=unknown
+		NEST_IN__LINUX_DISTRIBUTION=unknown
+		NEST_IN__OS_VERSION=unknown
+		return
+	fi
+
+	local line=$(grep '^ID=' /etc/os-release)
+	NEST_IN__LINUX_DISTRIBUTION=$(extract-value 'ID' "$line")
+
+	line=$(grep '^ID_LIKE=' /etc/os-release)
+	NEST_IN__LINUX_FAMILY=$(extract-value 'ID_LIKE' "$line")
+
+	line=$(grep '^VERSION_ID=' /etc/os-release)
+	NEST_IN__OS_VERSION=$(extract-value 'VERSION_ID' "$line")
+
+	if [[ $NEST_IN__LINUX_FAMILY == *debian* ]] # Elementary OS stores ID_LIKE="ubuntu debian"
+	then
+		NEST_IN__LINUX_FAMILY='debian'
+	elif [[ $NEST_IN__LINUX_FAMILY == *suse* ]] # OpenSuSE stores ID_LIKE="suse opensuse"
+	then
+		NEST_IN__LINUX_FAMILY='suse'
+	elif [ -z "$NEST_IN__LINUX_FAMILY" ]
+	then
+		if [ -f /etc/arch-release ]
+		then
+			NEST_IN__LINUX_FAMILY='arch'
+		elif [ -f /etc/debian_version ]
+		then
+			NEST_IN__LINUX_FAMILY='debian'
+		elif [ -f /etc/redhat-release ]
+		then
+			NEST_IN__LINUX_FAMILY='redhat'
+		fi
+	fi
+
+	if [[ $NEST_IN__LINUX_DISTRIBUTION == opensuse* ]] # OpenSUSE stores ID="opensuse-leap"
+	then
+		NEST_IN__LINUX_DISTRIBUTION=opensuse
+	elif [ -z "$NEST_IN__LINUX_DISTRIBUTION" ]
+	then
+		if [[ $NEST_IN__LINUX_FAMILY == arch ]]
+		then
+			NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | awk '{ print $1 }' | tr '[:upper:]' '[:lower:]')
+		elif [[ $NEST_IN__LINUX_FAMILY == debian ]]
+		then
+			NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | head -1 | tr '[:upper:]' '[:lower:]')
+		elif [[ $NEST_IN__LINUX_FAMILY == redhat ]]
+		then
+			NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 }' /etc/redhat-release | tr '[:upper:]' '[:lower:]')
+		fi
+	fi
+
+	# Tails stores VERSION="x.y.z"
+	if [ -z "$NEST_IN__OS_VERSION" ]
+	then
+		line=$(grep '^VERSION=' /etc/os-release)
+		local version=$(extract-value 'VERSION' "$line")
+		if [[ $version =~ ^[0-9]+[0-9\.]*[0-9]+$ ]]
+		then
+			NEST_IN__OS_VERSION="$version"
+		fi
+	fi
+
+	if [ -z "$NEST_IN__OS_VERSION" ]
+	then
+		if [[ $NEST_IN__LINUX_FAMILY == arch ]]
+		then
+			NEST_IN__OS_VERSION=$(lsb_release --release --short)
+		elif [[ $NEST_IN__LINUX_FAMILY == debian ]]
+		then
+			NEST_IN__OS_VERSION=$(grep '^DISTRIB_RELEASE' /etc/lsb-release | awk -F= '{ print $2 }')
+		elif [[ $NEST_IN__LINUX_FAMILY == redhat ]]
+		then
+			NEST_IN__OS_VERSION=$(awk '{ print $3 }' /etc/redhat-release)
+		fi
+	fi
+}
 
 gather-system-info()
 {
@@ -183,37 +277,7 @@ gather-system-info()
 
 		linux-gnu*)
 			NEST_IN__OS='linux'
-			if [ -f /etc/debian_version ]
-			then
-				NEST_IN__LINUX_FAMILY='debian'
-				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | head -1 | tr '[:upper:]' '[:lower:]')
-				if [ -r /etc/lsb-release ]
-				then
-					NEST_IN__OS_VERSION=$(grep '^DISTRIB_RELEASE' /etc/lsb-release | awk -F= '{ print $2 }')
-				elif [ -r /etc/os-release ]
-				then
-					NEST_IN__OS_VERSION=$(grep -E '^(VERSION|VERSION_ID)="[0-9\.]+"' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
-				fi
-			elif [ -f /etc/redhat-release ]
-			then
-				NEST_IN__LINUX_FAMILY='redhat'
-				NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 }' /etc/redhat-release | tr '[:upper:]' '[:lower:]')
-				NEST_IN__OS_VERSION=$(awk '{ print $3 }' /etc/redhat-release)
-			elif [ -f /etc/arch-release ]
-			then
-				NEST_IN__LINUX_FAMILY='arch'
-				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | awk '{ print $1 }' | tr '[:upper:]' '[:lower:]')
-				NEST_IN__OS_VERSION=$(lsb_release --release --short)
-			elif [ -f /etc/os-release ]
-			then
-				NEST_IN__LINUX_FAMILY=$(grep '^ID_LIKE=' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
-				NEST_IN__LINUX_DISTRIBUTION=$(grep '^ID=' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
-				NEST_IN__LINUX_VERSION=$(grep -E '^(VERSION|VERSION_ID)="[0-9\.]+"' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
-			else
-				NEST_IN__LINUX_FAMILY=unknown
-				NEST_IN__LINUX_DISTRIBUTION=unknown
-				NEST_IN__OS_VERSION=unknown
-			fi
+			gather-linux-info
 			;;
 
 		cygwin)
