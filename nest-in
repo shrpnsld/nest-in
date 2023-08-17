@@ -308,17 +308,24 @@ cygwin() { [[ $NEST_IN__OS == 'cygwin' ]]; }
 # Functions
 
 readonly PARAMETER_TYPE_OPTION=1
-readonly PARAMETER_TYPE_TARGET=2
-readonly PARAMETER_TYPE_DELIMITER=3
+readonly PARAMETER_TYPE_LONG_OPTION=2
+readonly PARAMETER_TYPE_TARGET=3
+readonly PARAMETER_TYPE_DELIMITER=4
 readonly PARAMETER_TYPE_BAD=255
 PARAMETER_TYPE_RETURN__PARAMETER=''
 parameter-type()
 {
 	local string=$1
 
-	if [ "${string:0:3}" == '--' ] && [ "${#string}" == 2 ]
+	if [[ ${string:0:2} == -- ]] && [[ ${#string} == 2 ]]
 	then
 		return $PARAMETER_TYPE_DELIMITER
+	fi
+
+	if [[ ${string:0:2} == -- ]]
+	then
+		PARAMETER_TYPE_RETURN__PARAMETER="${string#--}"
+		return $PARAMETER_TYPE_LONG_OPTION
 	fi
 
 	if [ "${string:0:1}" == '-' ]
@@ -401,6 +408,11 @@ parse-arguments()
 					esac
 				done
 
+				continue
+				;;
+
+			$PARAMETER_TYPE_LONG_OPTION)
+				parse-option "$parameter" "$value"
 				continue
 				;;
 
