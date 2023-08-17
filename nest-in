@@ -64,6 +64,32 @@ ${NEST_IN__TS_B}More information at${NEST_IN__TS_N} ${NEST_IN__TS_U}https://gith
 "
 }
 
+min-number()
+{
+	local first=$1
+	local second=$2
+
+	if [[ $first < $second ]]
+	then
+		return $first
+	else
+		return $second
+	fi
+}
+
+max-number()
+{
+	local first=$1
+	local second=$2
+
+	if [[ $first > $second ]]
+	then
+		return $first
+	else
+		return $second
+	fi
+}
+
 #
 # Constants
 
@@ -386,19 +412,6 @@ validate-and-apply-options()
 	if [ "$NEST_IN__DO_THE_WORK" == : ]
 	then
 		NEST_IN__DO_THE_WORK=start-nesting
-	fi
-}
-
-max-number()
-{
-	local first=$1
-	local second=$2
-
-	if [[ ${#first} > ${#second} ]]
-	then
-		return ${#first}
-	else
-		return ${#second}
 	fi
 }
 
