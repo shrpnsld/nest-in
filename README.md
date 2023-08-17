@@ -52,7 +52,7 @@ Each requirement is enclosed in its own square brackets. It always constist of a
 Targets can list shell-scripts that describe nesting process. Each command should be preceeded by some whitespace to distinguish it from target declaration.
 
 ```bash
-target! / [linux] [has:apt-get] another and-another
+target! / [linux] [avail:apt-get] another and-another
     command1
     command2
     ...
@@ -123,7 +123,7 @@ pckgmgr / [macos]
 
 # this variant of 'pckgmgr' will be used only if 'apt-get' can be called.
 # it sets a variable with a call to the install command.
-pckgmgr / [has:apt-get]
+pckgmgr / [avail:apt-get]
 	$install='sudo apt-get -y install'
 	$uninstall='sudo apt-get -y uninstall'
 
@@ -186,4 +186,5 @@ cleanup!
 ```
 
 ### My own twigs.txt
-[https://gist.github.com/shrpnsld/933a367bcba6a3b42b82fd901b7736eb](gist)
+
+[https://gist.github.com/shrpnsld/933a367bcba6a3b42b82fd901b7736eb](https://gist.github.com/shrpnsld/933a367bcba6a3b42b82fd901b7736eb)
