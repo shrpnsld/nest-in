@@ -196,8 +196,8 @@ gather-system-info()
 			elif [ -f /etc/redhdat-release ]
 			then
 				NEST_IN__LINUX_FAMILY='redhat'
-				NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 } /etc/redhat-release' | tr '[:upper:]' '[:lower:]')
-				NEST_IN__OS_VERSION=$(awk '{ print $3 } /etc/redhat-release')
+				NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 }' /etc/redhat-release | tr '[:upper:]' '[:lower:]')
+				NEST_IN__OS_VERSION=$(awk '{ print $3 }' /etc/redhat-release)
 			elif [ -f /etc/arch-release ]
 			then
 				NEST_IN__LINUX_FAMILY='arch'
