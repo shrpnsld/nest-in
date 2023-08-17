@@ -201,7 +201,7 @@ gather-system-info()
 			elif [ -f /etc/arch-release ]
 			then
 				NEST_IN__LINUX_FAMILY='arch'
-				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | tr '[:upper:]' '[:lower:]')
+				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | awk '{ print $1 }' | tr '[:upper:]' '[:lower:]')
 				NEST_IN__OS_VERSION=$(lsb_release --release --short)
 			elif [ -f /etc/os-release ]
 			then
@@ -248,7 +248,7 @@ printf-system-info()
 
 	if [ -n "$NEST_IN__LINUX_FAMILY" ]
 	then
-		printf 'distributiion: %s\n' "$NEST_IN__LINUX_DISTRIBUTION"
+		printf 'distribution: %s\n' "$NEST_IN__LINUX_DISTRIBUTION"
 	fi
 
 	printf 'version: %s\n' "$NEST_IN__OS_VERSION"
