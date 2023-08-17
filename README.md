@@ -11,13 +11,19 @@ Setup new environment, copy configs, install programs, etc., with a single comma
 * Targets can have different definitions depending on environment conditions.
 * Written with Bash 3.2, so it works even on macOS with its stock Bash installation.
 
-## One-liner
+## Usage
+
+### One-liners
 
 ```bash
-curl -fsSL PUT-URL-TO-YOUR-TWIGS-FILE-HERE.txt | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)" -- '--'
+curl -fsSL PUT-URL-TO-YOUR-TWIGS-FILE-HERE.txt | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)" -- --
 ```
 
-## Usage
+```bash
+wget -qO- PUT-URL-TO-YOUR-TWIGS-FILE-HERE.txt | /bin/bash -c "$(wget -qO- https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)" -- --
+```
+
+### Command-line interface
 
 ```bash
 $ nest-in [-sdnh] [-- [<twigs.txt>]]
@@ -41,7 +47,7 @@ Target declaration should start at the beginning of the line and should not be p
 
 Target names can have letters, numbers, dash and underscore characters, but always should start with a letter. `!` next to a target name makes that target dedicated.
 
-Each requirement is enclosed in its own square brackets. It always constist of a name and may have list of values, each value is preceeded by `:`. Requirement names can have letters, numbers, dash and underscore characters, but always should start with a letter.
+Each requirement is enclosed in its own square brackets. It always constist of a name and may have a set of specifiers, each specifier is preceeded by `:`. Requirement names can have letters, numbers, dash and underscore characters, but always should start with a letter. Any number of last specifiers or version components can be dropped, to make requirement broader.
 
 Targets can list shell-scripts that describe nesting process. Each command should be preceeded by some whitespace to distinguish it from target declaration.
 
@@ -56,6 +62,22 @@ target! / [linux] [has:apt-get] another and-another
 There are also setup and teardown targets named `+` and `-` respectively. These targets can have requirements, but they can't have dependencies.
 
 Comments are not supported and any syntax-check pass for a shell-style comment is accidential :)
+
+#### Avaiable requirements
+
+`[avail:<command>]` – specified command is available.
+
+`[os:<name>:<version>]` – OS name or linux distribution matches specified name and version.
+
+`[macos:<version>]` – OS is macOS and matches specified version.
+
+`[cygwin]` – OS is cygwin
+
+`[linux:<family>:<dist>:<version>]` – OS is Linux and matches specified family, distribution and version.
+
+`[arch|debian|redhat|suse:<distribution>:<version>]` – Linux family is Arch/Debian/RedHat/SuSE and matches specified distribution and version.
+
+`[manjaro|ubuntu|elementary|kali|tails|fedora|opensuse:<version>]` – Linux distribution is Manjaro/Ubuntu/ElementaryOS/Kali/Tails/Fedora/OpenSuSE and matches specified version.
 
 ## Nesting Process
 
@@ -162,3 +184,6 @@ cleanup!
 	DOTFILES_DIR="$HOME/.dotfiles"
 	PROJECTS_DIR="$HOME/Projects"
 ```
+
+### My own twigs.txt
+[https://gist.github.com/shrpnsld/933a367bcba6a3b42b82fd901b7736eb](gist)
