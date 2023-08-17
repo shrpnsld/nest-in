@@ -90,6 +90,39 @@ max-number()
 	fi
 }
 
+versions-equal()
+{
+	local first=$1
+	local second=$2
+
+	local old_IFS="$IFS"
+	IFS='.'
+
+	first=($first)
+	second=($second)
+
+	printf '%s ' "${first[@]}"; echo
+	printf '%s ' "${second[@]}"; echo
+
+	min-number ${#first[@]} ${#second[@]}
+	local component_count=$?
+	echo "${#first[@]} ${#second[@]} $component_count"
+	local result=0
+	local index
+	for (( index = 0; index < component_count; ++index ))
+	do
+		if [[ ${first[index]} != ${second[index]} ]]
+		then
+			result=1
+			break
+		fi
+	done
+
+	IFS="$old_IFS"
+
+	return $result
+}
+
 #
 # Constants
 
@@ -228,7 +261,7 @@ macos()
 	[[ $NEST_IN__OS == 'macos' ]] &&
 	if [ -n "$version" ]
 	then
-		[[ $NEST_IN__OS_VERSION == $version* ]]
+		versions-equal $NEST_IN__OS_VERSION $version
 	fi
 }
 
@@ -249,7 +282,7 @@ linux()
 	fi &&
 	if [ -n "$version" ]
 	then
-		[[ $NEST_IN__OS_VERSION == $version* ]]
+		versions-equal $NEST_IN__OS_VERSION $version
 	fi
 }
 
