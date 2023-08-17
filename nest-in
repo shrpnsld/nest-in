@@ -52,13 +52,14 @@ print-help()
   ${NEST_IN__TS_B}nest-in${NEST_IN__TS_N} [${NEST_IN__TS_U}-dsr${NEST_IN__TS_N}] [${NEST_IN__TS_U}targets...${NEST_IN__TS_N}] [${NEST_IN__TS_U}-k${NEST_IN__TS_N}] -- [${NEST_IN__TS_U}file${NEST_IN__TS_N}]
 
 ${NEST_IN__TS_B}OPTIONS${NEST_IN__TS_N}
-  [${NEST_IN__TS_U}targets${NEST_IN__TS_N}...]  Specify targets to work with.
-  ${NEST_IN__TS_B}-d${NEST_IN__TS_N}            Show dependencies for targets.
-  ${NEST_IN__TS_B}-s${NEST_IN__TS_N}            Show scripts for targets.
-  ${NEST_IN__TS_B}-n${NEST_IN__TS_N}            Dry run.
-  ${NEST_IN__TS_B}--${NEST_IN__TS_N} ${NEST_IN__TS_U}file${NEST_IN__TS_N}       Read nesting info from ${NEST_IN__TS_U}file${NEST_IN__TS_N}.
-  ${NEST_IN__TS_B}--${NEST_IN__TS_N}            Read nesting info from from ${NEST_IN__TS_U}stdin${NEST_IN__TS_N}.
-  ${NEST_IN__TS_B}-h${NEST_IN__TS_N}            Show this message.
+  [${NEST_IN__TS_U}targets${NEST_IN__TS_N}...]   Specify targets to work with.
+  ${NEST_IN__TS_B}-d${NEST_IN__TS_N}             Show dependencies for targets.
+  ${NEST_IN__TS_B}-s${NEST_IN__TS_N}             Show scripts for targets.
+  ${NEST_IN__TS_B}-n${NEST_IN__TS_N}             Dry run.
+  ${NEST_IN__TS_B}--system-info${NEST_IN__TS_N}  Print detected system information.
+  ${NEST_IN__TS_B}--${NEST_IN__TS_N} ${NEST_IN__TS_U}file${NEST_IN__TS_N}        Read nesting info from ${NEST_IN__TS_U}file${NEST_IN__TS_N}.
+  ${NEST_IN__TS_B}--${NEST_IN__TS_N}             Read nesting info from from ${NEST_IN__TS_U}stdin${NEST_IN__TS_N}.
+  ${NEST_IN__TS_B}-h${NEST_IN__TS_N}             Show this message.
 
 ${NEST_IN__TS_B}More information at${NEST_IN__TS_N} ${NEST_IN__TS_U}https://github.com/shrpnsld/nest-in${NEST_IN__TS_N}
 "
@@ -237,7 +238,7 @@ gather-system-info()
 		NEST_IN__OS_VERSION
 }
 
-printf-system-info()
+print-system-info()
 {
 	printf 'os: "%s"\n' "$NEST_IN__OS"
 
@@ -382,7 +383,7 @@ parse-option()
 			;;
 
 		system-info)
-			printf-system-info
+			print-system-info
 			exit
 			;;
 
