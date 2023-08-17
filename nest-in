@@ -239,19 +239,19 @@ gather-system-info()
 
 printf-system-info()
 {
-	printf 'os: %s\n' "$NEST_IN__OS"
+	printf 'os: "%s"\n' "$NEST_IN__OS"
 
 	if [ -n "$NEST_IN__LINUX_FAMILY" ]
 	then
-		printf 'family: %s\n' "$NEST_IN__LINUX_FAMILY"
+		printf 'family: "%s"\n' "$NEST_IN__LINUX_FAMILY"
 	fi
 
 	if [ -n "$NEST_IN__LINUX_FAMILY" ]
 	then
-		printf 'distribution: %s\n' "$NEST_IN__LINUX_DISTRIBUTION"
+		printf 'distribution: "%s"\n' "$NEST_IN__LINUX_DISTRIBUTION"
 	fi
 
-	printf 'version: %s\n' "$NEST_IN__OS_VERSION"
+	printf 'version: "%s"\n' "$NEST_IN__OS_VERSION"
 }
 
 os()
