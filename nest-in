@@ -237,6 +237,23 @@ gather-system-info()
 		NEST_IN__OS_VERSION
 }
 
+printf-system-info()
+{
+	printf 'os: %s\n' "$NEST_IN__OS"
+
+	if [ -n "$NEST_IN__LINUX_FAMILY" ]
+	then
+		printf 'family: %s\n' "$NEST_IN__LINUX_FAMILY"
+	fi
+
+	if [ -n "$NEST_IN__LINUX_FAMILY" ]
+	then
+		printf 'distributiion: %s\n' "$NEST_IN__LINUX_DISTRIBUTION"
+	fi
+
+	printf 'version: %s\n' "$NEST_IN__OS_VERSION"
+}
+
 os()
 {
 	local name=$1
@@ -362,6 +379,11 @@ parse-option()
 
 		n)
 			NEST_IN__DEAL_WITH_SCRIPT=:
+			;;
+
+		system-info)
+			printf-system-info
+			exit
 			;;
 
 		h)
