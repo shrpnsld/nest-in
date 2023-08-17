@@ -133,6 +133,11 @@ gather-system-info()
 				NEST_IN__LINUX_BASED_ON='redhat'
 				NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 } /etc/redhat-release' | tr '[:upper:]' '[:lower:]')
 				NEST_IN__OS_VERSION=$(awk '{ print $3 } /etc/redhat-release')
+			elif [ -f /etc/arch-release ]
+			then
+				NEST_IN__LINUX_BASED_ON='arch'
+				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | tr '[:upper:]' '[:lower:]')
+				NEST_IN__OS_VERSION=$(lsb_release --release --short)
 			else
 				NEST_IN__LINUX_BASED_ON=unknown
 				NEST_IN__LINUX_DISTRIBUTION=unknown
@@ -239,6 +244,16 @@ redhat()
 fedora()
 {
 	redhat 'fedora' "$@"
+}
+
+arch()
+{
+	linux 'arch' "$@"
+}
+
+manjarolinux()
+{
+	arch 'manjarolinux' "$@"
 }
 
 suse()
