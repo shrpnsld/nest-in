@@ -216,60 +216,22 @@ linux()
 	fi
 }
 
-debian()
-{
-	linux 'debian' "$@"
-}
+debian() { linux 'debian' "$@"; }
+ubuntu() { debian 'ubuntu' "$@"; }
+elementary() { debian 'elementary' "$@"; }
+kali() { debian 'kali' "$@"; }
 
-ubuntu()
-{
-	debian 'ubuntu' "$@"
-}
+redhat() { linux 'redhat' "$@"; }
+fedora() { redhat 'fedora' "$@"; }
 
-elementary()
-{
-	debian 'elementary' "$@"
-}
+arch() { linux 'arch' "$@"; }
+manjarolinux() { arch 'manjarolinux' "$@"; }
 
-kali()
-{
-	debian 'kali' "$@"
-}
+suse() { linux 'suse' "$@"; }
 
-redhat()
-{
-	linux 'redhat' "$@"
-}
+mandrake() { linux 'mandrake' "$@"; }
 
-fedora()
-{
-	redhat 'fedora' "$@"
-}
-
-arch()
-{
-	linux 'arch' "$@"
-}
-
-manjarolinux()
-{
-	arch 'manjarolinux' "$@"
-}
-
-suse()
-{
-	linux 'suse' "$@"
-}
-
-mandrake()
-{
-	linux 'mandrake' "$@"
-}
-
-cygwin()
-{
-	[[ $NEST_IN__OS == 'cygwin' ]]
-}
+cygwin() { [[ $NEST_IN__OS == 'cygwin' ]]; }
 
 #
 # Functions
