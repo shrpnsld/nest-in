@@ -378,11 +378,10 @@ redhat() { linux 'redhat' "$@"; }
 fedora() { redhat 'fedora' "$@"; }
 
 arch() { linux 'arch' "$@"; }
-manjarolinux() { arch 'manjarolinux' "$@"; }
+manjaro() { arch 'manjaro' "$@"; }
 
 suse() { linux 'suse' "$@"; }
-
-mandrake() { linux 'mandrake' "$@"; }
+opensuse() { suse 'opensuse' "$@"; }
 
 cygwin() { [[ $NEST_IN__OS == 'cygwin' ]]; }
 
