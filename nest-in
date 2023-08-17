@@ -175,7 +175,7 @@ gather-system-info()
 	case "$OSTYPE" in
 		darwin*)
 			NEST_IN__OS=macos
-			NEST_IN__LINUX_BASED_ON=''
+			NEST_IN__LINUX_FAMILY=''
 			NEST_IN__LINUX_DISTRIBUTION=''
 			NEST_IN__OS_VERSION=$(sw_vers --productVersion)
 			;;
@@ -184,7 +184,7 @@ gather-system-info()
 			NEST_IN__OS='linux'
 			if [ -f /etc/debian_version ]
 			then
-				NEST_IN__LINUX_BASED_ON='debian'
+				NEST_IN__LINUX_FAMILY='debian'
 				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | head -1 | tr '[:upper:]' '[:lower:]')
 				if [ -r /etc/lsb-release ]
 				then
@@ -195,21 +195,21 @@ gather-system-info()
 				fi
 			elif [ -f /etc/redhdat-release ]
 			then
-				NEST_IN__LINUX_BASED_ON='redhat'
+				NEST_IN__LINUX_FAMILY='redhat'
 				NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 } /etc/redhat-release' | tr '[:upper:]' '[:lower:]')
 				NEST_IN__OS_VERSION=$(awk '{ print $3 } /etc/redhat-release')
 			elif [ -f /etc/arch-release ]
 			then
-				NEST_IN__LINUX_BASED_ON='arch'
+				NEST_IN__LINUX_FAMILY='arch'
 				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | tr '[:upper:]' '[:lower:]')
 				NEST_IN__OS_VERSION=$(lsb_release --release --short)
 			elif [ -f /etc/os-release ]
 			then
-				NEST_IN__LINUX_BASED_ON=$(grep '^ID_LIKE=' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
+				NEST_IN__LINUX_FAMILY=$(grep '^ID_LIKE=' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
 				NEST_IN__LINUX_DISTRIBUTION=$(grep '^ID=' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
 				NEST_IN__LINUX_VERSION=$(grep -E '^(VERSION|VERSION_ID)="[0-9\.]+"' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
 			else
-				NEST_IN__LINUX_BASED_ON=unknown
+				NEST_IN__LINUX_FAMILY=unknown
 				NEST_IN__LINUX_DISTRIBUTION=unknown
 				NEST_IN__OS_VERSION=unknown
 			fi
@@ -217,14 +217,14 @@ gather-system-info()
 
 		cygwin)
 			NEST_IN__OS=cygwin
-			NEST_IN__LINUX_BASED_ON=''
+			NEST_IN__LINUX_FAMILY=''
 			NEST_IN__LINUX_DISTRIBUTION=''
 			NEST_IN__OS_VERSION=''
 			;;
 
 		msys)
 			NEST_IN__OS=msys
-			NEST_IN__LINUX_BASED_ON=''
+			NEST_IN__LINUX_FAMILY=''
 			NEST_IN__LINUX_DISTRIBUTION=''
 			NEST_IN__OS_VERSION=''
 			;;
@@ -232,7 +232,7 @@ gather-system-info()
 
 	readonly \
 		NEST_IN__OS \
-		NEST_IN__LINUX_BASED_ON \
+		NEST_IN__LINUX_FAMILY \
 		NEST_IN__LINUX_DISTRIBUTION \
 		NEST_IN__OS_VERSION
 }
@@ -242,7 +242,7 @@ os()
 	local name=$1
 
 	[[ $NEST_IN__OS == $name ]] ||
-	[[ $NEST_IN__LINUX_BASED_ON == $name ]] ||
+	[[ $NEST_IN__LINUX_FAMILY == $name ]] ||
 	[[ $NEST_IN__LINUX_DISTRIBUTION == $name ]]
 }
 
@@ -267,14 +267,14 @@ macos()
 
 linux()
 {
-	local based_on=$1
+	local family=$1
 	local distribution=$2
 	local version=$3
 
 	[[ $NEST_IN__OS == 'linux' ]] &&
-	if [ -n "$based_on" ]
+	if [ -n "$family" ]
 	then
-		[[ $NEST_IN__LINUX_BASED_ON == $based_on ]]
+		[[ $NEST_IN__LINUX_FAMILY == $family ]]
 	fi &&
 	if [ -n "$distribution" ]
 	then
