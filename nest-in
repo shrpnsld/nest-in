@@ -127,7 +127,13 @@ gather-system-info()
 			then
 				NEST_IN__LINUX_BASED_ON='debian'
 				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | head -1 | tr '[:upper:]' '[:lower:]')
-				NEST_IN__OS_VERSION=$(cat /etc/lsb-release | grep '^DISTRIB_RELEASE' | awk -F=  '{ print $2 }')
+				if [ -r /etc/lsb-release ]
+				then
+					NEST_IN__OS_VERSION=$(grep '^DISTRIB_RELEASE' /etc/lsb-release | awk -F= '{ print $2 }')
+				elif [ -r /etc/os-release ]
+				then
+					NEST_IN__OS_VERSION=$(grep -E '^(VERSION|VERSION_ID)="[0-9\.]+"' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
+				fi
 			elif [ -f /etc/redhdat-release ]
 			then
 				NEST_IN__LINUX_BASED_ON='redhat'
@@ -138,6 +144,11 @@ gather-system-info()
 				NEST_IN__LINUX_BASED_ON='arch'
 				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | tr '[:upper:]' '[:lower:]')
 				NEST_IN__OS_VERSION=$(lsb_release --release --short)
+			elif [ -f /etc/os-release ]
+			then
+				NEST_IN__LINUX_BASED_ON=$(grep '^ID_LIKE=' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
+				NEST_IN__LINUX_DISTRIBUTION=$(grep '^ID=' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
+				NEST_IN__LINUX_VERSION=$(grep -E '^(VERSION|VERSION_ID)="[0-9\.]+"' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
 			else
 				NEST_IN__LINUX_BASED_ON=unknown
 				NEST_IN__LINUX_DISTRIBUTION=unknown
@@ -219,7 +230,8 @@ linux()
 debian() { linux 'debian' "$@"; }
 ubuntu() { debian 'ubuntu' "$@"; }
 elementary() { debian 'elementary' "$@"; }
-kali() { debian 'kali' "$@"; }
+kali() { debian 'kali' "$@"; } # not tested yet
+tails() { debian 'tails' "$@"; } # not tested yet
 
 redhat() { linux 'redhat' "$@"; }
 fedora() { redhat 'fedora' "$@"; }
