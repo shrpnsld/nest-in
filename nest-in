@@ -126,7 +126,7 @@ gather-system-info()
 			if [ -f /etc/debian_version ]
 			then
 				NEST_IN__LINUX_BASED_ON='debian'
-				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | tr '[:upper:]' '[:lower:]')
+				NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | head -1 | tr '[:upper:]' '[:lower:]')
 				NEST_IN__OS_VERSION=$(cat /etc/lsb-release | grep '^DISTRIB_RELEASE' | awk -F=  '{ print $2 }')
 			elif [ -f /etc/redhdat-release ]
 			then
@@ -218,7 +218,7 @@ debian()
 
 ubuntu()
 {
-	linux 'ubuntu' "$@"
+	debian 'ubuntu' "$@"
 }
 
 elementary()
@@ -228,7 +228,7 @@ elementary()
 
 kali()
 {
-	debian 'elementary' "$@"
+	debian 'kali' "$@"
 }
 
 redhat()
