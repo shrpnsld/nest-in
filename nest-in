@@ -193,7 +193,7 @@ gather-system-info()
 				then
 					NEST_IN__OS_VERSION=$(grep -E '^(VERSION|VERSION_ID)="[0-9\.]+"' /etc/os-release | sed 's/^.*"\(.*\).*$/\1/"')
 				fi
-			elif [ -f /etc/redhdat-release ]
+			elif [ -f /etc/redhat-release ]
 			then
 				NEST_IN__LINUX_FAMILY='redhat'
 				NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 }' /etc/redhat-release | tr '[:upper:]' '[:lower:]')
