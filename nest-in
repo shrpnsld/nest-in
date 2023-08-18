@@ -788,7 +788,7 @@ is-target-marked()
 	[[ ${!target_marked} != '' ]] && ${!target_marked}
 }
 
-unmark-target()
+target-unmark()
 {
 	local target=$1
 
@@ -797,7 +797,7 @@ unmark-target()
 	printf -v "$target_marked" false
 }
 
-mark-target()
+target-mark()
 {
 	local target=$1
 
@@ -806,13 +806,13 @@ mark-target()
 	printf -v "$target_marked" true
 }
 
-unmark-targets()
+targets-unmark()
 {
 	local targets=("$@")
 
 	for target in "${targets[@]}"
 	do
-		unmark-target "$target"
+		target-unmark "$target"
 	done
 }
 
@@ -827,7 +827,7 @@ target-declaration()
 	eval "TARGET_DECLARATION_RETURN__LINE_NUMBER=(\"\$NEST_IN__DECLARATION_LINE_NUMBER_${variable_name}\")"
 }
 
-set-target-declaration()
+target-set-declaration()
 {
 	local target=$1
 	local declaration=$2
@@ -877,7 +877,7 @@ target-dependencies-recursive()
 	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=($(IFS=$'\n' sort <<< "${TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES[*]}" | uniq))
 }
 
-set-target-dependencies()
+target-set-dependencies()
 {
 	local target=$1
 
@@ -894,7 +894,7 @@ target-has-requirements()
 	[[ ${!has_requirements} != '' ]] && [[ ${!has_requirements} == 0 ]]
 }
 
-set-target-has-requirements()
+target-set-has-requirements()
 {
 	local target=$1
 	local value=$2
@@ -913,7 +913,7 @@ target-script()
 	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\${NEST_IN__SCRIPT_${variable_name}[@]}\")"
 }
 
-set-target-script()
+target-set-script()
 {
 	local target=$1
 	local script=("${@:2}")
@@ -1131,11 +1131,11 @@ gather-twigs()
 			fi
 		fi
 
-		set-target-dependencies "$target" "$dependencies"
+		target-set-dependencies "$target" "$dependencies"
 		[[ ${#requirements[@]} > 0 ]]
-		set-target-has-requirements "$target" $?
+		target-set-has-requirements "$target" $?
 
-		set-target-declaration "$target" "$line" $FILE_READ_LINE_RETURN__LINE_NUMBER
+		target-set-declaration "$target" "$line" $FILE_READ_LINE_RETURN__LINE_NUMBER
 
 		if [ $target_type == $TARGET_TYPE_CODE__DEDICATED ]
 		then
@@ -1144,7 +1144,7 @@ gather-twigs()
 		then
 			GATHER_TWIGS_RETURN__TARGETS+=("$target")
 		fi
-		mark-target "$target"
+		target-mark "$target"
 
 		file-peek-line $descriptor
 		if [ $? != 0 ]
@@ -1165,11 +1165,11 @@ gather-twigs()
 			break
 		fi
 
-		set-target-script "$target" "${script[@]}"
+		target-set-script "$target" "${script[@]}"
 	done
 	IFS="$old_IFS"
 
-	unmark-targets "${GATHER_TWIGS_RETURN__TARGETS[@]}" "${GATHER_TWIGS_RETURN__DEDICATED_TARGETS[@]}"
+	targets-unmark "${GATHER_TWIGS_RETURN__TARGETS[@]}" "${GATHER_TWIGS_RETURN__DEDICATED_TARGETS[@]}"
 }
 
 check-all-targets-exist()
@@ -1216,7 +1216,7 @@ find-circular-dependencies-impl()
 			continue
 		fi
 
-		mark-target "$target"
+		target-mark "$target"
 
 		target-dependencies "$target"
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
@@ -1256,7 +1256,7 @@ check-theres-no-circular-dependencies()
 			return 1
 		fi
 
-		unmark-targets "${targets[@]}"
+		targets-unmark "${targets[@]}"
 	done
 }
 
@@ -1384,7 +1384,7 @@ nest-in-targets()
 			fi
 		fi
 
-		mark-target "$target"
+		target-mark "$target"
 	done
 }
 
