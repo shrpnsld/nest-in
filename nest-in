@@ -102,12 +102,8 @@ versions-equal()
 	first=($first)
 	second=($second)
 
-	printf '%s ' "${first[@]}"; echo
-	printf '%s ' "${second[@]}"; echo
-
 	min-number ${#first[@]} ${#second[@]}
 	local component_count=$?
-	echo "${#first[@]} ${#second[@]} $component_count"
 	local result=0
 	local index
 	for (( index = 0; index < component_count; ++index ))
@@ -322,13 +318,18 @@ print-system-info()
 os()
 {
 	local name=$1
+	local version=$2
 
 	[[ $NEST_IN__OS == $name ]] ||
-	[[ $NEST_IN__LINUX_FAMILY == $name ]] ||
 	[[ $NEST_IN__LINUX_DISTRIBUTION == $name ]]
+
+	if [ -n "$version" ]
+	then
+		versions-equal $NEST_IN__OS_VERSION $version
+	fi
 }
 
-has()
+avail()
 {
 	local program=$1
 
@@ -378,11 +379,10 @@ redhat() { linux 'redhat' "$@"; }
 fedora() { redhat 'fedora' "$@"; }
 
 arch() { linux 'arch' "$@"; }
-manjarolinux() { arch 'manjarolinux' "$@"; }
+manjaro() { arch 'manjaro' "$@"; }
 
 suse() { linux 'suse' "$@"; }
-
-mandrake() { linux 'mandrake' "$@"; }
+opensuse() { suse 'opensuse' "$@"; }
 
 cygwin() { [[ $NEST_IN__OS == 'cygwin' ]]; }
 
