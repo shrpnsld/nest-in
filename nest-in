@@ -132,6 +132,7 @@ readonly NEST_IN__DEFAULT_TWIGS_PATH="$NEST_IN__CONFIG_DIR_PATH/$NEST_IN__CONFIG
 
 NEST_IN__TWIGS_PATH="$NEST_IN__DEFAULT_TWIGS_PATH"
 NEST_IN__TWIGS_DESCRIPTOR=-1
+NEST_IN__TARGETS=()
 NEST_IN__INPUT_TARGETS=()
 
 NEST_IN__DO_THE_WORK=:
@@ -669,9 +670,10 @@ extract-target()
 	EXTRACT_TARGET_RETURN__TARGET="${line%% *}"
 }
 
-readonly TARGET_TYPE_CODE__FIRST_STEP=1
-readonly TARGET_TYPE_CODE__LAST_STEP=2
-readonly TARGET_TYPE_CODE__DEDICATED=3
+readonly TARGET_TYPE_CODE__REGULAR=1
+readonly TARGET_TYPE_CODE__FIRST_STEP=2
+readonly TARGET_TYPE_CODE__LAST_STEP=3
+readonly TARGET_TYPE_CODE__DEDICATED=4
 readonly TARGET_TYPE_CODE__UNKNOWN=255
 target-type()
 {
@@ -687,6 +689,8 @@ target-type()
 	else
 		return $TARGET_TYPE_CODE__UNKNOWN
 	fi
+
+	return $TARGET_TYPE_CODE__REGULAR
 }
 
 EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS=()
@@ -810,6 +814,7 @@ targets-unmark()
 {
 	local targets=("$@")
 
+	local target
 	for target in "${targets[@]}"
 	do
 		target-unmark "$target"
@@ -821,30 +826,123 @@ TARGET_DECLARATION_RETURN__LINE_NUMBER=''
 target-declaration()
 {
 	local target=$1
+	local variant=$2
+
+	if [ -z "$variant" ]
+	then
+		variant=0
+	fi
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_DECLARATION_RETURN__DECLARATION=(\"\$NEST_IN__DECLARATION_${variable_name}\")"
-	eval "TARGET_DECLARATION_RETURN__LINE_NUMBER=(\"\$NEST_IN__DECLARATION_LINE_NUMBER_${variable_name}\")"
+	eval "TARGET_DECLARATION_RETURN__DECLARATION=(\"\${NEST_IN__DECLARATIONS_${variable_name}[$variant]}\")"
+	eval "TARGET_DECLARATION_RETURN__LINE_NUMBER=(\"\${NEST_IN__DECLARATION_LINE_NUMBERS_${variable_name}[$variant]}\")"
 }
 
-target-set-declaration()
+target-add-declaration()
 {
 	local target=$1
-	local declaration=$2
 	local line_number=$3
+	local declaration=$2
 
 	local variable_name=$(variable-name-from-target "$target")
-	printf -v "NEST_IN__DECLARATION_${variable_name}" '%s' "$declaration"
-	printf -v "NEST_IN__DECLARATION_LINE_NUMBER_${variable_name}" '%s' "$line_number"
+	eval "NEST_IN__DECLARATIONS_${variable_name}+=(\"$declaration\")"
+	eval "NEST_IN__DECLARATION_LINE_NUMBERS_${variable_name}+=($line_number)"
+}
+
+target-use-declaration-variant()
+{
+	local target=$1
+	local variant=$2
+
+	target-declaration "$target" $variant
+	local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
+	local line_number=$TARGET_DECLARATION_RETURN__LINE_NUMBER
+
+	local variable_name=$(variable-name-from-target "$target")
+	eval "NEST_IN__DECLARATIONS_${variable_name}[0]=\"$declaration\""
+	eval "NEST_IN__DECLARATION_LINE_NUMBERS_${variable_name}[0]=$line_number"
+}
+
+TARGET_VARIANT_COUNT_RETURN__COUNT=
+target-variant-count()
+{
+	local target=$1
+
+	local variable_name=$(variable-name-from-target "$target")
+	eval "TARGET_VARIANT_COUNT_RETURN__COUNT=\${#NEST_IN__DECLARATIONS_${variable_name}[@]}"
+
+}
+
+TARGET_REQUIREMENTS_RETURN__REQUIREMENTS=()
+target-requirements()
+{
+	local target=$1
+	local variant=$2
+
+	if [ -z "$variant" ]
+	then
+		variant=0
+	fi
+
+	local variable_name=$(variable-name-from-target "$target")
+	local requirements
+	eval "requirements=(\"\${NEST_IN__REQUIREMENTS_${variable_name}[$variant]}\")"
+
+	local old_IFS="$IFS"
+	IFS=$' '
+	TARGET_REQUIREMENTS_RETURN__REQUIREMENTS=(${requirements[@]})
+	IFS="$old_IFS"
+}
+
+target-add-requirements()
+{
+	local target=$1
+	local requirements=("${@:2}")
+
+	local old_IFS="$IFS"
+	IFS=$' '
+	requirements="${requirements[@]}"
+	IFS="$old_IFS"
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "NEST_IN__REQUIREMENTS_${target_variable_name}+=(\"$requirements\")"
+}
+
+target-requirements-resolved()
+{
+	local target=$1
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "[[ \$NEST_IN__REQUIREMENTS_RESOLVED_${target_variable_name} ]]"
+}
+
+target-mark-requirements-resolved()
+{
+	local target=$1
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "NEST_IN__REQUIREMENTS_RESOLVED_${target_variable_name}=true"
 }
 
 TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=()
 target-dependencies()
 {
 	local target=$1
+	local variant=$2
+
+	if [ -z "$variant" ]
+	then
+		variant=0
+	fi
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=(\"\${NEST_IN__DEPENDENCIES_${variable_name}[@]}\")"
+	local dependencies
+	eval "dependencies=(\"\${NEST_IN__DEPENDENCIES_${variable_name}[$variant]}\")"
+
+	local old_IFS="$IFS"
+	IFS=$' '
+	TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=(${dependencies[@]})
+	IFS="$old_IFS"
 }
 
 target-dependencies-recursive-impl()
@@ -877,78 +975,93 @@ target-dependencies-recursive()
 	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=($(IFS=$'\n' sort <<< "${TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES[*]}" | uniq))
 }
 
-target-set-dependencies()
+target-add-dependencies()
 {
 	local target=$1
+	local dependencies=("${@:2}")
+
+	local old_IFS="$IFS"
+	IFS=$' '
+	dependencies="${dependencies[@]}"
+	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__DEPENDENCIES_${target_variable_name}=(${dependencies[@]})"
+	eval "NEST_IN__DEPENDENCIES_${target_variable_name}+=(\"$dependencies\")"
 }
 
-target-has-requirements()
+target-use-dependencies-variant()
 {
 	local target=$1
+	local variant=$2
 
-	local variable_name=$(variable-name-from-target "$target")
-	local has_requirements="NEST_IN__HAS_REQUIREMENTS_${variable_name}"
-	[[ ${!has_requirements} != '' ]] && [[ ${!has_requirements} == 0 ]]
-}
+	local old_IFS="$IFS"
+	IFS=$' '
+	target-dependencies "$target" $variant
+	local dependencies="${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}"
+	IFS="$old_IFS"
 
-target-set-has-requirements()
-{
-	local target=$1
-	local value=$2
-
-	local variable_name=$(variable-name-from-target "$target")
-	local has_requirements="NEST_IN__HAS_REQUIREMENTS_${variable_name}"
-	printf -v "$has_requirements" '%s' $value
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "NEST_IN__DEPENDENCIES_${target_variable_name}[0]=\"$dependencies\""
 }
 
 TARGET_SCRIPT_RETURN__SCRIPT=()
 target-script()
 {
 	local target=$1
+	local variant=$2
+
+	if [ -z "$variant" ]
+	then
+		variant=0
+	fi
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\${NEST_IN__SCRIPT_${variable_name}[@]}\")"
+	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\${NEST_IN__SCRIPT_${variable_name}[$variant]}\")"
+
+	local old_IFS="$IFS"
+	IFS=$'\n'
+	TARGET_SCRIPT_RETURN__SCRIPT=(${TARGET_SCRIPT_RETURN__SCRIPT[@]})
+	IFS="$old_IFS"
 }
 
-target-set-script()
+target-add-script()
 {
 	local target=$1
 	local script=("${@:2}")
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__SCRIPT_${variable_name}=(\"\${script[@]}\")"
+	eval "NEST_IN__SCRIPT_${variable_name}+=(\"\$script\")"
 }
 
-skip-script-declaration()
+target-use-script-variant()
 {
-	local descriptor=$1
+	local target=$1
+	local variant=$2
 
-	while true
-	do
-		file-peek-line $descriptor
-		if [ $? != 0 ]
-		then
-			return
-		fi
+	local variable_name=$(variable-name-from-target "$target")
+	local script
+	eval "script=(\"\${NEST_IN__SCRIPT_${variable_name}[$variant]}\")"
 
-		if ! is-script-declaration "$FILE_PEEK_LINE_RETURN__LINE"
-		then
-			break
-		fi
-
-		file-read-line $descriptor
-	done
+	eval "NEST_IN__SCRIPT_${variable_name}[0]=\"\$script\""
 }
 
-READ_TARGET_SCRIPT_RETURN__SCRIPT=()
+target-use-variant()
+{
+	local target=$1
+	local variant=$2
+
+	target-use-declaration-variant "$target" $variant
+	target-use-dependencies-variant "$target" $variant
+	target-use-script-variant "$target" $variant
+	target-mark-requirements-resolved "$target"
+}
+
+READ_TARGET_SCRIPT_RETURN__SCRIPT=''
 read-target-script()
 {
 	local descriptor=$1
 
-	READ_TARGET_SCRIPT_RETURN__SCRIPT=()
+	READ_TARGET_SCRIPT_RETURN__SCRIPT=''
 
 	while true
 	do
@@ -968,7 +1081,7 @@ read-target-script()
 		local line="${TRIM_STRING_RETURN__STRING}"
 		if [ -n "$line" ]
 		then
-			READ_TARGET_SCRIPT_RETURN__SCRIPT+=("$line")
+			READ_TARGET_SCRIPT_RETURN__SCRIPT+="$line"$'\n'
 		fi
 	done
 }
@@ -1018,14 +1131,9 @@ check-requirements()
 	done
 }
 
-GATHER_TWIGS_RETURN__TARGETS=()
-GATHER_TWIGS_RETURN__DEDICATED_TARGETS=()
 gather-twigs()
 {
 	local descriptor=$1
-
-	GATHER_TWIGS_RETURN__TARGETS=()
-	GATHER_TWIGS_RETURN__DEDICATED_TARGETS=()
 
 	local old_IFS="$IFS"
 	IFS=
@@ -1042,13 +1150,14 @@ gather-twigs()
 		local line="$FILE_PEEK_LINE_RETURN__LINE"
 		if ! is-target-declaration "$line"
 		then
-			printf-error 'bad declaration format\n> %s %d| %s' \
-				"$NEST_IN__TWIGS_PATH" $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
+			printf-error 'bad declaration format\nline %d > %s' \
+				$FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
 			return 1
 		fi
 
 		file-read-line $descriptor
 		line="$FILE_READ_LINE_RETURN__LINE"
+		local line_number=$FILE_READ_LINE_RETURN__LINE_NUMBER
 		target-type "$line"
 		local target_type=$?
 
@@ -1064,87 +1173,21 @@ gather-twigs()
 			target="$EXTRACT_TARGET_RETURN__TARGET"
 		fi
 
+		target-add-declaration "$target" "$line" $line_number
+
 		extract-reqs-and-deps "$line"
 		local dependencies=("${EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES[@]}")
 		local requirements=("${EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS[@]}")
+		target-add-requirements "$target" "${requirements[@]}"
+		target-add-dependencies "$target" "${dependencies[@]}"
 
-		check-requirements "${requirements[@]}"
-		local requirements_fulfilled=$?
-		if [ $requirements_fulfilled == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		if [ $target_type != $TARGET_TYPE_CODE__REGULAR ]
 		then
-			printf-error 'unknown requirement "%s" for "%s"\n> %s %d| %s' \
-				"$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" $(normalize-target-name "$target") \
-				"$NEST_IN__TWIGS_PATH" $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
-			return 1
-		fi
-
-		if [ $requirements_fulfilled != 0 ]
-		then
-			skip-script-declaration $descriptor
-			if [ $? != 0 ]
+			if ! array-contains-item "$target" "${NEST_IN__TARGETS[@]}"
 			then
-				break
-			fi
-
-			continue
-		fi
-
-		if is-target-marked "$target"
-		then
-			if target-has-requirements "$target" && [[ ${#requirements[@]} > 0 ]]
-			then
-				target-declaration "$target"
-				local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
-				local line_number="$TARGET_DECLARATION_RETURN__LINE_NUMBER"
-				max-number $FILE_READ_LINE_RETURN__LINE_NUMBER $line_number
-				local width=$?
-				printf-error "several declarations of \"%s\" have requirements fulfilled\n> %s %${width}d| %s\n> %s %${width}d| %s" \
-					$(normalize-target-name "$target") \
-					"$NEST_IN__TWIGS_PATH" $line_number "$declaration" \
-					"$NEST_IN__TWIGS_PATH" $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
-				return 1
-			fi
-
-			if ! target-has-requirements "$target" && [[ ${#requirements[@]} == 0 ]]
-			then
-				target-declaration "$target"
-				local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
-				local line_number="$TARGET_DECLARATION_RETURN__LINE_NUMBER"
-				max-number $FILE_READ_LINE_RETURN__LINE_NUMBER $line_number
-				local width=$?
-				printf-error "duplicate declarations for \"%s\"\n> %s %${width}d| %s\n> %s %${width}d| %s" \
-					$(normalize-target-name "$target") \
-					"$NEST_IN__TWIGS_PATH" $line_number "$declaration" \
-					"$NEST_IN__TWIGS_PATH" $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
-				return 1
-			fi
-
-			if target-has-requirements "$target" && [[ ${#requirements[@]} == 0 ]]
-			then
-				skip-script-declaration $descriptor
-				if [ $? != 0 ]
-				then
-					break
-				fi
-
-				continue
+				NEST_IN__TARGETS+=("$target")
 			fi
 		fi
-
-		target-set-dependencies "$target" "$dependencies"
-		[[ ${#requirements[@]} > 0 ]]
-		target-set-has-requirements "$target" $?
-
-		target-set-declaration "$target" "$line" $FILE_READ_LINE_RETURN__LINE_NUMBER
-
-		if [ $target_type == $TARGET_TYPE_CODE__DEDICATED ]
-		then
-			GATHER_TWIGS_RETURN__DEDICATED_TARGETS+=("$target")
-		elif [ $target_type != $TARGET_TYPE_CODE__FIRST_STEP ] && [ $target_type != $TARGET_TYPE_CODE__LAST_STEP ]
-		then
-			GATHER_TWIGS_RETURN__TARGETS+=("$target")
-		fi
-		target-mark "$target"
 
 		file-peek-line $descriptor
 		if [ $? != 0 ]
@@ -1159,118 +1202,255 @@ gather-twigs()
 		fi
 
 		read-target-script $descriptor
-		local script=("${READ_TARGET_SCRIPT_RETURN__SCRIPT[@]}")
+		local script="${READ_TARGET_SCRIPT_RETURN__SCRIPT[@]}"
 		if [ $? != 0 ]
 		then
 			break
 		fi
 
-		target-set-script "$target" "${script[@]}"
+		target-add-script "$target" "$script"
 	done
 	IFS="$old_IFS"
 
-	targets-unmark "${GATHER_TWIGS_RETURN__TARGETS[@]}" "${GATHER_TWIGS_RETURN__DEDICATED_TARGETS[@]}"
+	targets-unmark "${NEST_IN__TARGETS[@]}"
 }
 
-check-all-targets-exist()
+make-error-message-unknown-requirement()
 {
-	local targets=("$@")
+	local target=$1
+	local index=$2
+	local requirement=$3
 
-	local any_errors=false
-	local target
-	for target in "${targets[@]}"
+	target-declaration "$target" $index
+	local line_number=$TARGET_DECLARATION_RETURN__LINE_NUMBER
+	local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
+	printf 'unknown requirement "%s" for "%s"\n' "$requirement" "$target"
+	printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+}
+
+make-error-message-multiple-requirements-fulfilled()
+{
+	local target=$1
+	local variants=("${@:2}")
+
+	printf 'multiple "%s" variants have their requirements fulfilled\n\n%s\n' "$target" $(realpath "$NEST_IN__TWIGS_PATH")
+
+	local variant
+	for variant in "${variants[@]}"
 	do
-		target-dependencies "$target"
-		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-		for dependency in "${dependencies[@]}"
-		do
-			if ! array-contains-item "$dependency" "${targets[@]}"
-			then
-				printf-error 'unknown dependency "%s" for "%s"; or not all requirements were fulfilled for "%s"' \
-					"$dependency" "$target" "$dependency"
-				any_errors=true
-			fi
-		done
+		target-declaration "$target" $variant
+		local line_number=$TARGET_DECLARATION_RETURN__LINE_NUMBER
+		local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
+		printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
 	done
-
-	! $any_errors
 }
 
-FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH=''
-find-circular-dependencies-impl()
+make-error-message-multiple-declarations()
 {
-	local target_to_depend=$1
-	local targets=("${@:2}")
+	local target=$1
+	local variants=("${@:2}")
 
-	if array-contains-item "$target_to_depend" "${targets[@]}"
-	then
-		FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH="$target_to_depend"
-		return 0
-	fi
+	printf 'multiple declarations for "%s"\n\n%s\n' "$target" $(realpath "$NEST_IN__TWIGS_PATH")
 
-	local target
-	for target in "${targets[@]}"
+	local variant
+	for variant in "${variants[@]}"
 	do
-		if is-target-marked "$target"
+		target-declaration "$target" $variant
+		local line_number=$TARGET_DECLARATION_RETURN__LINE_NUMBER
+		local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
+		printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	done
+}
+
+make-error-message-unknown-dependency()
+{
+	local target=$1
+	local dependency=$2
+
+	target-declaration "$target"
+	printf 'unknown dependency "%s" for "%s"\n\n%s\nline %d: %s\n' "$dependency" "$target" $(realpath "$NEST_IN__TWIGS_PATH") $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+}
+
+make-error-message-circular-dependency()
+{
+	local dependency_path=("$@")
+
+	printf 'circular dependency found\n'
+	printf '%s -> ' "${dependency_path[@]}"
+	printf '%s' "${dependency_path[0]}"
+
+	printf '\n\n%s\n' $(realpath "$NEST_IN__TWIGS_PATH")
+	local target
+	for target in "${dependency_path[@]}"
+	do
+		target-declaration "$target"
+		printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	done
+}
+
+readonly RESOLVE_REQUIREMENTS_CODE__UNKNOWN_NAME=255
+RESOLVE_REQUIREMENTS_RETURN__UNKNOWN_NAME=''
+resolve-requirements()
+{
+	local requirements=("$@")
+
+	for requirement in "${requirements[@]}"
+	do
+		predicate-from-requirement "$requirement"
+		local predicate=("${PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE[@]}")
+		if ! predicate-defined "${predicate[0]}"
 		then
-			continue
+			RESOLVE_REQUIREMENTS_RETURN__UNKNOWN_NAME="${predicate[0]}"
+			return $RESOLVE_REQUIREMENTS_CODE__UNKNOWN_NAME
 		fi
 
-		target-mark "$target"
-
-		target-dependencies "$target"
-		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-		find-circular-dependencies-impl "$target_to_depend" "${dependencies[@]}"
-		if [ $? == 0 ]
+		if ! "${predicate[@]}"
 		then
-			FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH="$target -> $FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
-			return 0
+			return 1
 		fi
 	done
-
-	return 1
 }
 
-find-circular-dependencies()
+RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=''
+resolve-requirements-for-target()
 {
 	local target=$1
 
-	target-dependencies "$target"
-	local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-	find-circular-dependencies-impl "$target" "${dependencies[@]}"
-	local retval=$?
-	FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH="$target -> $FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
-	return $retval
+	if target-requirements-resolved "$target"
+	then
+		return
+	fi
+
+	local resolved_variants=()
+	local no_requirements_variants=()
+
+	local variable_name=$(variable-name-from-target)
+	local no_requirements_count=0
+
+	target-variant-count "$target"
+	local variant_count=$TARGET_VARIANT_COUNT_RETURN__COUNT
+	local variant
+	for (( variant = 0; variant < variant_count; ++variant ))
+	do
+		target-requirements "$target" $variant
+		local requirements=("${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}")
+		if [[ ${#requirements[@]} == 0 ]]
+		then
+			no_requirements_variants+=($variant)
+			continue
+		fi
+
+		resolve-requirements "${requirements[@]}"
+		local retval=$?
+		if [ $retval == $RESOLVE_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		then
+			RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-unknown-requirement "$target" $variant $RESOLVE_REQUIREMENTS_RETURN__UNKNOWN_NAME)
+			return 1
+		fi
+
+		if [[ $retval == 0 ]]
+		then
+			resolved_variants+=($variant)
+		fi
+	done
+
+	if [[ ${#resolved_variants[@]} == 0 ]] && [[ ${#no_requirements_variants[@]} == 0 ]]
+	then
+		printf -v RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE 'none of "%s" variants have requirements fulfilled' "$target"
+		return 1
+	elif [[ ${#resolved_variants[@]} > 1 ]]
+	then
+		RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-multiple-requirements-fulfilled "$target" "${resolved_variants[@]}")
+		return 1
+	elif [[ ${#no_requirements_variants[@]} > 1 ]]
+	then
+		RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-multiple-declarations "$target" "${no_requirements_variants[@]}")
+		return 1
+	fi
+
+	if [[ ${#resolved_variants[@]} == 1 ]]
+	then
+		target-use-variant "$target" ${resolved_variants[0]}
+	else
+		target-use-variant "$target" ${no_requirements_variants[0]}
+	fi
 }
 
-check-theres-no-circular-dependencies()
+RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=''
+resolve-requirements-and-verify-dependencies-for-target()
+{
+	local top_target=$1
+	local target=$2
+	local dependency_path=("${@:3}")
+
+	if is-target-marked "$target"
+	then
+		return
+	fi
+
+	target-mark "$target"
+
+	target-dependencies "$target"
+	local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
+	local dependency
+	for dependency in "${dependencies[@]}"
+	do
+		target-declaration "$dependency"
+		if [ -z "$TARGET_DECLARATION_RETURN__DECLARATION" ]
+		then
+			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-unknown-dependency "$target" "$dependency")
+			return 1
+		fi
+
+		if ! resolve-requirements-for-target "$dependency"
+		then
+			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE="$RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE"
+			return 1
+		fi
+
+		if [[ $dependency == $top_target ]]
+		then
+			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-circular-dependency "${dependency_path[@]}")
+			return 1
+		fi
+
+		if ! resolve-requirements-and-verify-dependencies-for-target "$top_target" "$dependency" "${dependency_path[@]}" "$dependency"
+		then
+			return 1
+		fi
+	done
+}
+
+resolve-requirements-and-verify-dependencies()
 {
 	local targets=("$@")
 
 	local target
 	for target in "${targets[@]}"
 	do
-		if find-circular-dependencies "$target"
+		target-declaration "$target"
+		if [ -z "$TARGET_DECLARATION_RETURN__DECLARATION" ]
 		then
-			printf-error 'circular dependency was found: %s' "$FIND_CIRCULAR_DEPENDENCIES_RETURN__DEPENDENCY_PATH"
+			printf-error 'unknown target "%s"' "$target"
 			return 1
 		fi
 
-		targets-unmark "${targets[@]}"
-	done
-}
-
-check-input-targets-exist()
-{
-	local gathered_targets=("$@")
-
-	for target in "${NEST_IN__INPUT_TARGETS[@]}"
-	do
-		if ! array-contains-item "$target" "${gathered_targets[@]}"
+		if ! resolve-requirements-for-target "$target"
 		then
-			printf-error 'unkown target "%s" in arguments' "$target"
+			printf-error "$RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE"
 			return 1
 		fi
+
+		target-dependencies "$target"
+		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
+		resolve-requirements-and-verify-dependencies-for-target "$target" "$target" "$target"
+		if [ $? != 0 ]
+		then
+			printf-error "$RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE"
+			return 1
+		fi
+
+		targets-unmark "${NEST_IN__TARGETS[@]}"
 	done
 }
 
@@ -1448,22 +1628,16 @@ gather-system-info
 		exit 1
 	fi
 
-	gathered_targets=("${GATHER_TWIGS_RETURN__TARGETS[@]}")
-	gathered_explicit_targets=("${GATHER_TWIGS_RETURN__DEDICATED_TARGETS[@]}")
-
-	check-all-targets-exist "${gathered_targets[@]}" "${gathered_explicit_targets[@]}" &&
-	check-theres-no-circular-dependencies "${gathered_targets[@]}" "${gathered_explicit_targets[@]}" &&
-	check-input-targets-exist "${gathered_targets[@]}" "${gathered_explicit_targets[@]}"
-	if [ $? != 0 ]
-	then
-		exit 1
-	fi
-
 	if [[ ${#NEST_IN__INPUT_TARGETS[@]} == 0 ]]
 	then
-		targets=("${gathered_targets[@]}")
+		targets=("${NEST_IN__TARGETS[@]}")
 	else
 		targets=("${NEST_IN__INPUT_TARGETS[@]}")
+	fi
+
+	if ! resolve-requirements-and-verify-dependencies "${targets[@]}"
+	then
+		exit 1
 	fi
 
 	do-the-work "${targets[@]}"
