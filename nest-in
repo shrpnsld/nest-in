@@ -126,13 +126,18 @@ versions-equal()
 readonly NEST_IN__CONFIG_DIR_PATH="$HOME/.config/$NEST_IN__SCRIPT_NAME"
 readonly NEST_IN__CONFIG_FILE_NAME='twigs.txt'
 readonly NEST_IN__DEFAULT_TWIGS_PATH="$NEST_IN__CONFIG_DIR_PATH/$NEST_IN__CONFIG_FILE_NAME"
+readonly NEST_IN__TARGET_FIRST_STEP_NAME='_FIRST_STEP'
+readonly NEST_IN__TARGET_LAST_STEP_NAME='_LAST_STEP'
 
 #
 # Options
 
 NEST_IN__TWIGS_PATH="$NEST_IN__DEFAULT_TWIGS_PATH"
 NEST_IN__TWIGS_DESCRIPTOR=-1
-NEST_IN__TARGETS=()
+NEST_IN__ALL_TARGETS=()
+NEST_IN__REGULAR_TARGETS=()
+NEST_IN__FIRST_STEP=''
+NEST_IN__LAST_STEP=''
 NEST_IN__INPUT_TARGETS=()
 
 NEST_IN__DO_THE_WORK=:
@@ -322,7 +327,7 @@ os()
 	local version=$2
 
 	[[ $NEST_IN__OS == $name ]] ||
-	[[ $NEST_IN__LINUX_DISTRIBUTION == $name ]]
+	[[ $NEST_IN__LINUX_DISTRIBUTION == $name ]] &&
 
 	if [ -n "$version" ]
 	then
@@ -400,18 +405,18 @@ parameter-type()
 {
 	local string=$1
 
-	if [[ ${string:0:2} == -- ]] && [[ ${#string} == 2 ]]
+	if [[ ${string:0:2} == '--' && ${#string} == 2 ]]
 	then
 		return $PARAMETER_TYPE_DELIMITER
 	fi
 
-	if [[ ${string:0:2} == -- ]]
+	if [[ ${string:0:2} == '--' ]]
 	then
 		PARAMETER_TYPE_RETURN__PARAMETER="${string#--}"
 		return $PARAMETER_TYPE_LONG_OPTION
 	fi
 
-	if [ "${string:0:1}" == '-' ]
+	if [[ ${string:0:1} == '-' ]]
 	then
 		PARAMETER_TYPE_RETURN__PARAMETER="${string#-}"
 		return $PARAMETER_TYPE_OPTION
@@ -537,12 +542,12 @@ validate-and-apply-options()
 		fi
 	fi
 
-	if [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES" != ':' ] && [ "$NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT" == ':' ]
+	if [[ $NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES != ':' && $NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT == ':' ]]
 	then
 		NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE=(printf '\n')
 	fi
 
-	if [ "$NEST_IN__DO_THE_WORK" == : ]
+	if [[ $NEST_IN__DO_THE_WORK == ':' ]]
 	then
 		NEST_IN__DO_THE_WORK=start-nesting
 	fi
@@ -615,8 +620,7 @@ next-non-empty-line()
 
 	while true
 	do
-		file-peek-line $descriptor
-		if [ $? != 0 ]
+		if ! file-peek-line $descriptor
 		then
 			return
 		fi
@@ -640,17 +644,17 @@ is-target-declaration()
 	#            target-name...............             !
 
 	# Example
-	# target-name! / [condition:value] [condition] another-target and-another
-	#                                                                               (                           |                                      |                   )(                                       |                                                  |                               )
-	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/[[:blank:]]*([[:alpha:]]+[[:alnum:]_\-]*|\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*[[:blank:]]*$ ]] ||
-	#            target-name................            !              /             dependency-name............  [requirement.... :value............ ]  [requirement.... ]              dependency-name............              [requirement.... :value............ ]              [requirement.... ]
+	# target-name! / [requirement:specifier] [requirement] another-target and-another
+	#                                                                               (                           |                                       |                   )(                                       |                                                   |                               )
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/[[:blank:]]*([[:alpha:]]+[[:alnum:]_\-]*|\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*[[:blank:]]*$ ]] ||
+	#            target-name................            !              /             dependency-name............  [requirement.... :specifier........ ]  [requirement..... ]              dependency-name............              [requirement.... :specifier......... ]              [requirement.... ]
 
 	[[ $line =~ ^(\+|\-)[[:blank:]]*$ ]] ||
 
-	# Example + / [condition] [another-one]
-	#            (  |  )                          (                                      |                   )(                                                  |                               )
-	[[ $line =~ ^(\+|\-)[[:blank:]]*\/[[:blank:]]*(\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*$ ]]
-	#              +  -              /              [requirement.... :value............ ]  [requirement.... ]               [requirement.... :value............ ]              [requirement.... ]
+	# Example + / [requirement:specifier] [requirement]
+	#            (  |  )                          (                                       |                   )(                                                   |                               )
+	[[ $line =~ ^(\+|\-)[[:blank:]]*\/[[:blank:]]*(\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*$ ]]
+	#              +  -              /              [requirement.... :specifier......... ]  [requirement.... ]               [requirement.... :specifier......... ]              [requirement.... ]
 }
 
 is-script-declaration()
@@ -674,7 +678,6 @@ readonly TARGET_TYPE_CODE__REGULAR=1
 readonly TARGET_TYPE_CODE__FIRST_STEP=2
 readonly TARGET_TYPE_CODE__LAST_STEP=3
 readonly TARGET_TYPE_CODE__DEDICATED=4
-readonly TARGET_TYPE_CODE__UNKNOWN=255
 target-type()
 {
 	if [[ $line =~ ^\+[[:blank:]]* ]]
@@ -687,10 +690,9 @@ target-type()
 	then
 		return $TARGET_TYPE_CODE__DEDICATED
 	else
-		return $TARGET_TYPE_CODE__UNKNOWN
+		return $TARGET_TYPE_CODE__REGULAR
 	fi
 
-	return $TARGET_TYPE_CODE__REGULAR
 }
 
 EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS=()
@@ -715,7 +717,7 @@ extract-reqs-and-deps()
 	local tokens=(${line#*/})
 	for token in "${tokens[@]}"
 	do
-		if [ "${token:0:1}" == '[' ]
+		if [[ ${token:0:1} == '[' ]]
 		then
 			token=${token#[}
 			token=${token%]}
@@ -748,7 +750,7 @@ array-contains-item()
 	local current
 	for current in ${array[@]}
 	do
-		if [ "$current" == "$item" ]
+		if [[ $current == $item ]]
 		then
 			return 0
 		fi
@@ -762,11 +764,11 @@ normalize-target-name()
 	local target=$1
 
 	case "$target" in
-		_FIRST_STEP)
+		$NEST_IN__TARGET_FIRST_STEP_NAME)
 			printf '%s' '+'
 			;;
 
-		_LAST_STEP)
+		$NEST_IN__TARGET_LAST_STEP_NAME)
 			printf '%s' '-'
 			;;
 
@@ -1065,8 +1067,7 @@ read-target-script()
 
 	while true
 	do
-		file-peek-line $descriptor
-		if [ $? != 0 ]
+		if ! file-peek-line $descriptor
 		then
 			return
 		fi
@@ -1140,9 +1141,7 @@ gather-twigs()
 
 	while true
 	do
-		next-non-empty-line $descriptor &&
-		file-peek-line $descriptor
-		if [ $? != 0 ]
+		if ! next-non-empty-line $descriptor || ! file-peek-line $descriptor
 		then
 			break
 		fi
@@ -1150,8 +1149,7 @@ gather-twigs()
 		local line="$FILE_PEEK_LINE_RETURN__LINE"
 		if ! is-target-declaration "$line"
 		then
-			printf-error 'bad declaration format\nline %d > %s' \
-				$FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
+			printf-error 'bad declaration format\nline %d: %s' $FILE_READ_LINE_RETURN__LINE_NUMBER "$line"
 			return 1
 		fi
 
@@ -1162,12 +1160,14 @@ gather-twigs()
 		local target_type=$?
 
 		local target
-		if [ $target_type == $TARGET_TYPE_CODE__FIRST_STEP ]
+		if [[ $target_type == $TARGET_TYPE_CODE__FIRST_STEP ]]
 		then
-			target='_FIRST_STEP'
-		elif [ $target_type == $TARGET_TYPE_CODE__LAST_STEP ]
+			NEST_IN__FIRST_STEP="$NEST_IN__TARGET_FIRST_STEP_NAME"
+			target="$NEST_IN__TARGET_FIRST_STEP_NAME"
+		elif [[ $target_type == $TARGET_TYPE_CODE__LAST_STEP ]]
 		then
-			target='_LAST_STEP'
+			NEST_IN__LAST_STEP="$NEST_IN__TARGET_LAST_STEP_NAME"
+			target="$NEST_IN__TARGET_LAST_STEP_NAME"
 		else
 			extract-target "$line"
 			target="$EXTRACT_TARGET_RETURN__TARGET"
@@ -1181,16 +1181,17 @@ gather-twigs()
 		target-add-requirements "$target" "${requirements[@]}"
 		target-add-dependencies "$target" "${dependencies[@]}"
 
-		if [ $target_type != $TARGET_TYPE_CODE__REGULAR ]
+		if [[ $target_type == $TARGET_TYPE_CODE__REGULAR ]] && ! array-contains-item "$target" "${NEST_IN__REGULAR_TARGETS[@]}"
 		then
-			if ! array-contains-item "$target" "${NEST_IN__TARGETS[@]}"
-			then
-				NEST_IN__TARGETS+=("$target")
-			fi
+			NEST_IN__REGULAR_TARGETS+=("$target")
 		fi
 
-		file-peek-line $descriptor
-		if [ $? != 0 ]
+		if ! array-contains-item "$target" "${NEST_IN__ALL_TARGETS[@]}"
+		then
+			NEST_IN__ALL_TARGETS+=("$target")
+		fi
+
+		if ! file-peek-line $descriptor
 		then
 			break
 		fi
@@ -1201,18 +1202,17 @@ gather-twigs()
 			continue
 		fi
 
-		read-target-script $descriptor
-		local script="${READ_TARGET_SCRIPT_RETURN__SCRIPT[@]}"
-		if [ $? != 0 ]
+		if ! read-target-script $descriptor
 		then
 			break
 		fi
 
+		local script="${READ_TARGET_SCRIPT_RETURN__SCRIPT[@]}"
 		target-add-script "$target" "$script"
 	done
 	IFS="$old_IFS"
 
-	targets-unmark "${NEST_IN__TARGETS[@]}"
+	targets-unmark "${NEST_IN__ALL_TARGETS[@]}"
 }
 
 make-error-message-unknown-requirement()
@@ -1224,8 +1224,15 @@ make-error-message-unknown-requirement()
 	target-declaration "$target" $index
 	local line_number=$TARGET_DECLARATION_RETURN__LINE_NUMBER
 	local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
-	printf 'unknown requirement "%s" for "%s"\n' "$requirement" "$target"
+	printf 'unknown requirement "%s" for "%s"\n' "$requirement" $(normalize-target-name "$target")
 	printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+}
+
+make-error-message-none-requirements-fulfilled()
+{
+	local target=$1
+
+	printf 'none of "%s" variants have requirements fulfilled' $(normalize-target-name "$target")
 }
 
 make-error-message-multiple-requirements-fulfilled()
@@ -1233,7 +1240,7 @@ make-error-message-multiple-requirements-fulfilled()
 	local target=$1
 	local variants=("${@:2}")
 
-	printf 'multiple "%s" variants have their requirements fulfilled\n\n%s\n' "$target" $(realpath "$NEST_IN__TWIGS_PATH")
+	printf 'multiple "%s" variants have their requirements fulfilled\n\n%s\n' $(normalize-target-name "$target") $(realpath "$NEST_IN__TWIGS_PATH")
 
 	local variant
 	for variant in "${variants[@]}"
@@ -1250,7 +1257,7 @@ make-error-message-multiple-declarations()
 	local target=$1
 	local variants=("${@:2}")
 
-	printf 'multiple declarations for "%s"\n\n%s\n' "$target" $(realpath "$NEST_IN__TWIGS_PATH")
+	printf 'multiple declarations for "%s"\n\n%s\n' $(normalize-target-name "$target") $(realpath "$NEST_IN__TWIGS_PATH")
 
 	local variant
 	for variant in "${variants[@]}"
@@ -1342,7 +1349,7 @@ resolve-requirements-for-target()
 
 		resolve-requirements "${requirements[@]}"
 		local retval=$?
-		if [ $retval == $RESOLVE_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		if [[ $retval == $RESOLVE_REQUIREMENTS_CODE__UNKNOWN_NAME ]]
 		then
 			RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-unknown-requirement "$target" $variant $RESOLVE_REQUIREMENTS_RETURN__UNKNOWN_NAME)
 			return 1
@@ -1354,9 +1361,9 @@ resolve-requirements-for-target()
 		fi
 	done
 
-	if [[ ${#resolved_variants[@]} == 0 ]] && [[ ${#no_requirements_variants[@]} == 0 ]]
+	if [[ ${#resolved_variants[@]} == 0 && ${#no_requirements_variants[@]} == 0 ]]
 	then
-		printf -v RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE 'none of "%s" variants have requirements fulfilled' "$target"
+		RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-none-requirements-fulfilled "$target")
 		return 1
 	elif [[ ${#resolved_variants[@]} > 1 ]]
 	then
@@ -1443,14 +1450,13 @@ resolve-requirements-and-verify-dependencies()
 
 		target-dependencies "$target"
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-		resolve-requirements-and-verify-dependencies-for-target "$target" "$target" "$target"
-		if [ $? != 0 ]
+		if ! resolve-requirements-and-verify-dependencies-for-target "$target" "$target" "$target"
 		then
 			printf-error "$RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE"
 			return 1
 		fi
 
-		targets-unmark "${NEST_IN__TARGETS[@]}"
+		targets-unmark "${NEST_IN__ALL_TARGETS[@]}"
 	done
 }
 
@@ -1541,11 +1547,10 @@ nest-in-targets()
 
 		target-dependencies "$target"
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-		if [ ${#dependencies[@]} != 0 ]
+		if [[ ${#dependencies[@]} > 0 ]]
 		then
 			printf-nest-in-message 'resolving dependencies for %s...' "$target"
-			nest-in-targets "${dependencies[@]}"
-			if [ $? != 0 ]
+			if ! nest-in-targets "${dependencies[@]}"
 			then
 				return 1
 			fi
@@ -1556,10 +1561,9 @@ nest-in-targets()
 		if [[ ${#script[@]} > 0 ]]
 		then
 			printf-nest-in-message 'working on %s...' "$target"
-			deal-with-script "${script[@]}"
-			if [ $? != 0 ]
+			if ! deal-with-script "${script[@]}"
 			then
-				printf-error 'failed to install "%s"\nthe following command returned non-zero:\n> %s' "$target" "$EXEC_SCRIPT_RETURN__FAILED_LINE"
+				printf-error 'failed to install "%s"\nthe following command returned non-zero:\n> %s' $(normalize-target-name "$target") "$EXEC_SCRIPT_RETURN__FAILED_LINE"
 				return 1
 			fi
 		fi
@@ -1572,32 +1576,29 @@ start-nesting()
 {
 	printf-message 'Nesting...'
 
-	target-script '_FIRST_STEP'
+	target-script "$NEST_IN__FIRST_STEP"
 	local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-	if [[ ${#script[@]} != 0 ]]
+	if [[ ${#script[@]} > 0 ]]
 	then
 		printf-nest-in-message 'first step...'
-		deal-with-script "${script[@]}"
-		if [ $? != 0 ]
+		if ! deal-with-script "${script[@]}"
 		then
 			printf-error 'first step failed\nthe following command returned non-zero:\n> %s' "$EXEC_SCRIPT_RETURN__FAILED_LINE"
 			return 1
 		fi
 	fi
 
-	nest-in-targets "$@"
-	if [ $? != 0 ]
+	if ! nest-in-targets "$@"
 	then
 		return 1
 	fi
 
-	target-script '_LAST_STEP'
+	target-script "$NEST_IN__LAST_STEP"
 	script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-	if [[ ${#script[@]} != 0 ]]
+	if [[ ${#script[@]} > 0 ]]
 	then
 		printf-nest-in-message 'last step...'
-		deal-with-script "${script[@]}"
-		if [ $? != 0 ]
+		if ! deal-with-script "${script[@]}"
 		then
 			printf-error 'last step failed\nthe following command returned non-zero:\n> %s' "$EXEC_SCRIPT_RETURN__FAILED_LINE"
 			return 1
@@ -1613,8 +1614,7 @@ start-nesting()
 gather-system-info
 
 { # Deal with arguments
-	parse-arguments "$@" && validate-and-apply-options
-	if [ $? != 0 ]
+	if ! parse-arguments "$@" || ! validate-and-apply-options
 	then
 		exit 1
 	fi
@@ -1622,20 +1622,19 @@ gather-system-info
 
 { # Do the work
 	printf-message 'Gathering twigs...'
-	gather-twigs $NEST_IN__TWIGS_DESCRIPTOR
-	if [ $? != 0 ]
+	if ! gather-twigs $NEST_IN__TWIGS_DESCRIPTOR
 	then
 		exit 1
 	fi
 
 	if [[ ${#NEST_IN__INPUT_TARGETS[@]} == 0 ]]
 	then
-		targets=("${NEST_IN__TARGETS[@]}")
+		targets=("${NEST_IN__REGULAR_TARGETS[@]}")
 	else
 		targets=("${NEST_IN__INPUT_TARGETS[@]}")
 	fi
 
-	if ! resolve-requirements-and-verify-dependencies "${targets[@]}"
+	if ! resolve-requirements-and-verify-dependencies "${targets[@]}" $NEST_IN__FIRST_STEP $NEST_IN__LAST_STEP
 	then
 		exit 1
 	fi
