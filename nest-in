@@ -1536,6 +1536,8 @@ start-nesting()
 		printf-error 'nesting failed. check output for more info.'
 		return 1
 	fi
+
+	print-message '\nDone.'
 }
 
 run-script()
