@@ -3,22 +3,22 @@
 #
 # Essentials
 
-readonly NEST_IN__SCRIPT_NAME=nest-in
+readonly SCRIPT_NAME=nest-in
 
-readonly NEST_IN__TS_N='\e[0m'
-readonly NEST_IN__TS_B='\e[1m'
-readonly NEST_IN__TS_U='\e[4m'
+readonly TS_N='\e[0m'
+readonly TS_B='\e[1m'
+readonly TS_U='\e[4m'
 readonly TS_ERROR='\e[0;31m'
 
-NEST_IN__TS_ERR=''
-NEST_IN__TS_ERR_END=''
+TS_ERR=''
+TS_ERR_END=''
 if [ -t 1 ] && [ $(tput colors) \> 0 ]
 then
-	NEST_IN__TS_ERR="$TS_ERROR"
-	NEST_IN__TS_ERR_END="$NEST_IN__TS_N"
+	TS_ERR="$TS_ERROR"
+	TS_ERR_END="$TS_N"
 fi
 
-readonly NEST_IN__TS_ERR NEST_IN__TS_ERR_END
+readonly TS_ERR TS_ERR_END
 
 printf-stderr()
 {
@@ -27,7 +27,7 @@ printf-stderr()
 
 printf-error()
 {
-	printf-stderr "$NEST_IN__TS_ERR$NEST_IN__SCRIPT_NAME error:$NEST_IN__TS_ERR_END "
+	printf-stderr "$TS_ERR$SCRIPT_NAME error:$TS_ERR_END "
 	printf-stderr "$@"
 	printf-stderr '\n'
 }
@@ -41,19 +41,19 @@ printf-message()
 print-help()
 {
 	printf \
-"${NEST_IN__TS_B}USAGE${NEST_IN__TS_N}
-  ${NEST_IN__TS_B}nest-in${NEST_IN__TS_N} [${NEST_IN__TS_U}-dsr${NEST_IN__TS_N}] [${NEST_IN__TS_U}targets...${NEST_IN__TS_N}] [${NEST_IN__TS_U}-k${NEST_IN__TS_N}] -- [${NEST_IN__TS_U}file${NEST_IN__TS_N}]
+"${TS_B}USAGE${TS_N}
+  ${TS_B}nest-in${TS_N} [${TS_U}-dsr${TS_N}] [${TS_U}targets...${TS_N}] [${TS_U}-k${TS_N}] -- [${TS_U}file${TS_N}]
 
-${NEST_IN__TS_B}OPTIONS${NEST_IN__TS_N}
-  [${NEST_IN__TS_U}targets${NEST_IN__TS_N}...]   Specify targets to work with.
-  ${NEST_IN__TS_B}-d${NEST_IN__TS_N}             Show dependencies for targets.
-  ${NEST_IN__TS_B}-n${NEST_IN__TS_N}             Assemble work script, but don't run it.
-  ${NEST_IN__TS_B}--system-info${NEST_IN__TS_N}  Print detected system information.
-  ${NEST_IN__TS_B}--${NEST_IN__TS_N} ${NEST_IN__TS_U}file${NEST_IN__TS_N}        Read nesting info from ${NEST_IN__TS_U}file${NEST_IN__TS_N}.
-  ${NEST_IN__TS_B}--${NEST_IN__TS_N}             Read nesting info from from ${NEST_IN__TS_U}stdin${NEST_IN__TS_N}.
-  ${NEST_IN__TS_B}-h${NEST_IN__TS_N}             Show this message.
+${TS_B}OPTIONS${TS_N}
+  [${TS_U}targets${TS_N}...]   Specify targets to work with.
+  ${TS_B}-d${TS_N}             Show dependencies for targets.
+  ${TS_B}-n${TS_N}             Assemble work script, but don't run it.
+  ${TS_B}--system-info${TS_N}  Print detected system information.
+  ${TS_B}--${TS_N} ${TS_U}file${TS_N}        Read nesting info from ${TS_U}file${TS_N}.
+  ${TS_B}--${TS_N}             Read nesting info from from ${TS_U}stdin${TS_N}.
+  ${TS_B}-h${TS_N}             Show this message.
 
-${NEST_IN__TS_B}More information at${NEST_IN__TS_N} ${NEST_IN__TS_U}https://github.com/shrpnsld/nest-in${NEST_IN__TS_N}
+${TS_B}More information at${TS_N} ${TS_U}https://github.com/shrpnsld/nest-in${TS_N}
 "
 }
 
@@ -115,34 +115,32 @@ versions-equal()
 #
 # Constants
 
-readonly NEST_IN__CONFIG_DIR_PATH="$HOME/.config/$NEST_IN__SCRIPT_NAME"
-readonly NEST_IN__CONFIG_FILE_NAME='twigs.txt'
-readonly NEST_IN__DEFAULT_TWIGS_PATH="$NEST_IN__CONFIG_DIR_PATH/$NEST_IN__CONFIG_FILE_NAME"
-readonly NEST_IN__WORK_PATH="/tmp/nest-in-work"
-readonly NEST_IN__TARGET_FIRST_STEP_NAME='_FIRST_STEP'
-readonly NEST_IN__TARGET_LAST_STEP_NAME='_LAST_STEP'
+readonly DEFAULT_TWIGS_PATH="$HOME/.config/$SCRIPT_NAME/twigs.txt"
+readonly WORK_SCRIPT_PATH='/tmp/nest-in-work'
+readonly TARGET_FIRST_STEP_NAME='_FIRST_STEP'
+readonly TARGET_LAST_STEP_NAME='_LAST_STEP'
 
 #
 # Options
 
-NEST_IN__TWIGS_PATH="$NEST_IN__DEFAULT_TWIGS_PATH"
-NEST_IN__TWIGS_DESCRIPTOR=-1
-NEST_IN__ALL_TARGETS=()
-NEST_IN__REGULAR_TARGETS=()
-NEST_IN__FIRST_STEP=''
-NEST_IN__LAST_STEP=''
-NEST_IN__INPUT_TARGETS=()
+TWIGS_PATH="$DEFAULT_TWIGS_PATH"
+TWIGS_DESCRIPTOR=-1
+ALL_TARGETS=()
+REGULAR_TARGETS=()
+FIRST_STEP=''
+LAST_STEP=''
+INPUT_TARGETS=()
 
-NEST_IN__DO_THE_WORK=:
+DO_THE_WORK=:
 do-the-work()
 {
-	"$NEST_IN__DO_THE_WORK" "$@"
+	"$DO_THE_WORK" "$@"
 }
 
-NEST_IN__DEAL_WITH_SCRIPT=run-script
+DEAL_WITH_SCRIPT=run-script
 deal-with-script()
 {
-	"$NEST_IN__DEAL_WITH_SCRIPT" "$@"
+	"$DEAL_WITH_SCRIPT" "$@"
 }
 
 #
@@ -164,80 +162,80 @@ gather-linux-info()
 {
 	if [ ! -r /etc/os-release ]
 	then
-		NEST_IN__LINUX_FAMILY=unknown
-		NEST_IN__LINUX_DISTRIBUTION=unknown
-		NEST_IN__OS_VERSION=unknown
+		SYSTEM_INFO__LINUX_FAMILY=unknown
+		SYSTEM_INFO__LINUX_DISTRIBUTION=unknown
+		SYSTEM_INFO__OS_VERSION=unknown
 		return
 	fi
 
 	local line=$(grep '^ID=' /etc/os-release)
-	NEST_IN__LINUX_DISTRIBUTION=$(extract-value 'ID' "$line")
+	SYSTEM_INFO__LINUX_DISTRIBUTION=$(extract-value 'ID' "$line")
 
 	line=$(grep '^ID_LIKE=' /etc/os-release)
-	NEST_IN__LINUX_FAMILY=$(extract-value 'ID_LIKE' "$line")
+	SYSTEM_INFO__LINUX_FAMILY=$(extract-value 'ID_LIKE' "$line")
 
 	line=$(grep '^VERSION_ID=' /etc/os-release)
-	NEST_IN__OS_VERSION=$(extract-value 'VERSION_ID' "$line")
+	SYSTEM_INFO__OS_VERSION=$(extract-value 'VERSION_ID' "$line")
 
-	if [[ $NEST_IN__LINUX_FAMILY == *debian* ]] # Elementary OS stores ID_LIKE="ubuntu debian"
+	if [[ $SYSTEM_INFO__LINUX_FAMILY == *debian* ]] # Elementary OS stores ID_LIKE="ubuntu debian"
 	then
-		NEST_IN__LINUX_FAMILY='debian'
-	elif [[ $NEST_IN__LINUX_FAMILY == *suse* ]] # OpenSuSE stores ID_LIKE="suse opensuse"
+		SYSTEM_INFO__LINUX_FAMILY='debian'
+	elif [[ $SYSTEM_INFO__LINUX_FAMILY == *suse* ]] # OpenSuSE stores ID_LIKE="suse opensuse"
 	then
-		NEST_IN__LINUX_FAMILY='suse'
-	elif [ -z "$NEST_IN__LINUX_FAMILY" ]
+		SYSTEM_INFO__LINUX_FAMILY='suse'
+	elif [ -z "$SYSTEM_INFO__LINUX_FAMILY" ]
 	then
 		if [ -f /etc/arch-release ]
 		then
-			NEST_IN__LINUX_FAMILY='arch'
+			SYSTEM_INFO__LINUX_FAMILY='arch'
 		elif [ -f /etc/debian_version ]
 		then
-			NEST_IN__LINUX_FAMILY='debian'
+			SYSTEM_INFO__LINUX_FAMILY='debian'
 		elif [ -f /etc/redhat-release ]
 		then
-			NEST_IN__LINUX_FAMILY='redhat'
+			SYSTEM_INFO__LINUX_FAMILY='redhat'
 		fi
 	fi
 
-	if [[ $NEST_IN__LINUX_DISTRIBUTION == opensuse* ]] # OpenSUSE stores ID="opensuse-leap"
+	if [[ $SYSTEM_INFO__LINUX_DISTRIBUTION == opensuse* ]] # OpenSUSE stores ID="opensuse-leap"
 	then
-		NEST_IN__LINUX_DISTRIBUTION=opensuse
-	elif [ -z "$NEST_IN__LINUX_DISTRIBUTION" ]
+		SYSTEM_INFO__LINUX_DISTRIBUTION=opensuse
+	elif [ -z "$SYSTEM_INFO__LINUX_DISTRIBUTION" ]
 	then
-		if [[ $NEST_IN__LINUX_FAMILY == arch ]]
+		if [[ $SYSTEM_INFO__LINUX_FAMILY == arch ]]
 		then
-			NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | awk '{ print $1 }' | tr '[:upper:]' '[:lower:]')
-		elif [[ $NEST_IN__LINUX_FAMILY == debian ]]
+			SYSTEM_INFO__LINUX_DISTRIBUTION=$(lsb_release -id --short | awk '{ print $1 }' | tr '[:upper:]' '[:lower:]')
+		elif [[ $SYSTEM_INFO__LINUX_FAMILY == debian ]]
 		then
-			NEST_IN__LINUX_DISTRIBUTION=$(lsb_release -id --short | head -1 | tr '[:upper:]' '[:lower:]')
-		elif [[ $NEST_IN__LINUX_FAMILY == redhat ]]
+			SYSTEM_INFO__LINUX_DISTRIBUTION=$(lsb_release -id --short | head -1 | tr '[:upper:]' '[:lower:]')
+		elif [[ $SYSTEM_INFO__LINUX_FAMILY == redhat ]]
 		then
-			NEST_IN__LINUX_DISTRIBUTION=$(awk '{ print $1 }' /etc/redhat-release | tr '[:upper:]' '[:lower:]')
+			SYSTEM_INFO__LINUX_DISTRIBUTION=$(awk '{ print $1 }' /etc/redhat-release | tr '[:upper:]' '[:lower:]')
 		fi
 	fi
 
 	# Tails stores VERSION="x.y.z"
-	if [ -z "$NEST_IN__OS_VERSION" ]
+	if [ -z "$SYSTEM_INFO__OS_VERSION" ]
 	then
 		line=$(grep '^VERSION=' /etc/os-release)
 		local version=$(extract-value 'VERSION' "$line")
 		if [[ $version =~ ^[0-9]+[0-9\.]*[0-9]+$ ]]
 		then
-			NEST_IN__OS_VERSION="$version"
+			SYSTEM_INFO__OS_VERSION="$version"
 		fi
 	fi
 
-	if [ -z "$NEST_IN__OS_VERSION" ]
+	if [ -z "$SYSTEM_INFO__OS_VERSION" ]
 	then
-		if [[ $NEST_IN__LINUX_FAMILY == arch ]]
+		if [[ $SYSTEM_INFO__LINUX_FAMILY == arch ]]
 		then
-			NEST_IN__OS_VERSION=$(lsb_release --release --short)
-		elif [[ $NEST_IN__LINUX_FAMILY == debian ]]
+			SYSTEM_INFO__OS_VERSION=$(lsb_release --release --short)
+		elif [[ $SYSTEM_INFO__LINUX_FAMILY == debian ]]
 		then
-			NEST_IN__OS_VERSION=$(grep '^DISTRIB_RELEASE' /etc/lsb-release | awk -F= '{ print $2 }')
-		elif [[ $NEST_IN__LINUX_FAMILY == redhat ]]
+			SYSTEM_INFO__OS_VERSION=$(grep '^DISTRIB_RELEASE' /etc/lsb-release | awk -F= '{ print $2 }')
+		elif [[ $SYSTEM_INFO__LINUX_FAMILY == redhat ]]
 		then
-			NEST_IN__OS_VERSION=$(awk '{ print $3 }' /etc/redhat-release)
+			SYSTEM_INFO__OS_VERSION=$(awk '{ print $3 }' /etc/redhat-release)
 		fi
 	fi
 }
@@ -246,54 +244,54 @@ gather-system-info()
 {
 	case "$OSTYPE" in
 		darwin*)
-			NEST_IN__OS=macos
-			NEST_IN__LINUX_FAMILY=''
-			NEST_IN__LINUX_DISTRIBUTION=''
-			NEST_IN__OS_VERSION=$(sw_vers --productVersion)
+			SYSTEM_INFO__OS=macos
+			SYSTEM_INFO__LINUX_FAMILY=''
+			SYSTEM_INFO__LINUX_DISTRIBUTION=''
+			SYSTEM_INFO__OS_VERSION=$(sw_vers --productVersion)
 			;;
 
 		linux*)
-			NEST_IN__OS='linux'
+			SYSTEM_INFO__OS='linux'
 			gather-linux-info
 			;;
 
 		cygwin)
-			NEST_IN__OS=cygwin
-			NEST_IN__LINUX_FAMILY=''
-			NEST_IN__LINUX_DISTRIBUTION=''
-			NEST_IN__OS_VERSION=''
+			SYSTEM_INFO__OS=cygwin
+			SYSTEM_INFO__LINUX_FAMILY=''
+			SYSTEM_INFO__LINUX_DISTRIBUTION=''
+			SYSTEM_INFO__OS_VERSION=''
 			;;
 
 		msys)
-			NEST_IN__OS=msys
-			NEST_IN__LINUX_FAMILY=''
-			NEST_IN__LINUX_DISTRIBUTION=''
-			NEST_IN__OS_VERSION=''
+			SYSTEM_INFO__OS=msys
+			SYSTEM_INFO__LINUX_FAMILY=''
+			SYSTEM_INFO__LINUX_DISTRIBUTION=''
+			SYSTEM_INFO__OS_VERSION=''
 			;;
 	esac
 
 	readonly \
-		NEST_IN__OS \
-		NEST_IN__LINUX_FAMILY \
-		NEST_IN__LINUX_DISTRIBUTION \
-		NEST_IN__OS_VERSION
+		SYSTEM_INFO__OS \
+		SYSTEM_INFO__LINUX_FAMILY \
+		SYSTEM_INFO__LINUX_DISTRIBUTION \
+		SYSTEM_INFO__OS_VERSION
 }
 
 print-system-info()
 {
-	printf 'os: "%s"\n' "$NEST_IN__OS"
+	printf 'os: "%s"\n' "$SYSTEM_INFO__OS"
 
-	if [ -n "$NEST_IN__LINUX_FAMILY" ]
+	if [ -n "$SYSTEM_INFO__LINUX_FAMILY" ]
 	then
-		printf 'family: "%s"\n' "$NEST_IN__LINUX_FAMILY"
+		printf 'family: "%s"\n' "$SYSTEM_INFO__LINUX_FAMILY"
 	fi
 
-	if [ -n "$NEST_IN__LINUX_FAMILY" ]
+	if [ -n "$SYSTEM_INFO__LINUX_FAMILY" ]
 	then
-		printf 'distribution: "%s"\n' "$NEST_IN__LINUX_DISTRIBUTION"
+		printf 'distribution: "%s"\n' "$SYSTEM_INFO__LINUX_DISTRIBUTION"
 	fi
 
-	printf 'version: "%s"\n' "$NEST_IN__OS_VERSION"
+	printf 'version: "%s"\n' "$SYSTEM_INFO__OS_VERSION"
 }
 
 os()
@@ -301,12 +299,12 @@ os()
 	local name=$1
 	local version=$2
 
-	[[ $NEST_IN__OS == $name ]] ||
-	[[ $NEST_IN__LINUX_DISTRIBUTION == $name ]] &&
+	[[ $SYSTEM_INFO__OS == $name ]] ||
+	[[ $SYSTEM_INFO__LINUX_DISTRIBUTION == $name ]] &&
 
 	if [ -n "$version" ]
 	then
-		versions-equal $NEST_IN__OS_VERSION $version
+		versions-equal $SYSTEM_INFO__OS_VERSION $version
 	fi
 }
 
@@ -322,10 +320,10 @@ macos()
 {
 	local version=$1
 
-	[[ $NEST_IN__OS == 'macos' ]] &&
+	[[ $SYSTEM_INFO__OS == 'macos' ]] &&
 	if [ -n "$version" ]
 	then
-		versions-equal $NEST_IN__OS_VERSION $version
+		versions-equal $SYSTEM_INFO__OS_VERSION $version
 	fi
 }
 
@@ -335,18 +333,18 @@ linux()
 	local distribution=$2
 	local version=$3
 
-	[[ $NEST_IN__OS == 'linux' ]] &&
+	[[ $SYSTEM_INFO__OS == 'linux' ]] &&
 	if [ -n "$family" ]
 	then
-		[[ $NEST_IN__LINUX_FAMILY == $family ]]
+		[[ $SYSTEM_INFO__LINUX_FAMILY == $family ]]
 	fi &&
 	if [ -n "$distribution" ]
 	then
-		[[ $NEST_IN__LINUX_DISTRIBUTION == $distribution ]]
+		[[ $SYSTEM_INFO__LINUX_DISTRIBUTION == $distribution ]]
 	fi &&
 	if [ -n "$version" ]
 	then
-		versions-equal $NEST_IN__OS_VERSION $version
+		versions-equal $SYSTEM_INFO__OS_VERSION $version
 	fi
 }
 
@@ -365,7 +363,7 @@ manjaro() { arch 'manjaro' "$@"; }
 suse() { linux 'suse' "$@"; }
 opensuse() { suse 'opensuse' "$@"; }
 
-cygwin() { [[ $NEST_IN__OS == 'cygwin' ]]; }
+cygwin() { [[ $SYSTEM_INFO__OS == 'cygwin' ]]; }
 
 #
 # Functions
@@ -414,11 +412,11 @@ parse-option()
 
 	case "$option" in
 		d)
-			NEST_IN__DO_THE_WORK=show-targets
+			DO_THE_WORK=show-targets
 			;;
 
 		n)
-			NEST_IN__DEAL_WITH_SCRIPT=cat-script
+			DEAL_WITH_SCRIPT=cat-script
 			;;
 
 		system-info)
@@ -479,12 +477,12 @@ parse-arguments()
 				;;
 
 			$PARAMETER_TYPE_TARGET)
-				NEST_IN__INPUT_TARGETS+=("$parameter")
+				INPUT_TARGETS+=("$parameter")
 				;;
 
 			$PARAMETER_TYPE_DELIMITER)
 				(( ++parameter_index ))
-				NEST_IN__TWIGS_PATH="${parameters[$parameter_index]}"
+				TWIGS_PATH="${parameters[$parameter_index]}"
 				break
 				;;
 
@@ -498,22 +496,22 @@ parse-arguments()
 
 validate-and-apply-options()
 {
-	if [ -z "$NEST_IN__TWIGS_PATH" ]
+	if [ -z "$TWIGS_PATH" ]
 	then
-		NEST_IN__TWIGS_DESCRIPTOR=0
+		TWIGS_DESCRIPTOR=0
 	else
-		NEST_IN__TWIGS_DESCRIPTOR=3
-		open-file $NEST_IN__TWIGS_DESCRIPTOR "$NEST_IN__TWIGS_PATH" >/dev/null 2>&1
+		TWIGS_DESCRIPTOR=3
+		open-file $TWIGS_DESCRIPTOR "$TWIGS_PATH" >/dev/null 2>&1
 		if [ $? != 0 ]
 		then
-			printf-error 'failed to open config file "%s"' "$NEST_IN__TWIGS_PATH"
+			printf-error 'failed to open config file "%s"' "$TWIGS_PATH"
 			return 1
 		fi
 	fi
 
-	if [[ $NEST_IN__DO_THE_WORK == ':' ]]
+	if [[ $DO_THE_WORK == ':' ]]
 	then
-		NEST_IN__DO_THE_WORK=start-nesting
+		DO_THE_WORK=start-nesting
 	fi
 }
 
@@ -728,11 +726,11 @@ normalize-target-name()
 	local target=$1
 
 	case "$target" in
-		$NEST_IN__TARGET_FIRST_STEP_NAME)
+		$TARGET_FIRST_STEP_NAME)
 			printf '%s' '+'
 			;;
 
-		$NEST_IN__TARGET_LAST_STEP_NAME)
+		$TARGET_LAST_STEP_NAME)
 			printf '%s' '-'
 			;;
 
@@ -754,7 +752,7 @@ is-target-marked()
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	local target_marked="NEST_IN__MARKED_${variable_name}"
+	local target_marked="DB__MARKED_${variable_name}"
 	[[ ${!target_marked} != '' ]] && ${!target_marked}
 }
 
@@ -763,7 +761,7 @@ target-unmark()
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	local target_marked="NEST_IN__MARKED_${variable_name}"
+	local target_marked="DB__MARKED_${variable_name}"
 	printf -v "$target_marked" false
 }
 
@@ -772,7 +770,7 @@ target-mark()
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	local target_marked="NEST_IN__MARKED_${variable_name}"
+	local target_marked="DB__MARKED_${variable_name}"
 	printf -v "$target_marked" true
 }
 
@@ -800,8 +798,8 @@ target-declaration()
 	fi
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_DECLARATION_RETURN__DECLARATION=(\"\${NEST_IN__DECLARATIONS_${variable_name}[$variant]}\")"
-	eval "TARGET_DECLARATION_RETURN__LINE_NUMBER=(\"\${NEST_IN__DECLARATION_LINE_NUMBERS_${variable_name}[$variant]}\")"
+	eval "TARGET_DECLARATION_RETURN__DECLARATION=(\"\${DB__DECLARATIONS_${variable_name}[$variant]}\")"
+	eval "TARGET_DECLARATION_RETURN__LINE_NUMBER=(\"\${DB__DECLARATION_LINE_NUMBERS_${variable_name}[$variant]}\")"
 }
 
 target-add-declaration()
@@ -811,8 +809,8 @@ target-add-declaration()
 	local declaration=$2
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__DECLARATIONS_${variable_name}+=(\"$declaration\")"
-	eval "NEST_IN__DECLARATION_LINE_NUMBERS_${variable_name}+=($line_number)"
+	eval "DB__DECLARATIONS_${variable_name}+=(\"$declaration\")"
+	eval "DB__DECLARATION_LINE_NUMBERS_${variable_name}+=($line_number)"
 }
 
 target-use-declaration-variant()
@@ -825,8 +823,8 @@ target-use-declaration-variant()
 	local line_number=$TARGET_DECLARATION_RETURN__LINE_NUMBER
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__DECLARATIONS_${variable_name}[0]=\"$declaration\""
-	eval "NEST_IN__DECLARATION_LINE_NUMBERS_${variable_name}[0]=$line_number"
+	eval "DB__DECLARATIONS_${variable_name}[0]=\"$declaration\""
+	eval "DB__DECLARATION_LINE_NUMBERS_${variable_name}[0]=$line_number"
 }
 
 TARGET_VARIANT_COUNT_RETURN__COUNT=
@@ -835,7 +833,7 @@ target-variant-count()
 	local target=$1
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_VARIANT_COUNT_RETURN__COUNT=\${#NEST_IN__DECLARATIONS_${variable_name}[@]}"
+	eval "TARGET_VARIANT_COUNT_RETURN__COUNT=\${#DB__DECLARATIONS_${variable_name}[@]}"
 
 }
 
@@ -852,7 +850,7 @@ target-requirements()
 
 	local variable_name=$(variable-name-from-target "$target")
 	local requirements
-	eval "requirements=(\"\${NEST_IN__REQUIREMENTS_${variable_name}[$variant]}\")"
+	eval "requirements=(\"\${DB__REQUIREMENTS_${variable_name}[$variant]}\")"
 
 	local old_IFS="$IFS"
 	IFS=$' '
@@ -871,7 +869,7 @@ target-add-requirements()
 	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__REQUIREMENTS_${target_variable_name}+=(\"$requirements\")"
+	eval "DB__REQUIREMENTS_${target_variable_name}+=(\"$requirements\")"
 }
 
 target-requirements-resolved()
@@ -879,7 +877,7 @@ target-requirements-resolved()
 	local target=$1
 
 	local target_variable_name=$(variable-name-from-target "$target")
-	eval "[[ \$NEST_IN__REQUIREMENTS_RESOLVED_${target_variable_name} ]]"
+	eval "[[ \$DB__REQUIREMENTS_RESOLVED_${target_variable_name} ]]"
 }
 
 target-mark-requirements-resolved()
@@ -887,7 +885,7 @@ target-mark-requirements-resolved()
 	local target=$1
 
 	local target_variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__REQUIREMENTS_RESOLVED_${target_variable_name}=true"
+	eval "DB__REQUIREMENTS_RESOLVED_${target_variable_name}=true"
 }
 
 TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=()
@@ -903,7 +901,7 @@ target-dependencies()
 
 	local variable_name=$(variable-name-from-target "$target")
 	local dependencies
-	eval "dependencies=(\"\${NEST_IN__DEPENDENCIES_${variable_name}[$variant]}\")"
+	eval "dependencies=(\"\${DB__DEPENDENCIES_${variable_name}[$variant]}\")"
 
 	local old_IFS="$IFS"
 	IFS=$' '
@@ -952,7 +950,7 @@ target-add-dependencies()
 	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__DEPENDENCIES_${target_variable_name}+=(\"$dependencies\")"
+	eval "DB__DEPENDENCIES_${target_variable_name}+=(\"$dependencies\")"
 }
 
 target-use-dependencies-variant()
@@ -967,7 +965,7 @@ target-use-dependencies-variant()
 	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__DEPENDENCIES_${target_variable_name}[0]=\"$dependencies\""
+	eval "DB__DEPENDENCIES_${target_variable_name}[0]=\"$dependencies\""
 }
 
 TARGET_SCRIPT_RETURN__SCRIPT=()
@@ -982,7 +980,7 @@ target-script()
 	fi
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\${NEST_IN__SCRIPT_${variable_name}[$variant]}\")"
+	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\${DB__SCRIPT_${variable_name}[$variant]}\")"
 }
 
 target-add-script()
@@ -991,7 +989,7 @@ target-add-script()
 	local script=("${@:2}")
 
 	local variable_name=$(variable-name-from-target "$target")
-	eval "NEST_IN__SCRIPT_${variable_name}+=(\"\$script\")"
+	eval "DB__SCRIPT_${variable_name}+=(\"\$script\")"
 }
 
 target-use-script-variant()
@@ -1001,9 +999,9 @@ target-use-script-variant()
 
 	local variable_name=$(variable-name-from-target "$target")
 	local script
-	eval "script=\"\${NEST_IN__SCRIPT_${variable_name}[$variant]}\""
+	eval "script=\"\${DB__SCRIPT_${variable_name}[$variant]}\""
 
-	eval "NEST_IN__SCRIPT_${variable_name}[0]=\"\$script\""
+	eval "DB__SCRIPT_${variable_name}[0]=\"\$script\""
 }
 
 target-use-variant()
@@ -1121,12 +1119,12 @@ gather-twigs()
 		local target
 		if [[ $target_type == $TARGET_TYPE_CODE__FIRST_STEP ]]
 		then
-			NEST_IN__FIRST_STEP="$NEST_IN__TARGET_FIRST_STEP_NAME"
-			target="$NEST_IN__TARGET_FIRST_STEP_NAME"
+			FIRST_STEP="$TARGET_FIRST_STEP_NAME"
+			target="$TARGET_FIRST_STEP_NAME"
 		elif [[ $target_type == $TARGET_TYPE_CODE__LAST_STEP ]]
 		then
-			NEST_IN__LAST_STEP="$NEST_IN__TARGET_LAST_STEP_NAME"
-			target="$NEST_IN__TARGET_LAST_STEP_NAME"
+			LAST_STEP="$TARGET_LAST_STEP_NAME"
+			target="$TARGET_LAST_STEP_NAME"
 		else
 			extract-target "$line"
 			target="$EXTRACT_TARGET_RETURN__TARGET"
@@ -1140,14 +1138,14 @@ gather-twigs()
 		target-add-requirements "$target" "${requirements[@]}"
 		target-add-dependencies "$target" "${dependencies[@]}"
 
-		if [[ $target_type == $TARGET_TYPE_CODE__REGULAR ]] && ! array-contains-item "$target" "${NEST_IN__REGULAR_TARGETS[@]}"
+		if [[ $target_type == $TARGET_TYPE_CODE__REGULAR ]] && ! array-contains-item "$target" "${REGULAR_TARGETS[@]}"
 		then
-			NEST_IN__REGULAR_TARGETS+=("$target")
+			REGULAR_TARGETS+=("$target")
 		fi
 
-		if ! array-contains-item "$target" "${NEST_IN__ALL_TARGETS[@]}"
+		if ! array-contains-item "$target" "${ALL_TARGETS[@]}"
 		then
-			NEST_IN__ALL_TARGETS+=("$target")
+			ALL_TARGETS+=("$target")
 		fi
 
 		if ! file-peek-line $descriptor
@@ -1171,7 +1169,7 @@ gather-twigs()
 	done
 	IFS="$old_IFS"
 
-	targets-unmark "${NEST_IN__ALL_TARGETS[@]}"
+	targets-unmark "${ALL_TARGETS[@]}"
 }
 
 make-error-message-unknown-requirement()
@@ -1199,7 +1197,7 @@ make-error-message-multiple-requirements-fulfilled()
 	local target=$1
 	local variants=("${@:2}")
 
-	printf 'multiple "%s" variants have their requirements fulfilled\n\n%s\n' $(normalize-target-name "$target") $(realpath "$NEST_IN__TWIGS_PATH")
+	printf 'multiple "%s" variants have their requirements fulfilled\n\n%s\n' $(normalize-target-name "$target") $(realpath "$TWIGS_PATH")
 
 	local variant
 	for variant in "${variants[@]}"
@@ -1216,7 +1214,7 @@ make-error-message-multiple-declarations()
 	local target=$1
 	local variants=("${@:2}")
 
-	printf 'multiple declarations for "%s"\n\n%s\n' $(normalize-target-name "$target") $(realpath "$NEST_IN__TWIGS_PATH")
+	printf 'multiple declarations for "%s"\n\n%s\n' $(normalize-target-name "$target") $(realpath "$TWIGS_PATH")
 
 	local variant
 	for variant in "${variants[@]}"
@@ -1234,7 +1232,7 @@ make-error-message-unknown-dependency()
 	local dependency=$2
 
 	target-declaration "$target"
-	printf 'unknown dependency "%s" for "%s"\n\n%s\nline %d: %s\n' "$dependency" "$target" $(realpath "$NEST_IN__TWIGS_PATH") $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	printf 'unknown dependency "%s" for "%s"\n\n%s\nline %d: %s\n' "$dependency" "$target" $(realpath "$TWIGS_PATH") $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
 }
 
 make-error-message-circular-dependency()
@@ -1245,7 +1243,7 @@ make-error-message-circular-dependency()
 	printf '%s -> ' "${dependency_path[@]}"
 	printf '%s' "${dependency_path[0]}"
 
-	printf '\n\n%s\n' $(realpath "$NEST_IN__TWIGS_PATH")
+	printf '\n\n%s\n' $(realpath "$TWIGS_PATH")
 	local target
 	for target in "${dependency_path[@]}"
 	do
@@ -1415,7 +1413,7 @@ resolve-requirements-and-verify-dependencies()
 			return 1
 		fi
 
-		targets-unmark "${NEST_IN__ALL_TARGETS[@]}"
+		targets-unmark "${ALL_TARGETS[@]}"
 	done
 }
 
@@ -1496,22 +1494,22 @@ assemble-nesting-script()
 	local path=$1
 	local targets=("${@:2}")
 
-	target-script "$NEST_IN__FIRST_STEP"
+	target-script "$FIRST_STEP"
 	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
 	if [ -n "$script" ]
 	then
-		target-declaration "$NEST_IN__TARGET_FIRST_STEP_NAME"
+		target-declaration "$TARGET_FIRST_STEP_NAME"
 		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
 		nesting-script-append "$path" '%s\n' "$script"
 	fi
 
 	assemble-nesting-script-recursive "$path" "${targets[@]}"
 
-	target-script "$NEST_IN__LAST_STEP"
+	target-script "$LAST_STEP"
 	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
 	if [ -n "$script" ]
 	then
-		target-declaration "$NEST_IN__TARGET_LAST_STEP_NAME"
+		target-declaration "$TARGET_LAST_STEP_NAME"
 		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
 		nesting-script-append "$path" '%s\n' "$script"
 	fi
@@ -1523,7 +1521,7 @@ start-nesting()
 
 	printf-message 'Nesting...'
 
-	path="$NEST_IN__WORK_PATH"
+	path="$WORK_SCRIPT_PATH"
 	rm -f "$path"
 
 	nesting-script-append "$path" '#!/bin/bash -e\n\n'
@@ -1568,20 +1566,20 @@ gather-system-info
 
 { # Do the work
 	printf-message 'Gathering twigs...'
-	if ! gather-twigs $NEST_IN__TWIGS_DESCRIPTOR
+	if ! gather-twigs $TWIGS_DESCRIPTOR
 	then
 		exit 1
 	fi
 
-	if [[ ${#NEST_IN__INPUT_TARGETS[@]} == 0 ]]
+	if [[ ${#INPUT_TARGETS[@]} == 0 ]]
 	then
-		targets=("${NEST_IN__REGULAR_TARGETS[@]}")
+		targets=("${REGULAR_TARGETS[@]}")
 	else
-		targets=("${NEST_IN__INPUT_TARGETS[@]}")
+		targets=("${INPUT_TARGETS[@]}")
 	fi
 
 	printf-message 'Checking twigs...'
-	if ! resolve-requirements-and-verify-dependencies "${targets[@]}" $NEST_IN__FIRST_STEP $NEST_IN__LAST_STEP
+	if ! resolve-requirements-and-verify-dependencies "${targets[@]}" $FIRST_STEP $LAST_STEP
 	then
 		exit 1
 	fi
