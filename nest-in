@@ -692,18 +692,6 @@ extract-reqs-and-deps()
 	IFS="$old_IFS"
 }
 
-TRIM_STRING_RETURN__STRING=''
-trim-string()
-{
-	local string=$1
-
-	TRIM_STRING_RETURN__STRING=''
-
-    string="${string#"${string%%[![:space:]]*}"}"
-    string="${string%"${string##*[![:space:]]}"}"
-	TRIM_STRING_RETURN__STRING="$string"
-}
-
 array-contains-item()
 {
 	local item=$1
