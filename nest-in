@@ -1524,7 +1524,7 @@ start-nesting()
 	path="$WORK_SCRIPT_PATH"
 	rm -f "$path"
 
-	nesting-script-append "$path" '#!/bin/bash -e\n\n'
+	nesting-script-append "$path" '#!/bin/bash -ex\n\n'
 	assemble-nesting-script "$path" "${targets[@]}"
 	chmod u+x "$path"
 
