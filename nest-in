@@ -121,7 +121,7 @@ readonly TARGET_FIRST_STEP_NAME='_FIRST_STEP'
 readonly TARGET_LAST_STEP_NAME='_LAST_STEP'
 
 #
-# Options
+# Globals
 
 TWIGS_PATH="$DEFAULT_TWIGS_PATH"
 TWIGS_DESCRIPTOR=-1
@@ -1534,8 +1534,6 @@ start-nesting()
 		printf-error 'nesting failed. check output for more info.'
 		return 1
 	fi
-
-	print-message '\nDone.'
 }
 
 run-script()
