@@ -1176,8 +1176,8 @@ make-error-message-unknown-requirement()
 	target-declaration "$target" $index
 	local line_number=$TARGET_DECLARATION_RETURN__LINE_NUMBER
 	local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
-	printf 'unknown requirement "%s" for "%s"\n' "$requirement" $(normalize-target-name "$target")
-	printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	printf 'unknown requirement "%s" for "%s"\n\n' "$requirement" $(normalize-target-name "$target")
+	printf '%s\nline %d: %s\n' "$(realpath "$TWIGS_PATH")" $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
 }
 
 make-error-message-none-requirements-fulfilled()
@@ -1209,7 +1209,7 @@ make-error-message-unknown-dependency()
 	local dependency=$2
 
 	target-declaration "$target"
-	printf 'unknown dependency "%s" for "%s"\n\n%s\nline %d: %s\n' "$dependency" "$target" $(realpath "$TWIGS_PATH") $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	printf 'unknown dependency "%s" for "%s"\n\n%s\nline %d: %s\n' "$dependency" "$target" "$(realpath "$TWIGS_PATH")" $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
 }
 
 make-error-message-circular-dependency()
@@ -1218,9 +1218,9 @@ make-error-message-circular-dependency()
 
 	printf 'circular dependency found\n'
 	printf '%s -> ' "${dependency_path[@]}"
-	printf '%s' "${dependency_path[0]}"
+	printf '%s\n' "${dependency_path[0]}"
 
-	printf '\n\n%s\n' $(realpath "$TWIGS_PATH")
+	printf '\n%s\n' "$(realpath "$TWIGS_PATH")"
 	local target
 	for target in "${dependency_path[@]}"
 	do
