@@ -54,7 +54,6 @@ print-help()
 ${NEST_IN__TS_B}OPTIONS${NEST_IN__TS_N}
   [${NEST_IN__TS_U}targets${NEST_IN__TS_N}...]   Specify targets to work with.
   ${NEST_IN__TS_B}-d${NEST_IN__TS_N}             Show dependencies for targets.
-  ${NEST_IN__TS_B}-s${NEST_IN__TS_N}             Show scripts for targets.
   ${NEST_IN__TS_B}-n${NEST_IN__TS_N}             Dry run.
   ${NEST_IN__TS_B}--system-info${NEST_IN__TS_N}  Print detected system information.
   ${NEST_IN__TS_B}--${NEST_IN__TS_N} ${NEST_IN__TS_U}file${NEST_IN__TS_N}        Read nesting info from ${NEST_IN__TS_U}file${NEST_IN__TS_N}.
@@ -146,23 +145,6 @@ do-the-work()
 	"$NEST_IN__DO_THE_WORK" "$@"
 }
 
-NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES=:
-deal-with-show-target-dependencies()
-{
-	"$NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES" "$@"
-}
-
-NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE=(:)
-deal-with-show-target-dependencies-newline()
-{
-	"${NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE[@]}"
-}
-
-NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT=:
-deal-with-show-target-script()
-{
-	"$NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT" "$@"
-}
 
 NEST_IN__DEAL_WITH_SCRIPT=exec-script
 deal-with-script()
@@ -439,12 +421,6 @@ parse-option()
 
 	case "$option" in
 		d)
-			NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES=show-target-dependencies
-			NEST_IN__DO_THE_WORK=show-targets
-			;;
-
-		s)
-			NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT=show-target-script
 			NEST_IN__DO_THE_WORK=show-targets
 			;;
 
@@ -540,11 +516,6 @@ validate-and-apply-options()
 			printf-error 'failed to open config file "%s"' "$NEST_IN__TWIGS_PATH"
 			return 1
 		fi
-	fi
-
-	if [[ $NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES != ':' && $NEST_IN__DEAL_WITH_SHOW_TARGET_SCRIPT == ':' ]]
-	then
-		NEST_IN__DEAL_WITH_SHOW_TARGET_DEPENDENCIES_NEWLINE=(printf '\n')
 	fi
 
 	if [[ $NEST_IN__DO_THE_WORK == ':' ]]
@@ -953,7 +924,7 @@ target-dependencies-recursive-impl()
 
 	target-dependencies "$target"
 	local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-	if [[ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 0 ]]
+	if [[ ${#dependencies[@]} == 0 ]]
 	then
 		return
 	fi
@@ -1472,26 +1443,9 @@ show-target-dependencies()
 	for dependency in "${dependencies[@]}"
 	do
 		printf "\n%s%s" "$indent" "$dependency"
-		deal-with-show-target-script "$dependency" "$indent$indent"
 	done
 
-	deal-with-show-target-dependencies-newline
-}
-
-show-target-script()
-{
-	local target=$1
-	local indent=$2
-
-	target-script "$target"
-	local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-	if [[ ${#script[@]} == 0 ]]
-	then
-		return
-	fi
-
 	printf '\n'
-	printf "$indent"'%s\n' "${script[@]}"
 }
 
 show-targets()
@@ -1500,14 +1454,12 @@ show-targets()
 
 	local target="${targets[0]}"
 	printf "%s" "$target"
-	deal-with-show-target-script "$target" '    '
-	deal-with-show-target-dependencies "$target" '    '
+	show-target-dependencies "$target" '    '
 
 	for target in "${targets[@]:1}"
 	do
 		printf "\n%s" "$target"
-		deal-with-show-target-script "$target" '    '
-		deal-with-show-target-dependencies "$target" '    '
+		show-target-dependencies "$target" '    '
 	done
 }
 
