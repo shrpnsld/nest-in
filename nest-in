@@ -38,13 +38,6 @@ printf-message()
 	printf '\n'
 }
 
-printf-nest-in-message()
-{
-	printf "${NEST_IN__TS_U}$NEST_IN__SCRIPT_NAME${NEST_IN__TS_N}: "
-	printf "$@"
-	printf '\n'
-}
-
 print-help()
 {
 	printf \
@@ -54,7 +47,7 @@ print-help()
 ${NEST_IN__TS_B}OPTIONS${NEST_IN__TS_N}
   [${NEST_IN__TS_U}targets${NEST_IN__TS_N}...]   Specify targets to work with.
   ${NEST_IN__TS_B}-d${NEST_IN__TS_N}             Show dependencies for targets.
-  ${NEST_IN__TS_B}-n${NEST_IN__TS_N}             Dry run.
+  ${NEST_IN__TS_B}-n${NEST_IN__TS_N}             Assemble work script, but don't run it.
   ${NEST_IN__TS_B}--system-info${NEST_IN__TS_N}  Print detected system information.
   ${NEST_IN__TS_B}--${NEST_IN__TS_N} ${NEST_IN__TS_U}file${NEST_IN__TS_N}        Read nesting info from ${NEST_IN__TS_U}file${NEST_IN__TS_N}.
   ${NEST_IN__TS_B}--${NEST_IN__TS_N}             Read nesting info from from ${NEST_IN__TS_U}stdin${NEST_IN__TS_N}.
@@ -125,6 +118,7 @@ versions-equal()
 readonly NEST_IN__CONFIG_DIR_PATH="$HOME/.config/$NEST_IN__SCRIPT_NAME"
 readonly NEST_IN__CONFIG_FILE_NAME='twigs.txt'
 readonly NEST_IN__DEFAULT_TWIGS_PATH="$NEST_IN__CONFIG_DIR_PATH/$NEST_IN__CONFIG_FILE_NAME"
+readonly NEST_IN__WORK_PATH="/tmp/nest-in-work"
 readonly NEST_IN__TARGET_FIRST_STEP_NAME='_FIRST_STEP'
 readonly NEST_IN__TARGET_LAST_STEP_NAME='_LAST_STEP'
 
@@ -145,8 +139,7 @@ do-the-work()
 	"$NEST_IN__DO_THE_WORK" "$@"
 }
 
-
-NEST_IN__DEAL_WITH_SCRIPT=exec-script
+NEST_IN__DEAL_WITH_SCRIPT=run-script
 deal-with-script()
 {
 	"$NEST_IN__DEAL_WITH_SCRIPT" "$@"
@@ -425,7 +418,7 @@ parse-option()
 			;;
 
 		n)
-			NEST_IN__DEAL_WITH_SCRIPT=:
+			NEST_IN__DEAL_WITH_SCRIPT=cat-script
 			;;
 
 		system-info)
@@ -990,11 +983,6 @@ target-script()
 
 	local variable_name=$(variable-name-from-target "$target")
 	eval "TARGET_SCRIPT_RETURN__SCRIPT=(\"\${NEST_IN__SCRIPT_${variable_name}[$variant]}\")"
-
-	local old_IFS="$IFS"
-	IFS=$'\n'
-	TARGET_SCRIPT_RETURN__SCRIPT=(${TARGET_SCRIPT_RETURN__SCRIPT[@]})
-	IFS="$old_IFS"
 }
 
 target-add-script()
@@ -1013,7 +1001,7 @@ target-use-script-variant()
 
 	local variable_name=$(variable-name-from-target "$target")
 	local script
-	eval "script=(\"\${NEST_IN__SCRIPT_${variable_name}[$variant]}\")"
+	eval "script=\"\${NEST_IN__SCRIPT_${variable_name}[$variant]}\""
 
 	eval "NEST_IN__SCRIPT_${variable_name}[0]=\"\$script\""
 }
@@ -1463,31 +1451,23 @@ show-targets()
 	done
 }
 
-EXEC_SCRIPT_RETURN__FAILED_LINE=''
-exec-script()
+nesting-script-append()
 {
-	local nest_in__script=("$@")
+	local path=$1
+	local arguments=("${@:2}")
 
-	EXEC_SCRIPT_RETURN__FAILED_LINE=''
+	if [[ ${#arguments[@]} == 0 ]]
+	then
+		return
+	fi
 
-	local nest_in__pwd="$PWD"
-	local nest_in__line
-	for nest_in__line in "${nest_in__script[@]}"
-	do
-		eval "$nest_in__line"
-		if [ $? != 0 ]
-		then
-			EXEC_SCRIPT_RETURN__FAILED_LINE="$nest_in__line"
-			return 1
-		fi
-	done
-
-	cd "$nest_in__pwd"
+	printf "${arguments[@]}" >> "$path"
 }
 
-nest-in-targets()
+assemble-nesting-script-recursive()
 {
-	local targets=("$@")
+	local path=$1
+	local targets=("${@:2}")
 
 	local target
 	for target in "${targets[@]}"
@@ -1499,65 +1479,77 @@ nest-in-targets()
 
 		target-dependencies "$target"
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-		if [[ ${#dependencies[@]} > 0 ]]
-		then
-			printf-nest-in-message 'resolving dependencies for %s...' "$target"
-			if ! nest-in-targets "${dependencies[@]}"
-			then
-				return 1
-			fi
-		fi
+		assemble-nesting-script-recursive "$path" "${dependencies[@]}"
+
+		target-declaration "$target"
+		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
 
 		target-script "$target"
-		local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-		if [[ ${#script[@]} > 0 ]]
-		then
-			printf-nest-in-message 'working on %s...' "$target"
-			if ! deal-with-script "${script[@]}"
-			then
-				printf-error 'failed to install "%s"\nthe following command returned non-zero:\n> %s' $(normalize-target-name "$target") "$EXEC_SCRIPT_RETURN__FAILED_LINE"
-				return 1
-			fi
-		fi
+		nesting-script-append "$path" '%s\n' "$TARGET_SCRIPT_RETURN__SCRIPT"
 
 		target-mark "$target"
 	done
 }
 
-start-nesting()
+assemble-nesting-script()
 {
-	printf-message 'Nesting...'
+	local path=$1
+	local targets=("${@:2}")
 
 	target-script "$NEST_IN__FIRST_STEP"
-	local script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-	if [[ ${#script[@]} > 0 ]]
+	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
+	if [ -n "$script" ]
 	then
-		printf-nest-in-message 'first step...'
-		if ! deal-with-script "${script[@]}"
-		then
-			printf-error 'first step failed\nthe following command returned non-zero:\n> %s' "$EXEC_SCRIPT_RETURN__FAILED_LINE"
-			return 1
-		fi
+		target-declaration "$NEST_IN__TARGET_FIRST_STEP_NAME"
+		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
+		nesting-script-append "$path" '%s\n' "$script"
 	fi
 
-	if ! nest-in-targets "$@"
-	then
-		return 1
-	fi
+	assemble-nesting-script-recursive "$path" "${targets[@]}"
 
 	target-script "$NEST_IN__LAST_STEP"
-	script=("${TARGET_SCRIPT_RETURN__SCRIPT[@]}")
-	if [[ ${#script[@]} > 0 ]]
+	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
+	if [ -n "$script" ]
 	then
-		printf-nest-in-message 'last step...'
-		if ! deal-with-script "${script[@]}"
-		then
-			printf-error 'last step failed\nthe following command returned non-zero:\n> %s' "$EXEC_SCRIPT_RETURN__FAILED_LINE"
-			return 1
-		fi
+		target-declaration "$NEST_IN__TARGET_LAST_STEP_NAME"
+		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
+		nesting-script-append "$path" '%s\n' "$script"
 	fi
+}
 
-	printf-message '\nNesting finished.\nWelcome home!'
+start-nesting()
+{
+	local targets=("$@")
+
+	printf-message 'Nesting...'
+
+	path="$NEST_IN__WORK_PATH"
+	rm -f "$path"
+
+	nesting-script-append "$path" '#!/bin/bash -e\n\n'
+	assemble-nesting-script "$path" "${targets[@]}"
+	chmod u+x "$path"
+
+	deal-with-script "$path"
+	if [ $? != 0 ]
+	then
+		printf-error 'nesting failed. check output for more info.'
+		return 1
+	fi
+}
+
+run-script()
+{
+	local path=$1
+
+	trap "rm -r $path" EXIT
+	"$path"
+}
+
+cat-script()
+{
+	printf '\n'
+	cat $1
 }
 
 #
@@ -1586,6 +1578,7 @@ gather-system-info
 		targets=("${NEST_IN__INPUT_TARGETS[@]}")
 	fi
 
+	printf-message 'Checking twigs...'
 	if ! resolve-requirements-and-verify-dependencies "${targets[@]}" $NEST_IN__FIRST_STEP $NEST_IN__LAST_STEP
 	then
 		exit 1
