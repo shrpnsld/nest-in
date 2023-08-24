@@ -709,6 +709,14 @@ array-contains-item()
 	return 1
 }
 
+array-sort()
+{
+	local old_IFS="$IFS"
+	IFS=$'\n'
+	printf '%s\n' "$@" | sort
+	IFS="$old_IFS"
+}
+
 normalize-target-name()
 {
 	local target=$1
@@ -1179,6 +1187,22 @@ make-error-message-none-requirements-fulfilled()
 	printf 'none of "%s" variants have requirements fulfilled' $(normalize-target-name "$target")
 }
 
+make-error-message-duplicate-declarations()
+{
+	local target=$1
+	local variants=("${@:2}")
+
+	printf 'duplicate declarations for "%s"\n' "$target"
+
+	printf '\n%s\n' "$(realpath "$TWIGS_PATH")"
+	local variant
+	for variant in "${variants[@]}"
+	do
+		target-declaration "$target" $variant
+		printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	done
+}
+
 make-error-message-unknown-dependency()
 {
 	local target=$1
@@ -1202,6 +1226,78 @@ make-error-message-circular-dependency()
 	do
 		target-declaration "$target"
 		printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	done
+}
+
+TARGET_FIND_DUPLICATE_VARIANTS__INDEXES=()
+target-find-duplicate-variants()
+{
+	local target=$1
+	local variant=$2
+
+	TARGET_FIND_DUPLICATE_VARIANTS__INDEXES=($variant)
+
+	target-dependencies "$target" $variant
+	local dependencies=$(array-sort "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
+	target-requirements "$target" $variant
+	local requirements=$(array-sort "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}")
+
+	target-variant-count "$target"
+	local count=$TARGET_VARIANT_COUNT_RETURN__COUNT
+	local duplicates=()
+	local index
+	for (( index = 0; index < count; ++index ))
+	do
+		if [[ $index == $variant ]]
+		then
+			continue
+		fi
+
+		target-dependencies "$target" $index
+		local another_dependencies=$(array-sort "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
+		target-requirements "$target" $index
+		local another_requirements=$(array-sort "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}")
+
+		if [[ $dependencies == $another_dependencies && $requirements == $another_requirements ]]
+		then
+			TARGET_FIND_DUPLICATE_VARIANTS__INDEXES+=($index)
+		fi
+	done
+
+	[[ ${#TARGET_FIND_DUPLICATE_VARIANTS__INDEXES[@]} == 1 ]]
+}
+
+TARGET_FIND_DUPLICATES_RETURN__INDEXES=()
+target-find-duplicates()
+{
+	local target=$1
+
+	TARGET_FIND_DUPLICATES_RETURN__INDEXES=()
+
+	target-variant-count "$target"
+	local count=$TARGET_VARIANT_COUNT_RETURN__COUNT
+	local variant
+	for (( variant = 0; variant < count; ++variant ))
+	do
+		if ! target-find-duplicate-variants "$target" $variant
+		then
+			TARGET_FIND_DUPLICATES_RETURN__INDEXES=("${TARGET_FIND_DUPLICATE_VARIANTS__INDEXES[@]}")
+			return 1
+		fi
+	done
+}
+
+check-duplicates()
+{
+	local targets=("$@")
+
+	for target in "${targets[@]}"
+	do
+		if ! target-find-duplicates "$target"
+		then
+			printf-error "$(make-error-message-duplicate-declarations "$target" "${TARGET_FIND_DUPLICATES_RETURN__INDEXES[@]}")"
+			return 1
+		fi
 	done
 }
 
@@ -1507,7 +1603,10 @@ gather-system-info
 	fi
 
 	printf-message 'Checking twigs...'
-	if ! resolve-requirements-and-verify-dependencies "${targets[@]}" $FIRST_STEP $LAST_STEP
+
+	check-duplicates "${targets[@]}" &&
+	resolve-requirements-and-verify-dependencies "${targets[@]}" $FIRST_STEP $LAST_STEP
+	if [ $? != 0 ]
 	then
 		exit 1
 	fi
