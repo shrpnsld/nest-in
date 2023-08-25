@@ -607,9 +607,9 @@ is-target-declaration()
 
 	# Example
 	# target-name! / [requirement:specifier] [requirement] another-target and-another
-	#                                                                               (                           |                                       |                   )(                                       |                                                   |                               )
-	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/[[:blank:]]*([[:alpha:]]+[[:alnum:]_\-]*|\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*[[:blank:]]*$ ]] ||
-	#            target-name................            !              /             dependency-name............  [requirement.... :specifier........ ]  [requirement..... ]              dependency-name............              [requirement.... :specifier......... ]              [requirement.... ]
+	#                                                                               (                           |                                       |                   |                       )(                                       |                                                   |                               |                                  )
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/[[:blank:]]*([[:alpha:]]+[[:alnum:]_\-]*|\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|\[[[:alpha:]_\-]+\]|\'[[:alnum:]_\.~/\-]+\')([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\]|[[:blank:]+\'[[:alnum:]_\.~/\-]+\')*[[:blank:]]*$ ]] ||
+	#            target-name................            !              /             dependency-name............  [requirement.... :specifier........ ]  [requirement..... ]  'artifact............'              dependency-name............              [requirement.... :specifier......... ]              [requirement.... ]             'artifact............'
 
 	[[ $line =~ ^(\+|\-)[[:blank:]]*$ ]] ||
 
@@ -657,21 +657,21 @@ target-type()
 
 }
 
-EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS=()
-EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES=()
-extract-reqs-and-deps()
+EXTRACT_REQS_DEPS_ARTS_RETURN__REQUIREMENTS=()
+EXTRACT_REQS_DEPS_ARTS_RETURN__DEPENDENCIES=()
+EXTRACT_REQS_DEPS_ARTS_RETURN__ARTIFACTS=()
+extract-reqs-deps-arts()
 {
 	local line=$1
 
-	EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS=()
-	EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES=()
+	EXTRACT_REQS_DEPS_ARTS_RETURN__REQUIREMENTS=()
+	EXTRACT_REQS_DEPS_ARTS_RETURN__DEPENDENCIES=()
+	EXTRACT_REQS_DEPS_ARTS_RETURN__ARTIFACTS=()
 
 	if [[ $line != */* ]]
 	then
 		return
 	fi
-
-	line=${line#*/}
 
 	local old_IFS="$IFS"
 	IFS=$' '
@@ -679,14 +679,22 @@ extract-reqs-and-deps()
 	local tokens=(${line#*/})
 	for token in "${tokens[@]}"
 	do
-		if [[ ${token:0:1} == '[' ]]
-		then
-			token=${token#[}
-			token=${token%]}
-			EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS+=("$token")
-		else
-			EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES+=("$token")
-		fi
+		case ${token:0:1} in
+			\[)
+				token=${token#[}
+				token=${token%]}
+				EXTRACT_REQS_DEPS_ARTS_RETURN__REQUIREMENTS+=("$token")
+				;;
+
+			\')
+				token=${token#\'}
+				token=${token%\'}
+				EXTRACT_REQS_DEPS_ARTS_RETURN__ARTIFACTS+=("$token")
+				;;
+
+			*)
+				EXTRACT_REQS_DEPS_ARTS_RETURN__DEPENDENCIES+=("$token")
+		esac
 	done
 
 	IFS="$old_IFS"
@@ -964,6 +972,56 @@ target-use-dependencies-variant()
 	eval "DB__DEPENDENCIES_${target_variable_name}[0]=\"$dependencies\""
 }
 
+TARGET_ARTIFACTS_RETURN__ARTIFACTS=()
+target-artifacts()
+{
+	local target=$1
+	local variant=$2
+
+	if [ -z "$variant" ]
+	then
+		variant=0
+	fi
+
+	local variable_name=$(variable-name-from-target "$target")
+	local artifacts
+	eval "artifacts=(\"\${DB__ARTIFACTS_${variable_name}[$variant]}\")"
+
+	local old_IFS="$IFS"
+	IFS=$' '
+	TARGET_ARTIFACTS_RETURN__ARTIFACTS=(${artifacts[@]})
+	IFS="$old_IFS"
+}
+
+target-add-artifacts()
+{
+	local target=$1
+	local artifacts=("${@:2}")
+
+	local old_IFS="$IFS"
+	IFS=$' '
+	artifacts="${artifacts[@]}"
+	IFS="$old_IFS"
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "DB__ARTIFACTS_${target_variable_name}+=(\"$artifacts\")"
+}
+
+target-use-artifacts-variant()
+{
+	local target=$1
+	local variant=$2
+
+	local old_IFS="$IFS"
+	IFS=$' '
+	target-artifacts "$target" $variant
+	local artifacts="${TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}"
+	IFS="$old_IFS"
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "DB__ARTIFACTS_${target_variable_name}[0]=\"$artifacts\""
+}
+
 TARGET_SCRIPT_RETURN__SCRIPT=()
 target-script()
 {
@@ -1007,6 +1065,7 @@ target-use-variant()
 
 	target-use-declaration-variant "$target" $variant
 	target-use-dependencies-variant "$target" $variant
+	target-use-artifacts-variant "$target" $variant
 	target-use-script-variant "$target" $variant
 	target-mark-requirements-resolved "$target"
 }
@@ -1127,11 +1186,13 @@ gather-twigs()
 
 		target-add-declaration "$target" "$line" $line_number
 
-		extract-reqs-and-deps "$line"
-		local dependencies=("${EXTRACT_REQS_AND_DEPS_RETURN__DEPENDENCIES[@]}")
-		local requirements=("${EXTRACT_REQS_AND_DEPS_RETURN__REQUIREMENTS[@]}")
+		extract-reqs-deps-arts "$line"
+		local requirements=("${EXTRACT_REQS_DEPS_ARTS_RETURN__REQUIREMENTS[@]}")
+		local dependencies=("${EXTRACT_REQS_DEPS_ARTS_RETURN__DEPENDENCIES[@]}")
+		local artifacts=("${EXTRACT_REQS_DEPS_ARTS_RETURN__ARTIFACTS[@]}")
 		target-add-requirements "$target" "${requirements[@]}"
 		target-add-dependencies "$target" "${dependencies[@]}"
+		target-add-artifacts "$target" "${artifacts[@]}"
 
 		if [[ $target_type == $TARGET_TYPE_CODE__REGULAR ]] && ! array-contains-item "$target" "${REGULAR_TARGETS[@]}"
 		then
@@ -1488,6 +1549,120 @@ nesting-script-append()
 	printf "${arguments[@]}" >> "$path"
 }
 
+ARTIFACT_TYPE_CODE__PROGRAM=1
+ARTIFACT_TYPE_CODE__FILE=2
+ARTIFACT_TYPE_CODE__DIRECTORY=3
+ARTIFACT_TYPE_CODE__UNKNOWN=255
+artifact-type()
+{
+	local artifact=$1
+
+	if [[ ${artifact: -1} == '/' ]]
+	then
+		return $ARTIFACT_TYPE_CODE__DIRECTORY
+	elif [[ $artifact == */* ]]
+	then
+		return $ARTIFACT_TYPE_CODE__FILE
+	else
+		return $ARTIFACT_TYPE_CODE__PROGRAM
+	fi
+
+	return $ARTIFACT_TYPE_CODE__UNKNOWN
+}
+
+normalize-path()
+{
+	local path=$1
+
+	if [[ ${path:0:1} == '~' ]]
+	then
+		path="${HOME}/${path#'~/'}"
+	fi
+
+	printf '%s' "$path"
+}
+
+ARTIFACT_EXISTS_RETURN__ARTIFACT=''
+artifact-exists()
+{
+	local artifact=$1
+
+	ARTIFACT_EXISTS_RETURN__ARTIFACT=''
+
+	artifact-type "$artifact"
+	case $? in
+		$ARTIFACT_TYPE_CODE__PROGRAM)
+			local path
+			path=$(command -v "$artifact")
+			local retval=$?
+			ARTIFACT_EXISTS_RETURN__ARTIFACT="$path"
+			return $retval
+			;;
+
+		$ARTIFACT_TYPE_CODE__FILE)
+			artifact=$(normalize-path "$artifact")
+			if ! [ -r "$artifact" ]
+			then
+				return 1
+			fi
+
+			ARTIFACT_EXISTS_RETURN__ARTIFACT=$(realpath -q "$artifact")
+			;;
+
+		$ARTIFACT_TYPE_CODE__DIRECTORY)
+			artifact=$(normalize-path "$artifact")
+			if ! [ -d "$artifact" ]
+			then
+				return 1
+			fi
+
+			ARTIFACT_EXISTS_RETURN__ARTIFACT=$(realpath -q "$artifact")
+			;;
+
+		$ARTIFACT_TYPE_CODE__UNKNOWN)
+			;;
+	esac
+}
+
+ARTIFACTS_EXIST_RETURN__ARTIFACTS=()
+artifacts-exist()
+{
+	local artifacts=("$@")
+
+	ARTIFACTS_EXIST_RETURN__ARTIFACTS=()
+
+	if [[ ${#artifacts[@]} == 0 ]]
+	then
+		return 1
+	fi
+
+	local artifact
+	for artifact in "${artifacts[@]}"
+	do
+		if ! artifact-exists "$artifact"
+		then
+			return 1
+		fi
+
+		ARTIFACTS_EXIST_RETURN__ARTIFACTS+=("$ARTIFACT_EXISTS_RETURN__ARTIFACT")
+	done
+}
+
+make-comment-artifacts-already-exist()
+{
+	local target=$1
+	local artifacts=("${@:2}")
+
+	target-declaration "$target"
+	printf '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
+	printf '#   all artifacts for "%s" already exist:\n' "$target"
+	local artifact
+	for artifact in "${artifacts[@]}"
+	do
+		printf $'#   %s\n' "$artifact"
+	done
+}
+
 assemble-nesting-script-recursive()
 {
 	local path=$1
@@ -1498,6 +1673,17 @@ assemble-nesting-script-recursive()
 	do
 		if is-target-marked "$target"
 		then
+			continue
+		fi
+
+		target-artifacts "$target"
+		local artifacts=("${TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}")
+		if artifacts-exist "${artifacts[@]}"
+		then
+			local comment="$(make-comment-artifacts-already-exist "$target" "${ARTIFACTS_EXIST_RETURN__ARTIFACTS[@]}")"
+			nesting-script-append "$path" '%s\n\n' "$comment"
+
+			target-mark "$target"
 			continue
 		fi
 
