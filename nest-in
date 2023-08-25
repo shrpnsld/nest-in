@@ -809,8 +809,8 @@ target-declaration()
 target-add-declaration()
 {
 	local target=$1
-	local line_number=$3
 	local declaration=$2
+	local line_number=$3
 
 	local variable_name=$(variable-name-from-target "$target")
 	eval "DB__DECLARATIONS_${variable_name}+=(\"$declaration\")"
@@ -1238,7 +1238,7 @@ make-error-message-unknown-requirement()
 	local line_number=$TARGET_DECLARATION_RETURN__LINE_NUMBER
 	local declaration="$TARGET_DECLARATION_RETURN__DECLARATION"
 	printf 'unknown requirement "%s" for "%s"\n\n' "$requirement" $(normalize-target-name "$target")
-	printf '%s\nline %d: %s\n' "$(realpath "$TWIGS_PATH")" $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	printf '%s\nline %d: %s\n' "$(realpath -q "$TWIGS_PATH")" $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
 }
 
 make-error-message-none-requirements-fulfilled()
@@ -1255,7 +1255,7 @@ make-error-message-duplicate-declarations()
 
 	printf 'duplicate declarations for "%s"\n' "$target"
 
-	printf '\n%s\n' "$(realpath "$TWIGS_PATH")"
+	printf '\n%s\n' "$(realpath -q "$TWIGS_PATH")"
 	local variant
 	for variant in "${variants[@]}"
 	do
@@ -1270,7 +1270,7 @@ make-error-message-unknown-dependency()
 	local dependency=$2
 
 	target-declaration "$target"
-	printf 'unknown dependency "%s" for "%s"\n\n%s\nline %d: %s\n' "$dependency" "$target" "$(realpath "$TWIGS_PATH")" $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	printf 'unknown dependency "%s" for "%s"\n\n%s\nline %d: %s\n' "$dependency" "$target" "$(realpath -q "$TWIGS_PATH")" $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
 }
 
 make-error-message-circular-dependency()
@@ -1281,7 +1281,7 @@ make-error-message-circular-dependency()
 	printf '%s -> ' "${dependency_path[@]}"
 	printf '%s\n' "${dependency_path[0]}"
 
-	printf '\n%s\n' "$(realpath "$TWIGS_PATH")"
+	printf '\n%s\n' "$(realpath -q "$TWIGS_PATH")"
 	local target
 	for target in "${dependency_path[@]}"
 	do
@@ -1731,7 +1731,7 @@ start-nesting()
 {
 	local targets=("$@")
 
-	printf-message 'Nesting...'
+	printf-message 'Assembling nesting script...'
 
 	path="$WORK_SCRIPT_PATH"
 	rm -f "$path"
@@ -1752,8 +1752,12 @@ run-script()
 {
 	local path=$1
 
+	printf-message 'Nesting...'
+
 	trap "rm -r $path" EXIT
 	"$path"
+
+	printf-message 'Done.'
 }
 
 cat-script()
