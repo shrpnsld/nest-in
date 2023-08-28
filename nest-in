@@ -1694,6 +1694,8 @@ assemble-nesting-script-recursive()
 		target-declaration "$target"
 		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
 
+		nesting-script-append "$path" 'cd  "%s"\n' "$PWD"
+
 		target-script "$target"
 		nesting-script-append "$path" '%s\n' "$TARGET_SCRIPT_RETURN__SCRIPT"
 
