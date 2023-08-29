@@ -1745,7 +1745,6 @@ start-nesting()
 	deal-with-script "$path"
 	if [ $? != 0 ]
 	then
-		printf-error 'nesting failed. check output for more info.'
 		return 1
 	fi
 }
@@ -1758,6 +1757,11 @@ run-script()
 
 	trap "rm -r $path" EXIT
 	"$path"
+	if [ $? != 0 ]
+	then
+		printf-error 'nesting failed. check output for more info.'
+		return 1
+	fi
 
 	printf-message 'Done.'
 }
