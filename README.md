@@ -1,6 +1,6 @@
 # nest-in
 
-Setup new environment, copy configs, install programs, etc., with a single command. Useful when *shell-script becomes too complicated or not enough for this task*.
+Setup your personal environment with a single command. Useful when *a shell-script becomes too complicated or not enough for this task*.
 
 ### Features
 
@@ -31,7 +31,7 @@ $ nest-in [-sdnh] [-- [<twigs.txt>]]
 
 * `<target>...` – specify targets to nest.
 * `-d` – show all target dependencies.
-* `-n` – dry run.
+* `-n` – do not run, only show assembled script.
 * `-- <twigs.txt>` – specify file with nesting configuration (should be the last argument).
 * `--` – read nesting configuration from *stdin* (should be the last argument).
 * `-h` – show help message.
@@ -41,6 +41,8 @@ If no `--` was passed, then input file is searched under `~/.config/nest-in/twig
 ## Guide
 
 The whole nesting process is divided into steps. Each nesting step is defined as a target with zero or more requirements, dependencies and artifacts; with or without a script. Requirements are preconditions for the enviromnent that should be fulfilled in order for the target to be nested. Dependencies are other targets that would be nested before the target itself. Artifacts are files/directories/programs that are produced by the target and if those already exist, target would be considered as nested. All shell-scripts for all the chosen targets would be combined in a single work-script and thus share the same scope.
+
+### Targets
 
 Target declaration should start at the beginning of the line and *should not* be preceeded by any whitespace. Each script line *should* be preceeded by any whitespace. Target names can have letters, numbers, dash and underscore characters, but always should start with a letter.
 
@@ -58,12 +60,16 @@ nvim / dotfiles stow
 	stow nvim
 ```
 
+### Artifacts
+
 Artifacts are also listed after the same `/` that dependencies are. Each artifact should be enclosed in a pair of single quotes and can specify a path to a file/directory or a program name:
 
 ```bash
 dotfiles / git '~/.dotfiles/'
 	git clone https://github.com/me/dotfiles ~/.dotfiles
 ```
+
+### Requirements
 
 Requirements are listed after the same `/` that dependencies and artifacts are. Each requirement should be enclosed in square brackets. Same targets can have multiple variants with different set of requirements, and each variant can have its own dependencies, artifacts and script. The example bellow declares first variant to be chosen if operating system is macOS, and the second variant will be chosen if environment has available program `apt-get`.
 
@@ -85,6 +91,21 @@ downloader / [avail:wget]
 	DOWNLOAD='wget -qO-'
 ```
 
+Targets might not always have a variant with fulfilled requirements for every environment. In such case, if no one depends on this target, it would be skipped without an error. In the examle below, when nesting in Ubuntu, `brew` doesn't have any variant for Ubuntu, but since `pkgmgr / [ubuntu]` does not depend on it, there would be no error.
+
+```bash
+brew / [macos]
+		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/.../install.sh)"
+
+pkgmgr / [macos] brew
+	INSTALL='brew install'
+
+pkgmgr / [ubuntu]
+	INSTALL='sudo apt install'
+```
+
+### Special targets
+
 By default, all targets would be chosen for the nesting. But some targets may have not been designed to be included in the default nesting. In the example below `cleanup` target removes configurations and uninstalls programs that were installed previously. To exclude it from the default nesting it can be marked with `!` after its name, and it will be nested only if it was specified through a command line or if it is a dependency for another target.
 
 ```bash
@@ -96,20 +117,30 @@ cleanup!
 	brew autoremove
 ```
 
-There are also special setup and teardown targets, called `+` and `-` respectively. Their scrips will be run before/after any other target's script. These targets can have requirements, but they can't have dependencies or artifacts. In the example bellow, setup target `+` defines global variable with dotfiles path:
+When some work needs to be done before or after nesting, `.first` and `.last` targets can be used. These targets can have requirements, but they can't have dependencies or artifacts. In the example bellow, `.first` defines global variable with dotfiles path:
 
 ```bash
-+
+.first
 	DOTFILES_PATH="~/.dotfiles"
+```
+
+When predefined requirements are not enough, `.reqs` target can be used to define Bash functions as custom requirements. This target can't have requirements, dependencies or artifacts.
+
+```bash
+spyware / [name:jasonbourne]
+	sudo apt install spyware
+
+.reqs
+	name()	{ [[ $USER == $1 ]]; }
 ```
 
 ### More on requirements
 
-Requirements always constist of a name and may have a set of specifiers, where each specifier is preceeded by a `:`. Requirement names can have letters, numbers, dash and underscore characters, but always should start with a letter. Any number of last specifiers or version components can be dropped, to make requirement broader.
+Requirements always constist of a name and may have a set of specifiers, where each specifier is preceeded by a `:`. Requirement names can have letters, numbers, dash and underscore characters, but always should start with a letter. For all predefined requirements, any number of last specifiers or version components can be dropped, to make requirement broader.
 
 `[avail:<command>]` – specified command is available.
 
-`[os:<name>:<version>]` – OS name or linux distribution matches specified name and version.
+`[os:<name>:<version>]` – OS name or Linux distribution matches specified name and version.
 
 `[macos:<version>]` – OS is macOS and matches specified version.
 
@@ -117,9 +148,13 @@ Requirements always constist of a name and may have a set of specifiers, where e
 
 `[linux:<family>:<dist>:<version>]` – OS is Linux and matches specified family, distribution and version.
 
-`[arch|debian|redhat|suse:<distribution>:<version>]` – Linux family is Arch/Debian/RedHat/SuSE and matches specified distribution and version.
+`[arch|debian|redhat|suse:<distribution>:<version>]` – predefined shortcuts of `[linux:::]` requirement for some Linux families.
 
-`[manjaro|ubuntu|elementary|kali|tails|fedora|opensuse:<version>]` – Linux distribution is Manjaro/Ubuntu/ElementaryOS/Kali/Tails/Fedora/OpenSuSE and matches specified version.
+`[manjaro|ubuntu|elementary|kali|tails|fedora|opensuse:<version>]` – predefined shortcuts of `[linux:::]` requirement for some Linux distributions.
+
+`[desktop:<name>]` – Linux desktop environment matches specified name.
+
+`[gnome|kde|mate|xfce|cinnamon]` – predefined shortcuts of `[desktop:]` requirement for some Linux desktop environments.
 
 ### More on artifacts
 
@@ -163,10 +198,9 @@ pkgmgr / [avail:apt-get]
 	$INSTALL='sudo apt-get -y install'
 	$UNINSTALL='sudo apt-get -y uninstall'
 
-# dedicated target that is meant to be nested only when resolving dependency
-# for macOS variant of "pkgmgr". it installs Homebrew on macOS and lists "brew" as an artifact,
+# target for installing Homebrew on macOS. it lists "brew" as an artifact,
 # so if Homebrew is already installed, there's no need for installation
-brew! / [macos] 'brew'
+brew / [macos] 'brew'
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # dedicated target for cleanup, intended to be used only explicitly, like so:
@@ -178,7 +212,7 @@ clenaup!
 	$UNINSTALL nvim stow
 
 # "setup" target that defines a variable that would be used throughout the nesting process
-+
+.first
 	DOTFILES_DIR="$HOME/.dotfiles"
 
 ```
@@ -232,10 +266,10 @@ pkgmgr / [avail:apt-get]
 	$INSTALL='sudo apt-get -y install'
 	$UNINSTALL='sudo apt-get -y uninstall'
 
-brew! / [macos] 'brew'
+brew / [macos] 'brew'
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-+
+.first
 	DOTFILES_DIR="$HOME/.dotfiles"
 	PROJECTS_DIR="$HOME/Projects"
 ```
