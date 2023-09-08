@@ -241,6 +241,8 @@ gather-linux-info()
 			SYSTEM_INFO__OS_VERSION=$(awk '{ print $3 }' /etc/redhat-release)
 		fi
 	fi
+
+	SYSTEM_INFO__DESKTOP_ENVIRONMENT=$(tr '[:upper:]' '[:lower:]' <<< "$XDG_CURRENT_DESKTOP")
 }
 
 gather-system-info()
@@ -277,7 +279,8 @@ gather-system-info()
 		SYSTEM_INFO__OS \
 		SYSTEM_INFO__LINUX_FAMILY \
 		SYSTEM_INFO__LINUX_DISTRIBUTION \
-		SYSTEM_INFO__OS_VERSION
+		SYSTEM_INFO__OS_VERSION \
+		SYSTEM_INFO__DESKTOP_ENVIRONMENT
 }
 
 print-system-info()
@@ -294,7 +297,12 @@ print-system-info()
 		printf 'distribution: "%s"\n' "$SYSTEM_INFO__LINUX_DISTRIBUTION"
 	fi
 
-	printf 'version: "%s"\n' "$SYSTEM_INFO__OS_VERSION"
+	printf 'os version: "%s"\n' "$SYSTEM_INFO__OS_VERSION"
+
+	if [ -n "$SYSTEM_INFO__LINUX_FAMILY" ]
+	then
+		printf 'desktop environment: %s\n' "$SYSTEM_INFO__DESKTOP_ENVIRONMENT"
+	fi
 }
 
 os()
@@ -367,6 +375,14 @@ suse() { linux 'suse' "$@"; }
 opensuse() { suse 'opensuse' "$@"; }
 
 cygwin() { [[ $SYSTEM_INFO__OS == 'cygwin' ]]; }
+
+desktop() { [[ $SYSTEM_INFO__DESKTOP_ENVIRONMENT == $1 ]]; }
+cinnamon() { desktop 'cinnamon'; }
+gnome() { desktop 'gnome'; }
+plasma() { desktop 'plasma'; }
+mate() { desktop 'mate'; }
+unity() { desktop 'unity'; }
+xfce() { desktop 'xfce'; }
 
 #
 # Functions
