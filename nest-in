@@ -1414,7 +1414,6 @@ resolve-requirements()
 	done
 }
 
-RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=''
 resolve-requirements-for-target()
 {
 	local target=$1
@@ -1441,7 +1440,7 @@ resolve-requirements-for-target()
 		local retval=$?
 		if [[ $retval == $RESOLVE_REQUIREMENTS_CODE__UNKNOWN_NAME ]]
 		then
-			RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-unknown-requirement "$target" $variant $RESOLVE_REQUIREMENTS_RETURN__UNKNOWN_NAME)
+			printf-error '%s' "$(make-error-message-unknown-requirement "$target" $variant $RESOLVE_REQUIREMENTS_RETURN__UNKNOWN_NAME)"
 			return 1
 		fi
 
@@ -1456,7 +1455,6 @@ resolve-requirements-for-target()
 	target-set-requirements-unresolved "$target"
 }
 
-RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=''
 resolve-requirements-and-verify-dependencies-for-target()
 {
 	local top_target=$1
@@ -1478,25 +1476,24 @@ resolve-requirements-and-verify-dependencies-for-target()
 		target-declaration "$dependency"
 		if [ -z "$TARGET_DECLARATION_RETURN__DECLARATION" ]
 		then
-			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-unknown-dependency "$target" "$dependency")
+			printf-error '%s' "$(make-error-message-unknown-dependency "$target" "$dependency")"
 			return 1
 		fi
 
 		if ! resolve-requirements-for-target "$dependency"
 		then
-			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE="$RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE"
 			return 1
 		fi
 
 		if ! target-requirements-resolved "$dependency"
 		then
-			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-none-requirements-fulfilled "$dependency" "${dependency_path[@]}" "$dependency")
+			printf-error '%s' "$(make-error-message-none-requirements-fulfilled "$dependency" "${dependency_path[@]}" "$dependency")"
 			return 1
 		fi
 
 		if [[ $dependency == $top_target ]]
 		then
-			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-circular-dependency "${dependency_path[@]}")
+			printf-error '%s' "$(make-error-message-circular-dependency "${dependency_path[@]}")"
 			return 1
 		fi
 
@@ -1526,7 +1523,6 @@ resolve-requirements-and-verify-dependencies()
 
 		if ! resolve-requirements-for-target "$target"
 		then
-			printf-error "$RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE"
 			return 1
 		fi
 
@@ -1541,7 +1537,6 @@ resolve-requirements-and-verify-dependencies()
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
 		if ! resolve-requirements-and-verify-dependencies-for-target "$target" "$target" "$target"
 		then
-			printf-error "$RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE"
 			return 1
 		fi
 
@@ -1856,7 +1851,6 @@ gather-system-info
 	resolve-requirements-for-target "$LAST_STEP"
 	if [ $? != 0 ]
 	then
-		printf-error "$RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE"
 		exit 1
 	fi
 
