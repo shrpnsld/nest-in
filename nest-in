@@ -117,8 +117,10 @@ versions-equal()
 
 readonly DEFAULT_TWIGS_PATH="$HOME/.config/$SCRIPT_NAME/twigs.txt"
 readonly WORK_SCRIPT_PATH='/tmp/nest-in-work'
+readonly CUSTOM_REQS_PATH='/tmp/nest-in-custom-reqs'
 readonly TARGET_FIRST_STEP_NAME='_FIRST_STEP'
 readonly TARGET_LAST_STEP_NAME='_LAST_STEP'
+readonly TARGET_CUSTOM_REQS_NAME='_CUSTOM_REQS'
 
 #
 # Globals
@@ -129,6 +131,7 @@ ALL_TARGETS=()
 REGULAR_TARGETS=()
 FIRST_STEP=''
 LAST_STEP=''
+CUSTOM_REQS=''
 INPUT_TARGETS=()
 
 DO_THE_WORK=:
@@ -615,8 +618,10 @@ is-target-declaration()
 
 	# Example + / [requirement:specifier] [requirement]
 	#            (       |      )                          (                                       |                   )(                                                   |                               )
-	[[ $line =~ ^(\.first|\.last)[[:blank:]]*\/[[:blank:]]*(\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*$ ]]
+	[[ $line =~ ^(\.first|\.last)[[:blank:]]*\/[[:blank:]]*(\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*$ ]] ||
 	#              .first  .last              /              [requirement.... :specifier......... ]  [requirement.... ]               [requirement.... :specifier......... ]              [requirement.... ]
+
+	[[ $line =~ ^\.reqs[[:blank:]]*$ ]]
 }
 
 is-script-declaration()
@@ -639,7 +644,8 @@ extract-target()
 readonly TARGET_TYPE_CODE__REGULAR=1
 readonly TARGET_TYPE_CODE__FIRST_STEP=2
 readonly TARGET_TYPE_CODE__LAST_STEP=3
-readonly TARGET_TYPE_CODE__DEDICATED=4
+readonly TARGET_TYPE_CODE__CUSTOM_REQS=4
+readonly TARGET_TYPE_CODE__DEDICATED=5
 target-type()
 {
 	if [[ $line =~ ^\.first[[:blank:]]* ]]
@@ -648,6 +654,9 @@ target-type()
 	elif [[ $line =~ ^\.last[[:blank:]]* ]]
 	then
 		return $TARGET_TYPE_CODE__LAST_STEP
+	elif [[ $line =~ ^\.reqs[[:blank:]]* ]]
+	then
+		return $TARGET_TYPE_CODE__CUSTOM_REQS
 	elif [[ $line == *!* ]]
 	then
 		return $TARGET_TYPE_CODE__DEDICATED
@@ -1194,6 +1203,10 @@ gather-twigs()
 		then
 			LAST_STEP="$TARGET_LAST_STEP_NAME"
 			target="$TARGET_LAST_STEP_NAME"
+		elif [[ $target_type == $TARGET_TYPE_CODE__CUSTOM_REQS ]]
+		then
+			CUSTOM_REQS="$TARGET_CUSTOM_REQS_NAME"
+			target="$TARGET_CUSTOM_REQS_NAME"
 		else
 			extract-target "$line"
 			target="$EXTRACT_TARGET_RETURN__TARGET"
@@ -1389,6 +1402,22 @@ check-duplicates()
 			return 1
 		fi
 	done
+}
+
+make-custom-requirements-file()
+{
+	local path=$1
+
+	if ! [ -n "$CUSTOM_REQS" ]
+	then
+		return
+	fi
+
+	target-script "$CUSTOM_REQS"
+	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
+
+	rm -rf "$path"
+	printf '%s' "$script" > "$path"
 }
 
 readonly RESOLVE_REQUIREMENTS_CODE__UNKNOWN_NAME=255
@@ -1846,7 +1875,15 @@ gather-system-info
 
 	printf-message 'Checking twigs...'
 
-	check-duplicates "$FIRST_STEP" "$LAST_STEP" &&
+	check-duplicates "$FIRST_STEP" "$LAST_STEP" "$CUSTOM_REQS"
+	if [ $? != 0 ]
+	then
+		exit 1
+	fi
+
+	make-custom-requirements-file "$CUSTOM_REQS_PATH"
+	source "$CUSTOM_REQS_PATH"
+
 	resolve-requirements-for-target "$FIRST_STEP" &&
 	resolve-requirements-for-target "$LAST_STEP"
 	if [ $? != 0 ]
