@@ -881,15 +881,31 @@ target-requirements-resolved()
 	local target=$1
 
 	local target_variable_name=$(variable-name-from-target "$target")
-	eval "[[ \$DB__REQUIREMENTS_RESOLVED_${target_variable_name} ]]"
+	eval "\$DB__REQUIREMENTS_RESOLVED_${target_variable_name}"
 }
 
-target-mark-requirements-resolved()
+target-set-requirements-resolved()
 {
 	local target=$1
 
 	local target_variable_name=$(variable-name-from-target "$target")
 	eval "DB__REQUIREMENTS_RESOLVED_${target_variable_name}=true"
+}
+
+target-set-requirements-unresolved()
+{
+	local target=$1
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "DB__REQUIREMENTS_RESOLVED_${target_variable_name}=false"
+}
+
+target-has-requirements-resolution-mark()
+{
+	local target=$1
+
+	local target_variable_name=$(variable-name-from-target "$target")
+	eval "[ -n \"\$DB__REQUIREMENTS_RESOLVED_${target_variable_name}\" ]"
 }
 
 TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=()
@@ -1067,7 +1083,6 @@ target-use-variant()
 	target-use-dependencies-variant "$target" $variant
 	target-use-artifacts-variant "$target" $variant
 	target-use-script-variant "$target" $variant
-	target-mark-requirements-resolved "$target"
 }
 
 READ_TARGET_SCRIPT_RETURN__SCRIPT=''
@@ -1244,8 +1259,22 @@ make-error-message-unknown-requirement()
 make-error-message-none-requirements-fulfilled()
 {
 	local target=$1
+	local dependency_path=("${@:2}")
 
-	printf 'none of "%s" variants have requirements fulfilled' $(normalize-target-name "$target")
+	target=$(normalize-target-name "$target")
+	printf 'none of "%s" variants have requirements fulfilled, while other targets depend on "%s"\n' "$target" "$target"
+
+	printf '%s' "${dependency_path[0]}"
+	printf ' -> %s' "${dependency_path[@]:1}"
+	printf '\n'
+
+	printf '\n%s\n' "$(realpath -q "$TWIGS_PATH")"
+	local target
+	for target in "${dependency_path[@]}"
+	do
+		target-declaration "$target"
+		printf 'line %d: %s\n' $TARGET_DECLARATION_RETURN__LINE_NUMBER "$TARGET_DECLARATION_RETURN__DECLARATION"
+	done
 }
 
 make-error-message-duplicate-declarations()
@@ -1390,7 +1419,7 @@ resolve-requirements-for-target()
 {
 	local target=$1
 
-	if target-requirements-resolved "$target"
+	if target-has-requirements-resolution-mark "$target"
 	then
 		return
 	fi
@@ -1419,12 +1448,12 @@ resolve-requirements-for-target()
 		if [[ $retval == 0 ]]
 		then
 			target-use-variant "$target" $variant
+			target-set-requirements-resolved "$target"
 			return
 		fi
 	done
 
-	RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-none-requirements-fulfilled "$target")
-	return 1
+	target-set-requirements-unresolved "$target"
 }
 
 RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=''
@@ -1459,6 +1488,12 @@ resolve-requirements-and-verify-dependencies-for-target()
 			return 1
 		fi
 
+		if ! target-requirements-resolved "$dependency"
+		then
+			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-none-requirements-fulfilled "$dependency" "${dependency_path[@]}" "$dependency")
+			return 1
+		fi
+
 		if [[ $dependency == $top_target ]]
 		then
 			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_FOR_TARGET_RETURN__ERROR_MESSAGE=$(make-error-message-circular-dependency "${dependency_path[@]}")
@@ -1472,9 +1507,12 @@ resolve-requirements-and-verify-dependencies-for-target()
 	done
 }
 
+RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_RETURN__RESOLVED_TARGETS=()
 resolve-requirements-and-verify-dependencies()
 {
 	local targets=("$@")
+
+	RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_RETURN__RESOLVED_TARGETS=()
 
 	local target
 	for target in "${targets[@]}"
@@ -1490,6 +1528,13 @@ resolve-requirements-and-verify-dependencies()
 		then
 			printf-error "$RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE"
 			return 1
+		fi
+
+		if target-requirements-resolved "$target"
+		then
+			RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_RETURN__RESOLVED_TARGETS+=("$target")
+		else
+			continue
 		fi
 
 		target-dependencies "$target"
@@ -1708,24 +1753,30 @@ assemble-nesting-script()
 	local path=$1
 	local targets=("${@:2}")
 
-	target-script "$FIRST_STEP"
-	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
-	if [ -n "$script" ]
+	if target-requirements-resolved "$FIRST_STEP"
 	then
-		target-declaration "$TARGET_FIRST_STEP_NAME"
-		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
-		nesting-script-append "$path" '%s\n' "$script"
+		target-script "$FIRST_STEP"
+		local script="$TARGET_SCRIPT_RETURN__SCRIPT"
+		if [ -n "$script" ]
+		then
+			target-declaration "$TARGET_FIRST_STEP_NAME"
+			nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
+			nesting-script-append "$path" '%s\n' "$script"
+		fi
 	fi
 
 	assemble-nesting-script-recursive "$path" "${targets[@]}"
 
-	target-script "$LAST_STEP"
-	local script="$TARGET_SCRIPT_RETURN__SCRIPT"
-	if [ -n "$script" ]
+	if target-requirements-resolved "$LAST_STEP"
 	then
-		target-declaration "$TARGET_LAST_STEP_NAME"
-		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
-		nesting-script-append "$path" '%s\n' "$script"
+		target-script "$LAST_STEP"
+		local script="$TARGET_SCRIPT_RETURN__SCRIPT"
+		if [ -n "$script" ]
+		then
+			target-declaration "$TARGET_LAST_STEP_NAME"
+			nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
+			nesting-script-append "$path" '%s\n' "$script"
+		fi
 	fi
 }
 
@@ -1800,13 +1851,23 @@ gather-system-info
 
 	printf-message 'Checking twigs...'
 
+	check-duplicates "$FIRST_STEP" "$LAST_STEP" &&
+	resolve-requirements-for-target "$FIRST_STEP" &&
+	resolve-requirements-for-target "$LAST_STEP"
+	if [ $? != 0 ]
+	then
+		printf-error "$RESOLVE_REQUIREMENTS_FOR_TARGET_RETURN__ERROR_MESSAGE"
+		exit 1
+	fi
+
 	check-duplicates "${targets[@]}" &&
-	resolve-requirements-and-verify-dependencies "${targets[@]}" $FIRST_STEP $LAST_STEP
+	resolve-requirements-and-verify-dependencies "${targets[@]}"
 	if [ $? != 0 ]
 	then
 		exit 1
 	fi
 
+	targets=("${RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_RETURN__RESOLVED_TARGETS[@]}")
 	do-the-work "${targets[@]}"
 }
 
