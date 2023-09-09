@@ -32,6 +32,7 @@ $ nest-in [-sdnh] [-- [<twigs.txt>]]
 * `<target>...` – specify targets to nest.
 * `-d` – show all target dependencies.
 * `-n` – do not run, only show assembled script.
+* `--system-info` – print detected system information.
 * `-- <twigs.txt>` – specify file with nesting configuration (should be the last argument).
 * `--` – read nesting configuration from *stdin* (should be the last argument).
 * `-h` – show help message.
@@ -40,11 +41,11 @@ If no `--` was passed, then input file is searched under `~/.config/nest-in/twig
 
 ## Guide
 
-The whole nesting process is divided into steps. Each nesting step is defined as a target with zero or more requirements, dependencies and artifacts; with or without a script. Requirements are preconditions for the enviromnent that should be fulfilled in order for the target to be nested. Dependencies are other targets that would be nested before the target itself. Artifacts are files/directories/programs that are produced by the target and if those already exist, target would be considered as nested. All shell-scripts for all the chosen targets would be combined in a single work-script and thus share the same scope.
+The entire nesting process is divided into steps. Each nesting step is defined as a target with zero or more requirements, dependencies, and artifacts, with or without a script. Requirements are preconditions for the environment that must be met for the target to be nested. Dependencies are other targets that are nested before the target itself. Artifacts are files, directories, or programs produced by the target. If these artifacts already exist, the target is considered to be already nested. All shell scripts for the chosen targets will be combined into a single work script, sharing the same scope.
 
 ### Targets
 
-Target declaration should start at the beginning of the line and *should not* be preceeded by any whitespace. Each script line *should* be preceeded by any whitespace. Target names can have letters, numbers, dash and underscore characters, but always should start with a letter.
+Target declaration should start at the beginning of the line and *should not* be preceeded by any whitespace. Each script line *should* be preceeded by any whitespace. Target names can include letters, numbers, dashes, and underscore characters, but they must always start with a letter.
 
 ```bash
 cmake
@@ -62,7 +63,7 @@ nvim / dotfiles stow
 
 ### Artifacts
 
-Artifacts are also listed after the same `/` that dependencies are. Each artifact should be enclosed in a pair of single quotes and can specify a path to a file/directory or a program name:
+Artifacts are also listed after the same `/` as dependencies. Each artifact should be enclosed in a pair of single quotes and can specify either a path to a file/directory or a program name:
 
 ```bash
 dotfiles / git '~/.dotfiles/'
@@ -71,7 +72,7 @@ dotfiles / git '~/.dotfiles/'
 
 ### Requirements
 
-Requirements are listed after the same `/` that dependencies and artifacts are. Each requirement should be enclosed in square brackets. Same targets can have multiple variants with different set of requirements, and each variant can have its own dependencies, artifacts and script. The example bellow declares first variant to be chosen if operating system is macOS, and the second variant will be chosen if environment has available program `apt-get`.
+Requirements are listed after the same `/` as dependencies and artifacts. Each requirement should be enclosed in square brackets. The same target can have multiple variants with different sets of requirements, each variant can have its own dependencies, artifacts, and script. The example below declares first variant to be chosen if the operating system is macOS, and the second variant will be chosen if the environment has the available program `apt-get`.
 
 ```bash
 installer / [macos]
@@ -81,7 +82,7 @@ installer / [avail:apt-get]
 	INSTALL='sudo apt install'
 ```
 
-If multiple target variants have their requirements fulfilled, then the one that is declared first will be chosen. So with the example bellow, if the environment has both `curl` and `wget` installed, then the first variant will be chosen; if there's only `wget`, then the second one.
+If multiple target variants have their requirements met, the first one declared will be chosen. So, with the example below, if the environment has both `curl` and `wget` installed, the first variant will be chosen; if only `wget` is present, then the second one will be selected.
 
 ```bash
 downloader / [avail:curl]
@@ -91,7 +92,7 @@ downloader / [avail:wget]
 	DOWNLOAD='wget -qO-'
 ```
 
-Targets might not always have a variant with fulfilled requirements for every environment. In such case, if no one depends on this target, it would be skipped without an error. In the examle below, when nesting in Ubuntu, `brew` doesn't have any variant for Ubuntu, but since `pkgmgr / [ubuntu]` does not depend on it, there would be no error.
+Targets might not always have a variant with met requirements for every environment. In such a case, if nothing depends on this target, it will be skipped without an error. In the example below, when nesting in Ubuntu, `brew` doesn't have any variant for Ubuntu, but since `pkgmgr / [ubuntu]` does not depend on it, there is no error.
 
 ```bash
 brew / [macos]
@@ -106,7 +107,7 @@ pkgmgr / [ubuntu]
 
 ### Special targets
 
-By default, all targets would be chosen for the nesting. But some targets may have not been designed to be included in the default nesting. In the example below `cleanup` target removes configurations and uninstalls programs that were installed previously. To exclude it from the default nesting it can be marked with `!` after its name, and it will be nested only if it was specified through a command line or if it is a dependency for another target.
+By default, all targets will be chosen for nesting. But some targets may not have been designed to be included in the default nesting. In the example below, the `cleanup` target removes configurations and uninstalls programs that were installed previously. To exclude it from the default nesting, it can be marked with `!` after its name, and it will be nested only if specified through a command line or if it is a dependency for another target.
 
 ```bash
 cleanup!
@@ -117,7 +118,7 @@ cleanup!
 	brew autoremove
 ```
 
-When some work needs to be done before or after nesting, `.first` and `.last` targets can be used. These targets can have requirements, but they can't have dependencies or artifacts. In the example bellow, `.first` defines global variable with dotfiles path:
+When some work needs to be done before or after nesting, `.first` and `.last` targets can be used. These targets can have requirements but cannot have dependencies or artifacts. In the example below, `.first` defines a global variable with the dotfiles path.
 
 ```bash
 .first
@@ -164,11 +165,9 @@ Artifact types are determined by the following examples:
 * `~/artifact/is/a/direcotry/` – path *with* trailing `/`
 * `program` – no path, just a name
 
-File-artifacts are checked with `[ -r <file> ]`; directory-artifacts with `[ -d <directory> ]`; program-artifacts with `command -v <program>`.
-
 ### Additional notes
 
-Comments are not supported and any syntax-check pass for a shell-style comment is accidential :)
+Comments are not supported and any syntax-check pass for a shell-style comment is just a happy accident :)
 
 ## Examples
 

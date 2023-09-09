@@ -1275,7 +1275,7 @@ make-error-message-none-requirements-fulfilled()
 	local dependency_path=("${@:2}")
 
 	target=$(normalize-target-name "$target")
-	printf 'none of "%s" variants have requirements fulfilled, while other targets depend on "%s"\n' "$target" "$target"
+	printf 'none of "%s" variants have requirements met, while other targets depend on "%s"\n' "$target" "$target"
 
 	printf '%s' "${dependency_path[0]}"
 	printf ' -> %s' "${dependency_path[@]:1}"
