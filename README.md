@@ -96,7 +96,7 @@ Targets might not always have a variant with met requirements for every environm
 
 ```bash
 brew / [macos]
-		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/.../install.sh)"
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/.../install.sh)"
 
 pkgmgr / [macos] brew
 	INSTALL='brew install'
@@ -152,10 +152,6 @@ Requirements always constist of a name and may have a set of specifiers, where e
 `[arch|debian|redhat|suse:<distribution>:<version>]` – predefined shortcuts of `[linux:::]` requirement for some Linux families.
 
 `[manjaro|ubuntu|elementary|kali|tails|fedora|opensuse:<version>]` – predefined shortcuts of `[linux:::]` requirement for some Linux distributions.
-
-`[desktop:<name>]` – Linux desktop environment matches specified name.
-
-`[gnome|kde|mate|xfce|cinnamon]` – predefined shortcuts of `[desktop:]` requirement for some Linux desktop environments.
 
 ### More on artifacts
 
