@@ -1408,7 +1408,7 @@ make-custom-requirements-file()
 {
 	local path=$1
 
-	if ! [ -n "$CUSTOM_REQS" ]
+	if [ -z "$CUSTOM_REQS" ]
 	then
 		return
 	fi
@@ -1882,7 +1882,11 @@ gather-system-info
 	fi
 
 	make-custom-requirements-file "$CUSTOM_REQS_PATH"
-	source "$CUSTOM_REQS_PATH"
+	if [ -r "$CUSTOM_REQS_PATH" ]
+	then
+		source "$CUSTOM_REQS_PATH"
+		rm -f "$CUSTOM_REQS_PATH"
+	fi
 
 	resolve-requirements-for-target "$FIRST_STEP" &&
 	resolve-requirements-for-target "$LAST_STEP"
