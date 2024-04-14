@@ -3,7 +3,7 @@
 #
 # Essentials
 
-readonly SCRIPT_NAME=nest-in
+readonly UTILITY_NAME=nest-in
 
 readonly TS_N='\e[0m'
 readonly TS_B='\e[1m'
@@ -12,7 +12,7 @@ readonly TS_ERROR='\e[0;31m'
 
 TS_ERR=''
 TS_ERR_END=''
-if [ -t 1 ] && [ $(tput colors) \> 0 ]
+if [ -t 1 ] && [ $(tput colors) -gt 0 ]
 then
 	TS_ERR="$TS_ERROR"
 	TS_ERR_END="$TS_N"
@@ -27,7 +27,7 @@ printf-stderr()
 
 printf-error()
 {
-	printf-stderr "$TS_ERR$SCRIPT_NAME error:$TS_ERR_END "
+	printf-stderr "$TS_ERR$UTILITY_NAME error:$TS_ERR_END "
 	printf-stderr "$@"
 	printf-stderr '\n'
 }
@@ -115,7 +115,7 @@ versions-equal()
 #
 # Constants
 
-readonly DEFAULT_TWIGS_PATH="$HOME/.config/$SCRIPT_NAME/twigs.txt"
+readonly DEFAULT_TWIGS_PATH="$HOME/.config/$UTILITY_NAME/twigs.txt"
 readonly WORK_SCRIPT_PATH='/tmp/nest-in-work'
 readonly CUSTOM_REQS_PATH='/tmp/nest-in-custom-reqs'
 readonly TARGET_FIRST_STEP_NAME='_FIRST_STEP'
@@ -415,7 +415,7 @@ parse-option()
 
 	case "$option" in
 		d)
-			DO_THE_WORK=show-targets
+			DO_THE_WORK=show-targets-with-dependencies
 			;;
 
 		n)
@@ -505,7 +505,7 @@ validate-and-apply-options()
 	else
 		TWIGS_DESCRIPTOR=3
 		open-file $TWIGS_DESCRIPTOR "$TWIGS_PATH" >/dev/null 2>&1
-		if [ $? != 0 ]
+		if [[ $? != 0 ]]
 		then
 			printf-error 'failed to open config file "%s"' "$TWIGS_PATH"
 			return 1
@@ -524,7 +524,7 @@ open-file()
 	local path=$2
 
 	eval "exec $descriptor< \"$path\""
-	if [ $? != 0 ]
+	if [[ $? != 0 ]]
 	then
 		return 1
 	fi
@@ -546,7 +546,7 @@ file-peek-line()
 	fi
 
 	read -u $descriptor -r FILE_PEEK_LINE_RETURN__LINE
-	if [ $? != 0 ]
+	if [[ $? != 0 ]]
 	then
 		FILE_PEEK_LINE_RETURN__PEEKED=false
 		return 1
@@ -568,7 +568,7 @@ file-read-line()
 		FILE_PEEK_LINE_RETURN__PEEKED=false
 	else
 		read -u $descriptor -r FILE_READ_LINE_RETURN__LINE
-		if [ $? != 0 ]
+		if [[ $? != 0 ]]
 		then
 			return 1
 		fi
@@ -1590,7 +1590,7 @@ show-target-dependencies()
 	printf '\n'
 }
 
-show-targets()
+show-targets-with-dependencies()
 {
 	local targets=("$@")
 
@@ -1876,7 +1876,7 @@ gather-system-info
 	printf-message 'Checking twigs...'
 
 	check-duplicates "$FIRST_STEP" "$LAST_STEP" "$CUSTOM_REQS"
-	if [ $? != 0 ]
+	if [[ $? != 0 ]]
 	then
 		exit 1
 	fi
@@ -1890,14 +1890,14 @@ gather-system-info
 
 	resolve-requirements-for-target "$FIRST_STEP" &&
 	resolve-requirements-for-target "$LAST_STEP"
-	if [ $? != 0 ]
+	if [[ $? != 0 ]]
 	then
 		exit 1
 	fi
 
 	check-duplicates "${targets[@]}" &&
 	resolve-requirements-and-verify-dependencies "${targets[@]}"
-	if [ $? != 0 ]
+	if [[ $? != 0 ]]
 	then
 		exit 1
 	fi
