@@ -116,8 +116,8 @@ versions-equal()
 # Constants
 
 readonly DEFAULT_TWIGS_PATH="$HOME/.config/$UTILITY_NAME/twigs.txt"
-readonly WORK_SCRIPT_PATH='/tmp/nest-in-work'
-readonly CUSTOM_REQS_PATH='/tmp/nest-in-custom-reqs'
+readonly NESTING_SCRIPTS_DIR='/tmp/nest-in'
+readonly CUSTOM_REQS_PATH='/tmp/nest-in/custom-reqs'
 readonly TARGET_FIRST_STEP_NAME='_FIRST_STEP'
 readonly TARGET_LAST_STEP_NAME='_LAST_STEP'
 readonly TARGET_CUSTOM_REQS_NAME='_CUSTOM_REQS'
@@ -140,10 +140,10 @@ do-the-work()
 	"$DO_THE_WORK" "$@"
 }
 
-DEAL_WITH_SCRIPT=run-script
-deal-with-script()
+DEAL_WITH_SCRIPTS=run-scripts
+deal-with-scripts()
 {
-	"$DEAL_WITH_SCRIPT" "$@"
+	"$DEAL_WITH_SCRIPTS" "$@"
 }
 
 #
@@ -419,7 +419,7 @@ parse-option()
 			;;
 
 		n)
-			DEAL_WITH_SCRIPT=cat-script
+			DEAL_WITH_SCRIPTS=cat-scripts
 			;;
 
 		system-info)
@@ -1592,7 +1592,8 @@ show-target-dependencies()
 
 show-targets-with-dependencies()
 {
-	local targets=("$@")
+	# local destination_dir=$1
+	local targets=("${@:2}")
 
 	local target="${targets[0]}"
 	printf "%s" "$target"
@@ -1603,6 +1604,14 @@ show-targets-with-dependencies()
 		printf "\n%s" "$target"
 		show-target-dependencies "$target" '    '
 	done
+}
+
+nesting-script-create()
+{
+	local path=$1
+
+	printf '#!/bin/bash -ex\n\n' > "$path"
+	chmod u+x "$path"
 }
 
 nesting-script-append()
@@ -1732,9 +1741,10 @@ make-comment-artifacts-already-exist()
 	done
 }
 
-assemble-nesting-script-recursive()
+ASSEMBLE_NESTING_SCRIPTS_RECURSIVE_RETURN__PATHS=()
+assemble-nesting-scripts-recursive()
 {
-	local path=$1
+	local destination_dir=$1
 	local targets=("${@:2}")
 
 	local target
@@ -1745,6 +1755,9 @@ assemble-nesting-script-recursive()
 			continue
 		fi
 
+		local path="$destination_dir/$target"
+		nesting-script-create "$path"
+
 		target-artifacts "$target"
 		local artifacts=("${TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}")
 		if artifacts-exist "${artifacts[@]}"
@@ -1752,13 +1765,14 @@ assemble-nesting-script-recursive()
 			local comment="$(make-comment-artifacts-already-exist "$target" "${ARTIFACTS_EXIST_RETURN__ARTIFACTS[@]}")"
 			nesting-script-append "$path" '%s\n\n' "$comment"
 
+			ASSEMBLE_NESTING_SCRIPTS_RECURSIVE_RETURN__PATHS+=("$path")
 			target-mark "$target"
 			continue
 		fi
 
 		target-dependencies "$target"
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-		assemble-nesting-script-recursive "$path" "${dependencies[@]}"
+		assemble-nesting-scripts-recursive "$path" "${dependencies[@]}"
 
 		target-declaration "$target"
 		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
@@ -1768,13 +1782,15 @@ assemble-nesting-script-recursive()
 		target-script "$target"
 		nesting-script-append "$path" '%s\n' "$TARGET_SCRIPT_RETURN__SCRIPT"
 
+		ASSEMBLE_NESTING_SCRIPTS_RECURSIVE_RETURN__PATHS+=("$path")
 		target-mark "$target"
 	done
 }
 
-assemble-nesting-script()
+ASSEMBLE_NESTING_SCRIPTS_RETURN__PATHS=()
+assemble-nesting-scripts()
 {
-	local path=$1
+	local destination_dir=$1
 	local targets=("${@:2}")
 
 	if target-requirements-resolved "$FIRST_STEP"
@@ -1784,12 +1800,17 @@ assemble-nesting-script()
 		if [ -n "$script" ]
 		then
 			target-declaration "$TARGET_FIRST_STEP_NAME"
-			nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
-			nesting-script-append "$path" '%s\n' "$script"
+			local script_path="$destination_dir/nest-in-first-step"
+			nesting-script-create "$script_path"
+			nesting-script-append "$script_path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
+			nesting-script-append "$script_path" '%s\n' "$script"
+
+			ASSEMBLE_NESTING_SCRIPTS_RETURN__PATHS+=("$script_path")
 		fi
 	fi
 
-	assemble-nesting-script-recursive "$path" "${targets[@]}"
+	assemble-nesting-scripts-recursive "$destination_dir" "${targets[@]}"
+	ASSEMBLE_NESTING_SCRIPTS_RETURN__PATHS+=("${ASSEMBLE_NESTING_SCRIPTS_RECURSIVE_RETURN__PATHS[@]}")
 
 	if target-requirements-resolved "$LAST_STEP"
 	then
@@ -1798,53 +1819,134 @@ assemble-nesting-script()
 		if [ -n "$script" ]
 		then
 			target-declaration "$TARGET_LAST_STEP_NAME"
-			nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
-			nesting-script-append "$path" '%s\n' "$script"
+			local script_path="$destination_dir/nest-in-last-step"
+			nesting-script-create "$script_path"
+			nesting-script-append "$script_path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
+			nesting-script-append "$script_path" '%s\n' "$script"
+
+			ASSEMBLE_NESTING_SCRIPTS_RETURN__PATHS+=("$script_path")
 		fi
 	fi
 }
 
-start-nesting()
+is-acceptable-answer()
 {
-	local targets=("$@")
+	local answer=$1
+	local acceptable_answers=("${@:2}")
 
-	printf-message 'Assembling nesting script...'
+	local acceptable_answer
+	for acceptable_answer in "${acceptable_answers[@]}"
+	do
+		if [[ $acceptable_answer == $answer* ]]
+		then
+			return
+		fi
+	done
 
-	local path="$WORK_SCRIPT_PATH"
-	rm -f "$path"
-
-	nesting-script-append "$path" '#!/bin/bash -ex\n\n'
-	assemble-nesting-script "$path" "${targets[@]}"
-	chmod u+x "$path"
-
-	deal-with-script "$path"
-	if [ $? != 0 ]
-	then
-		return 1
-	fi
+	return 1
 }
 
-run-script()
+PROMPT_INPUT__ANSWER=''
+prompt-options()
 {
-	local path=$1
+	local prompt=$1
+	local options=("${@:2}")
+
+	PROMPT_INPUT__ANSWER=''
+
+	local acceptable_answers=()
+	while true
+	do
+		printf '%s\n' "$prompt"
+		local index
+		for (( index = 0; index < ${#options[@]}; index += 2 ))
+		do
+			local option="${options[$index]}"
+			local input="${options[$index + 1]}"
+			acceptable_answers+=("$input")
+			printf "  - %s [%s]\n" "$option" "$input"
+		done
+
+		read PROMPT_INPUT__ANSWER
+		if is-acceptable-answer "$PROMPT_INPUT__ANSWER" "${acceptable_answers[@]}"
+		then
+			break
+		fi
+
+		printf 'Unknown answer "%s".\n\n' "$PROMPT_INPUT__ANSWER"
+	done
+}
+
+run-scripts()
+{
+	local paths=("$@")
 
 	printf-message 'Nesting...'
 
-	trap "rm -r $path" EXIT
-	"$path"
-	if [ $? != 0 ]
-	then
-		printf-error 'nesting failed. check output for more info.'
-		return 1
-	fi
+	local path
+	for path in "${paths[@]}"
+	do
+		while true
+		do
+			"$path"
+			if [[ $? == 0 ]]
+			then
+				break
+			fi
 
-	printf-message 'Done.'
+			printf-error 'failed to nest target "%s". See output above for more information.' "$(basename $path)"
+			prompt-options 'Do you want to' 'perform this manually' 'm' 'stop nesting' 's'
+			if [[ $PROMPT_INPUT__ANSWER == 's' ]]
+			then
+				printf-message 'Nesting stopped.'
+				exit 1
+			fi
+
+			printf-message 'When done, exit shell'
+			"$SHELL"
+
+			prompt-options 'Do you want to:' 'restart current target' 'r' 'continue nesting with the next target' 'c' 'stop nesting' 's'
+			case $PROMPT_INPUT__ANSWER in
+				'c')
+					break
+					;;
+
+				'r')
+					continue
+					;;
+
+				's')
+					printf-message 'Nesting stopped.'
+					exit 1
+					;;
+			esac
+		done
+	done
 }
 
-cat-script()
+start-nesting()
 {
+	local destination_dir=$1
+	local targets=("${@:2}")
+
+	printf-message 'Assembling nesting scripts...'
+	assemble-nesting-scripts "$destination_dir" "${targets[@]}"
+	local script_paths=("${ASSEMBLE_NESTING_SCRIPTS_RETURN__PATHS[@]}")
+
+	deal-with-scripts "${script_paths[@]}"
+}
+
+cat-scripts()
+{
+	local paths=("$@")
+
 	printf '\n'
-	cat $1
+
+	local path
+	for path in "${paths[@]}"
+	do
+		tail --lines=+3 "$path"
+	done
 }
 
 #
@@ -1881,6 +1983,9 @@ gather-system-info
 		exit 1
 	fi
 
+	rm -rf "$NESTING_SCRIPTS_DIR"
+	mktemp -d "$NESTING_SCRIPTS_DIR" > /dev/null
+
 	make-custom-requirements-file "$CUSTOM_REQS_PATH"
 	if [ -r "$CUSTOM_REQS_PATH" ]
 	then
@@ -1903,6 +2008,8 @@ gather-system-info
 	fi
 
 	targets=("${RESOLVE_REQUIREMENTS_AND_VERIFY_DEPENDENCIES_RETURN__RESOLVED_TARGETS[@]}")
-	do-the-work "${targets[@]}"
+	do-the-work "$NESTING_SCRIPTS_DIR" "${targets[@]}"
+
+	rm -rf "$NESTING_SCRIPTS_DIR"
 }
 
