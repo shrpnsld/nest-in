@@ -1772,7 +1772,7 @@ assemble-nesting-scripts-recursive()
 
 		target-dependencies "$target"
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
-		assemble-nesting-scripts-recursive "$path" "${dependencies[@]}"
+		assemble-nesting-scripts-recursive "$destination_dir" "${dependencies[@]}"
 
 		target-declaration "$target"
 		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
