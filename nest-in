@@ -1829,6 +1829,26 @@ assemble-nesting-scripts()
 	fi
 }
 
+PRINT_CHOICE_PROMPT_RETURN__ANSWERS=()
+print-choice-prompt()
+{
+	local prompt=$1
+	local variants=("${@:2}")
+
+	PRINT_CHOICE_PROMPT_RETURN__ANSWERS=()
+
+	printf '%s\n' "$prompt"
+	local index
+	for (( index = 0; index < ${#variants[@]}; index += 2 ))
+	do
+		local variant="${variants[$index]}"
+		local input="${variants[$index + 1]}"
+		PRINT_CHOICE_PROMPT_RETURN__ANSWERS+=("$input")
+		printf "  - %s [%s]\n" "$variant" "$input"
+	done
+
+}
+
 is-acceptable-answer()
 {
 	local answer=$1
@@ -1846,34 +1866,21 @@ is-acceptable-answer()
 	return 1
 }
 
-PROMPT_INPUT__ANSWER=''
-prompt-options()
+PROMPT_CHOICE_RETURN__ANSWER=''
+prompt-choice()
 {
-	local prompt=$1
-	local options=("${@:2}")
+	PROMPT_CHOICE_RETURN__ANSWER=''
 
-	PROMPT_INPUT__ANSWER=''
-
-	local acceptable_answers=()
 	while true
 	do
-		printf '%s\n' "$prompt"
-		local index
-		for (( index = 0; index < ${#options[@]}; index += 2 ))
-		do
-			local option="${options[$index]}"
-			local input="${options[$index + 1]}"
-			acceptable_answers+=("$input")
-			printf "  - %s [%s]\n" "$option" "$input"
-		done
-
-		read PROMPT_INPUT__ANSWER
-		if is-acceptable-answer "$PROMPT_INPUT__ANSWER" "${acceptable_answers[@]}"
+		print-choice-prompt "$@"
+		read PROMPT_CHOICE_RETURN__ANSWER
+		if is-acceptable-answer "$PROMPT_CHOICE_RETURN__ANSWER" "${PRINT_CHOICE_PROMPT_RETURN__ANSWERS[@]}"
 		then
 			break
 		fi
 
-		printf 'Unknown answer "%s".\n\n' "$PROMPT_INPUT__ANSWER"
+		printf 'Unknown answer "%s".\n\n' "$PROMPT_CHOICE_RETURN__ANSWER"
 	done
 }
 
@@ -1895,8 +1902,8 @@ run-scripts()
 			fi
 
 			printf-error 'failed to nest target "%s". See output above for more information.' "$(basename $path)"
-			prompt-options 'Do you want to' 'perform this manually' 'm' 'stop nesting' 's'
-			if [[ $PROMPT_INPUT__ANSWER == 's' ]]
+			prompt-choice 'Do you want to' 'perform this manually' 'm' 'stop nesting' 's'
+			if [[ $PROMPT_CHOICE_RETURN__ANSWER == 's' ]]
 			then
 				printf-message 'Nesting stopped.'
 				exit 1
@@ -1905,8 +1912,8 @@ run-scripts()
 			printf-message 'When done, exit shell'
 			"$SHELL"
 
-			prompt-options 'Do you want to:' 'restart current target' 'r' 'continue nesting with the next target' 'c' 'stop nesting' 's'
-			case $PROMPT_INPUT__ANSWER in
+			prompt-choice 'Do you want to:' 'restart current target' 'r' 'continue nesting with the next target' 'c' 'stop nesting' 's'
+			case $PROMPT_CHOICE_RETURN__ANSWER in
 				'c')
 					break
 					;;
