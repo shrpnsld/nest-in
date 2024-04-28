@@ -8,35 +8,65 @@ readonly UTILITY_NAME=nest-in
 readonly TS_N='\e[0m'
 readonly TS_B='\e[1m'
 readonly TS_U='\e[4m'
-readonly TS_ERROR='\e[0;31m'
+readonly TS_RED='\e[0;31m'
+readonly TS_GREEN='\e[0;32m'
+readonly TS_R='\e[7m'
 
+TS_TARGET_TITLE=''
+TS_TARGET_TITLE_END=''
+TS_USER=''
+TS_USER_END=''
+TS_PROMPT=''
+TS_PROMPT_END=''
 TS_ERR=''
 TS_ERR_END=''
 if [ -t 1 ] && [ $(tput colors) -gt 0 ]
 then
-	TS_ERR="$TS_ERROR"
+	TS_TARGET_TITLE="$TS_R"
+	TS_TARGET_TITLE_END="$TS_N"
+	TS_USER="$TS_B"
+	TS_USER_END="$TS_N"
+	TS_PROMPT="$TS_GREEN"
+	TS_PROMPT_END="$TS_N"
+	TS_ERR="$TS_RED"
 	TS_ERR_END="$TS_N"
 fi
 
-readonly TS_ERR TS_ERR_END
+readonly TS_TARGET_TITLE
+readonly TS_TARGET_TITLE_END
+readonly TS_USER
+readonly TS_USER_END
+readonly TS_PROMPT
+readonly TS_PROMPT_END
+readonly TS_ERR
+readonly TS_ERR_END
 
-printf-stderr()
-{
-	printf "$@" >&2
-}
+NEST_IN_TS_N="$TS_N"; readonly NEST_IN_TS_N; export NEST_IN_TS_N
+NEST_IN_TS_B="$TS_B"; readonly NEST_IN_TS_B; export NEST_IN_TS_B
+NEST_IN_UTILITY_NAME="$UTILITY_NAME"; readonly NEST_IN_UTILITY_NAME; export NEST_IN_UTILITY_NAME
+NEST_IN_TS_TARGET_TITLE="$TS_TARGET_TITLE"; readonly NEST_IN_TS_TARGET_TITLE; export NEST_IN_TS_TARGET_TITLE
+NEST_IN_TS_TARGET_TITLE_END="$TS_TARGET_TITLE_END"; readonly NEST_IN_TS_TARGET_TITLE_END; export NEST_IN_TS_TARGET_TITLE_END
+NEST_IN_TS_USER="$TS_USER"; readonly NEST_IN_TS_USER; export NEST_IN_TS_USER
+NEST_IN_TS_USER_END="$TS_USER_END"; readonly NEST_IN_TS_USER_END; export NEST_IN_TS_USER_END
+NEST_IN_TS_PROMPT="$TS_PROMPT"; readonly NEST_IN_TS_PROMPT; export NEST_IN_TS_PROMPT
+NEST_IN_TS_PROMPT_END="$TS_PROMPT_END"; readonly NEST_IN_TS_PROMPT_END; export NEST_IN_TS_PROMPT_END
+NEST_IN_TS_ERR="$TS_ERR"; readonly NEST_IN_TS_ERR; export NEST_IN_TS_ERR
+NEST_IN_TS_ERR_END="$TS_ERR_END"; readonly NEST_IN_TS_ERR_END; export NEST_IN_TS_ERR_END
 
 printf-error()
 {
-	printf-stderr "$TS_ERR$UTILITY_NAME error:$TS_ERR_END "
-	printf-stderr "$@"
-	printf-stderr '\n'
+	printf "$NEST_IN_TS_ERR$NEST_IN_UTILITY_NAME error:$NEST_IN_TS_ERR_END " >&2
+	printf "$@" >&2
+	printf '\n' >&2
 }
+export -f printf-error
 
 printf-message()
 {
 	printf "$@"
 	printf '\n'
 }
+export -f printf-message
 
 print-help()
 {
@@ -140,7 +170,7 @@ do-the-work()
 	"$DO_THE_WORK" "$@"
 }
 
-DEAL_WITH_SCRIPTS=run-scripts
+DEAL_WITH_SCRIPTS=do-nesting
 deal-with-scripts()
 {
 	"$DEAL_WITH_SCRIPTS" "$@"
@@ -514,7 +544,7 @@ validate-and-apply-options()
 
 	if [[ $DO_THE_WORK == ':' ]]
 	then
-		DO_THE_WORK=start-nesting
+		DO_THE_WORK=assemble-and-deal-with-nesting-scripts
 	fi
 }
 
@@ -1606,25 +1636,12 @@ show-targets-with-dependencies()
 	done
 }
 
-nesting-script-create()
+file-append-string()
 {
 	local path=$1
+	local line=$2
 
-	printf '#!/bin/bash -ex\n\n' > "$path"
-	chmod u+x "$path"
-}
-
-nesting-script-append()
-{
-	local path=$1
-	local arguments=("${@:2}")
-
-	if [[ ${#arguments[@]} == 0 ]]
-	then
-		return
-	fi
-
-	printf "${arguments[@]}" >> "$path"
+	printf '%s\n' "$line" >> "$path"
 }
 
 ARTIFACT_TYPE_CODE__PROGRAM=1
@@ -1726,18 +1743,45 @@ artifacts-exist()
 	done
 }
 
-make-comment-artifacts-already-exist()
+make-message-all-artifacts-already-exist()
 {
 	local target=$1
 	local artifacts=("${@:2}")
 
-	target-declaration "$target"
-	printf '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
-	printf '#   all artifacts for "%s" already exist:\n' "$target"
+	printf 'All artifacts already exist:\n'
 	local artifact
 	for artifact in "${artifacts[@]}"
 	do
-		printf $'#   %s\n' "$artifact"
+		printf '  %s' "$artifact"
+		artifact-type "$artifact"
+		case $? in
+			$ARTIFACT_TYPE_CODE__PROGRAM)
+				printf $' -> %s\n' "$(which "$artifact")"
+				;;
+
+			$ARTIFACT_TYPE_CODE__DIRECTORY)
+				local full_path="$(bash -c "realpath -q $artifact")/"
+				if [[ $artifact != $full_path ]]
+				then
+					printf $' -> %s\n' "$full_path"
+				else
+					printf $'\n'
+				fi
+				;;
+
+			$ARTIFACT_TYPE_CODE__FILE)
+				local dir="$(dirname $artifact)"
+				local name="$(basename $artifact)"
+				local full_dir_path="$(bash -c "realpath -q $dir")"
+				local full_path="$full_dir_path/$name"
+				if [[ $artifact != $full_path ]]
+				then
+					printf $' -> %s\n' "$full_path"
+				else
+					printf $'\n'
+				fi
+				;;
+		esac
 	done
 }
 
@@ -1756,15 +1800,12 @@ assemble-nesting-scripts-recursive()
 		fi
 
 		local path="$destination_dir/$target"
-		nesting-script-create "$path"
 
 		target-artifacts "$target"
 		local artifacts=("${TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}")
 		if artifacts-exist "${artifacts[@]}"
 		then
-			local comment="$(make-comment-artifacts-already-exist "$target" "${ARTIFACTS_EXIST_RETURN__ARTIFACTS[@]}")"
-			nesting-script-append "$path" '%s\n\n' "$comment"
-
+			file-append-string "$path.message" "$(make-message-all-artifacts-already-exist "$target" "${artifacts[@]}")"
 			ASSEMBLE_NESTING_SCRIPTS_RECURSIVE_RETURN__PATHS+=("$path")
 			target-mark "$target"
 			continue
@@ -1774,13 +1815,8 @@ assemble-nesting-scripts-recursive()
 		local dependencies=("${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}")
 		assemble-nesting-scripts-recursive "$destination_dir" "${dependencies[@]}"
 
-		target-declaration "$target"
-		nesting-script-append "$path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
-
-		nesting-script-append "$path" 'cd "%s"\n' "$PWD"
-
 		target-script "$target"
-		nesting-script-append "$path" '%s\n' "$TARGET_SCRIPT_RETURN__SCRIPT"
+		file-append-string "$path" "$TARGET_SCRIPT_RETURN__SCRIPT"
 
 		ASSEMBLE_NESTING_SCRIPTS_RECURSIVE_RETURN__PATHS+=("$path")
 		target-mark "$target"
@@ -1799,11 +1835,8 @@ assemble-nesting-scripts()
 		local script="$TARGET_SCRIPT_RETURN__SCRIPT"
 		if [ -n "$script" ]
 		then
-			target-declaration "$TARGET_FIRST_STEP_NAME"
 			local script_path="$destination_dir/nest-in-first-step"
-			nesting-script-create "$script_path"
-			nesting-script-append "$script_path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
-			nesting-script-append "$script_path" '%s\n' "$script"
+			file-append-string "$script_path" "$script"
 
 			ASSEMBLE_NESTING_SCRIPTS_RETURN__PATHS+=("$script_path")
 		fi
@@ -1818,24 +1851,21 @@ assemble-nesting-scripts()
 		local script="$TARGET_SCRIPT_RETURN__SCRIPT"
 		if [ -n "$script" ]
 		then
-			target-declaration "$TARGET_LAST_STEP_NAME"
 			local script_path="$destination_dir/nest-in-last-step"
-			nesting-script-create "$script_path"
-			nesting-script-append "$script_path" '# %s\n' "$TARGET_DECLARATION_RETURN__DECLARATION"
-			nesting-script-append "$script_path" '%s\n' "$script"
+			file-append-string "$script_path" "$script"
 
 			ASSEMBLE_NESTING_SCRIPTS_RETURN__PATHS+=("$script_path")
 		fi
 	fi
 }
 
-PRINT_CHOICE_PROMPT_RETURN__ANSWERS=()
-print-choice-prompt()
+export NEST_IN_PRINT_CHOICE_PROMPT_RETURN__ANSWERS=()
+nest-in-print-choice-prompt()
 {
 	local prompt=$1
 	local variants=("${@:2}")
 
-	PRINT_CHOICE_PROMPT_RETURN__ANSWERS=()
+	NEST_IN_PRINT_CHOICE_PROMPT_RETURN__ANSWERS=()
 
 	printf '%s\n' "$prompt"
 	local index
@@ -1843,13 +1873,14 @@ print-choice-prompt()
 	do
 		local variant="${variants[$index]}"
 		local input="${variants[$index + 1]}"
-		PRINT_CHOICE_PROMPT_RETURN__ANSWERS+=("$input")
+		NEST_IN_PRINT_CHOICE_PROMPT_RETURN__ANSWERS+=("$input")
 		printf "  - %s [%s]\n" "$variant" "$input"
 	done
 
 }
+export -f nest-in-print-choice-prompt
 
-is-acceptable-answer()
+nest-in-is-acceptable-answer()
 {
 	local answer=$1
 	local acceptable_answers=("${@:2}")
@@ -1865,45 +1896,78 @@ is-acceptable-answer()
 
 	return 1
 }
+export -f nest-in-is-acceptable-answer
 
-PROMPT_CHOICE_RETURN__ANSWER=''
-prompt-choice()
+export NEST_IN_PROMPT_CHOICE_RETURN__ANSWER=''
+nest-in-prompt-choice()
 {
-	PROMPT_CHOICE_RETURN__ANSWER=''
+	NEST_IN_PROMPT_CHOICE_RETURN__ANSWER=''
 
 	while true
 	do
-		print-choice-prompt "$@"
-		read PROMPT_CHOICE_RETURN__ANSWER
-		if is-acceptable-answer "$PROMPT_CHOICE_RETURN__ANSWER" "${PRINT_CHOICE_PROMPT_RETURN__ANSWERS[@]}"
+		nest-in-print-choice-prompt "$@"
+		read NEST_IN_PROMPT_CHOICE_RETURN__ANSWER
+		if nest-in-is-acceptable-answer "$NEST_IN_PROMPT_CHOICE_RETURN__ANSWER" "${NEST_IN_PRINT_CHOICE_PROMPT_RETURN__ANSWERS[@]}"
 		then
 			break
 		fi
 
-		printf 'Unknown answer "%s".\n\n' "$PROMPT_CHOICE_RETURN__ANSWER"
+		printf 'Unknown answer "%s".\n\n' "$NEST_IN_PROMPT_CHOICE_RETURN__ANSWER"
 	done
 }
+export -f nest-in-prompt-choice
 
-run-scripts()
+nest-in-run-script()
 {
-	local paths=("$@")
+	local NEST_IN__CURRENT_LINE
+	while read NEST_IN__CURRENT_LINE
+	do
+		if [[ $NEST_IN__CURRENT_LINE =~ ^[:space:]*$ ]]
+		then
+			continue
+		fi
+
+		printf-message "$NEST_IN_TS_USER[$USER]$NEST_IN_TS_USER_END $NEST_IN_TS_PROMPT%s$NEST_IN_TS_PROMPT_END$ %s" "$PWD" "$NEST_IN__CURRENT_LINE"
+		eval "$NEST_IN__CURRENT_LINE"
+		if [[ $? != 0 ]]
+		then
+			return 1
+		fi
+	done < "$1"
+}
+export -f nest-in-run-script
+
+nest-in-run-scripts()
+{
+	local current_working_dir=$1
+	local paths=("${@:2}")
 
 	printf-message 'Nesting...'
 
 	local path
 	for path in "${paths[@]}"
 	do
+		local target="$(basename "$path")"
+		printf-message "\n$NEST_IN_TS_TARGET_TITLE = %s = $NEST_IN_TS_TARGET_TITLE_END" "$target"
+
+		if ! [ -r "$path" ] && [ -r "$path.message" ]
+		then
+			printf-message '%s\n' "$(cat "$path.message")"
+			continue
+		fi
+
 		while true
 		do
-			"$path"
+			cd "$current_working_dir"
+			nest-in-run-script "$path"
 			if [[ $? == 0 ]]
 			then
 				break
 			fi
 
-			printf-error 'failed to nest target "%s". See output above for more information.' "$(basename $path)"
-			prompt-choice 'Do you want to' 'perform this manually' 'm' 'stop nesting' 's'
-			if [[ $PROMPT_CHOICE_RETURN__ANSWER == 's' ]]
+			printf-error 'failed to nest target "%s". See output above for more information.' "$(basename "$path")"
+			nest-in-prompt-choice 'Do you want to' 'perform this manually' 'm' 'stop nesting' 's'
+			if [[ $NEST_IN_PROMPT_CHOICE_RETURN__ANSWER == 's' ]]
 			then
 				printf-message 'Nesting stopped.'
 				exit 1
@@ -1912,8 +1976,8 @@ run-scripts()
 			printf-message 'When done, exit shell'
 			"$SHELL"
 
-			prompt-choice 'Do you want to:' 'restart current target' 'r' 'continue nesting with the next target' 'c' 'stop nesting' 's'
-			case $PROMPT_CHOICE_RETURN__ANSWER in
+			nest-in-prompt-choice 'Do you want to:' 'restart current target' 'r' 'continue nesting with the next target' 'c' 'stop nesting' 's'
+			case $NEST_IN_PROMPT_CHOICE_RETURN__ANSWER in
 				'c')
 					break
 					;;
@@ -1930,8 +1994,9 @@ run-scripts()
 		done
 	done
 }
+export -f nest-in-run-scripts
 
-start-nesting()
+assemble-and-deal-with-nesting-scripts()
 {
 	local destination_dir=$1
 	local targets=("${@:2}")
@@ -1940,19 +2005,34 @@ start-nesting()
 	assemble-nesting-scripts "$destination_dir" "${targets[@]}"
 	local script_paths=("${ASSEMBLE_NESTING_SCRIPTS_RETURN__PATHS[@]}")
 
-	deal-with-scripts "${script_paths[@]}"
+	deal-with-scripts "$PWD" "${script_paths[@]}"
+}
+
+do-nesting()
+{
+	local paths=("${@:2}")
+
+	bash -c "nest-in-run-scripts '$PWD' ${paths[*]}"
 }
 
 cat-scripts()
 {
-	local paths=("$@")
+	local paths=("${@:2}")
 
 	printf '\n'
 
 	local path
 	for path in "${paths[@]}"
 	do
-		tail --lines=+3 "$path"
+		printf "$TS_TARGET_TITLE = %s = $TS_TARGET_TITLE_END\n" "$(basename "$path")"
+
+		if ! [ -r "$path" ] && [ -r "$path.message" ]
+		then
+			printf-message '%s\n' "$(cat "$path.message")"
+			continue
+		fi
+
+		cat "$path"
 	done
 }
 
