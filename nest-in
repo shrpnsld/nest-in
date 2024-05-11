@@ -745,7 +745,7 @@ array-contains-item()
 	local array=("${@:2}")
 
 	local current
-	for current in ${array[@]}
+	for current in "${array[@]}"
 	do
 		if [[ $current == $item ]]
 		then
