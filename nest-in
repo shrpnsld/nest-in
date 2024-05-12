@@ -58,16 +58,14 @@ print-help()
 {
 	printf \
 "${TS_B}USAGE${TS_N}
-  ${TS_B}nest-in${TS_N} [${TS_U}-dsr${TS_N}] [${TS_U}targets...${TS_N}] [${TS_U}-k${TS_N}] -- [${TS_U}file${TS_N}]
+  ${TS_B}nest-in${TS_N} [${TS_U}-dsni${TS_N}] [${TS_U}twigs-file${TS_N}] [-- ${TS_U}targets${TS_N} ${TS_U}...${TS_N}]
 
 ${TS_B}OPTIONS${TS_N}
-  [${TS_U}targets${TS_N}...]   Specify targets to work with.
-  ${TS_B}-d${TS_N}             Show dependencies for targets.
-  ${TS_B}-n${TS_N}             Assemble work script, but don't run it.
-  ${TS_B}--system-info${TS_N}  Print detected system information.
-  ${TS_B}--${TS_N} ${TS_U}file${TS_N}        Read nesting info from ${TS_U}file${TS_N}.
-  ${TS_B}--${TS_N}             Read nesting info from from ${TS_U}stdin${TS_N}.
-  ${TS_B}-h${TS_N}             Show this message.
+  ${TS_B}-d, --dependencies${TS_N}    Show dependencies for targets.
+  ${TS_B}-n, --dry-run${TS_N}         Do not run scripts, only show them.
+  ${TS_B}-i, --system-info${TS_N}     Print detected system information.
+  ${TS_B}--${TS_N} ${TS_U}targets${TS_N} ${TS_U}...${TS_N}        Targets to work with.
+  ${TS_B}-h${TS_N}                    Show this message.
 
 ${TS_B}More information at${TS_N} ${TS_U}https://github.com/shrpnsld/nest-in${TS_N}
 "
@@ -131,7 +129,6 @@ versions-equal()
 #
 # Constants
 
-readonly DEFAULT_TWIGS_PATH="$HOME/.config/$UTILITY_NAME/twigs.txt"
 readonly TMP_WORK_DIR='/tmp/nest-in'
 readonly SCRIPTS_DIR="$TMP_WORK_DIR/scripts"
 readonly CUSTOM_REQS_PATH="$TMP_WORK_DIR/custom-reqs"
@@ -148,7 +145,7 @@ readonly NEST_IN__CONTEXT_CURRENT_VARIABLES_PATH="$CONTEXT_DIR/current-variables
 #
 # Globals
 
-TWIGS_PATH="$DEFAULT_TWIGS_PATH"
+TWIGS_PATH=''
 TWIGS_DESCRIPTOR=-1
 ALL_TARGETS=()
 REGULAR_TARGETS=()
@@ -394,127 +391,46 @@ cygwin() { [[ $SYSTEM_INFO__OS == 'cygwin' ]]; }
 #
 # Functions
 
-readonly PARAMETER_TYPE_OPTION=1
-readonly PARAMETER_TYPE_LONG_OPTION=2
-readonly PARAMETER_TYPE_TARGET=3
-readonly PARAMETER_TYPE_DELIMITER=4
-readonly PARAMETER_TYPE_BAD=255
-PARAMETER_TYPE_RETURN__PARAMETER=''
-parameter-type()
-{
-	local string=$1
-
-	if [[ ${string:0:2} == '--' && ${#string} == 2 ]]
-	then
-		return $PARAMETER_TYPE_DELIMITER
-	fi
-
-	if [[ ${string:0:2} == '--' ]]
-	then
-		PARAMETER_TYPE_RETURN__PARAMETER="${string#--}"
-		return $PARAMETER_TYPE_LONG_OPTION
-	fi
-
-	if [[ ${string:0:1} == '-' ]]
-	then
-		PARAMETER_TYPE_RETURN__PARAMETER="${string#-}"
-		return $PARAMETER_TYPE_OPTION
-	fi
-
-	if [[ $string =~ ^[a-zA-Z]+[a-zA-Z0-9_\-]*$ ]]
-	then
-		PARAMETER_TYPE_RETURN__PARAMETER="$string"
-		return $PARAMETER_TYPE_TARGET
-	fi
-
-	return $PARAMETER_TYPE_BAD
-}
-
-PARSE_OPTION_UNKNOWN_OPTION=255
-parse-option()
-{
-	local option=$1
-	local value=$2
-
-	case "$option" in
-		d)
-			DO_THE_WORK=show-targets-with-dependencies
-			;;
-
-		n)
-			DEAL_WITH_SCRIPTS=cat-scripts
-			;;
-
-		system-info)
-			print-system-info
-			exit
-			;;
-
-		h)
-			print-help
-			exit
-			;;
-
-		*)
-			return $PARSE_OPTION_UNKNOWN_OPTION
-			;;
-	esac
-}
-
 parse-arguments()
 {
-	local parameters=("$@")
+	local arguments=("$@")
 
-	local parameter_index
-	for (( parameter_index = 0; parameter_index < ${#parameters[@]}; ++parameter_index ))
+	local index
+	for (( index = 0; index < $#; ++index ))
 	do
-		local parameter
-		parameter-type "${parameters[$parameter_index]}"
-		local parameter_type=$?
-		parameter="$PARAMETER_TYPE_RETURN__PARAMETER"
-		case $parameter_type in
-			$PARAMETER_TYPE_OPTION)
-				local value="${parameters[$parameter_index + 1]}"
-				local option_index
-				for (( option_index = 0; option_index < ${#parameter}; ++option_index ))
-				do
-					local option="${parameter:$option_index:1}"
-					parse-option "$option" "$value"
-					local retval=$?
-					case $retval in
-						$PARSE_OPTION_UNKNOWN_OPTION)
-							printf-error 'unknown option "%s"' "$option"
-							return 1
-							;;
-
-						*)
-							(( parameter_index += retval ))
-							: # so the result of arithmetic above does not considered as a result of case-clause execution
-							;;
-					esac
-				done
-
-				continue
+		local argument="${arguments[$index]}"
+		case "$argument" in
+			'-d'|'--dependencies')
+				DO_THE_WORK=show-targets-with-dependencies
 				;;
 
-			$PARAMETER_TYPE_LONG_OPTION)
-				parse-option "$parameter" "$value"
-				continue
+			'-n'|'--dry')
+				DEAL_WITH_SCRIPTS=cat-scripts
 				;;
 
-			$PARAMETER_TYPE_TARGET)
-				INPUT_TARGETS+=("$parameter")
+			'-i'|'--system-info')
+				print-system-info
+				exit
 				;;
 
-			$PARAMETER_TYPE_DELIMITER)
-				(( ++parameter_index ))
-				TWIGS_PATH="${parameters[$parameter_index]}"
+			'-h'|'--help')
+				print-help
+				exit
+				;;
+
+			'--')
+				INPUT_TARGETS=("${arguments[@]:$index + 1}")
 				break
 				;;
 
-			$PARAMETER_TYPE_BAD)
-				printf-error 'bad parameter format "%s"' "$parameter"
-				return 1
+			*)
+				if [ -n "$TWIGS_PATH" ]
+				then
+					printf-error 'unknown argument %q' "$argument"
+					exit 1
+				fi
+
+				TWIGS_PATH="${arguments[$index]}"
 				;;
 		esac
 	done
@@ -2036,7 +1952,7 @@ cat-scripts()
 			continue
 		fi
 
-		cat "$path"
+		cat "$path" | head -n $(( $(cat "$path" | wc -l) - 3 )) | tail -n +3
 	done
 }
 
