@@ -73,27 +73,11 @@ ${TS_B}More information at${TS_N} ${TS_U}https://github.com/shrpnsld/nest-in${TS
 
 min-number()
 {
-	local first=$1
-	local second=$2
-
-	if [[ $first < $second ]]
+	if [[ $1 < $2 ]]
 	then
-		return $first
+		return $1
 	else
-		return $second
-	fi
-}
-
-max-number()
-{
-	local first=$1
-	local second=$2
-
-	if [[ $first > $second ]]
-	then
-		return $first
-	else
-		return $second
+		return $2
 	fi
 }
 
@@ -154,17 +138,8 @@ LAST_STEP=''
 CUSTOM_REQS=''
 INPUT_TARGETS=()
 
-DO_THE_WORK=:
-do-the-work()
-{
-	"$DO_THE_WORK" "$@"
-}
-
-DEAL_WITH_SCRIPTS=run-scripts
-deal-with-scripts()
-{
-	"$DEAL_WITH_SCRIPTS" "$@"
-}
+# do-the-work() { : "$@"; }
+deal-with-scripts() { run-scripts "$@"; }
 
 #
 # Requirements
@@ -401,11 +376,11 @@ parse-arguments()
 		local argument="${arguments[$index]}"
 		case "$argument" in
 			'-d'|'--dependencies')
-				DO_THE_WORK=show-targets-with-dependencies
+				do-the-work() { show-targets-with-dependencies "$@"; }
 				;;
 
 			'-n'|'--dry')
-				DEAL_WITH_SCRIPTS=cat-scripts
+				deal-with-scripts() { cat-scripts "$@"; }
 				;;
 
 			'-i'|'--system-info')
@@ -451,9 +426,9 @@ validate-and-apply-options()
 		fi
 	fi
 
-	if [[ $DO_THE_WORK == ':' ]]
+	if ! declare -f do-the-work > /dev/null
 	then
-		DO_THE_WORK=assemble-and-deal-with-nesting-scripts
+		do-the-work() { assemble-and-deal-with-nesting-scripts "$@"; }
 	fi
 }
 
@@ -1535,12 +1510,12 @@ show-targets-with-dependencies()
 	local targets=("${@:2}")
 
 	local target="${targets[0]}"
-	printf "%s" "$target"
+	printf "\n${TS_TARGET_TITLE} = %s = ${TS_TARGET_TITLE_END}" "$target"
 	show-target-dependencies "$target" '    '
 
 	for target in "${targets[@]:1}"
 	do
-		printf "\n%s" "$target"
+		printf "\n${TS_TARGET_TITLE} = %s = ${TS_TARGET_TITLE_END}" "$target"
 		show-target-dependencies "$target" '    '
 	done
 }
