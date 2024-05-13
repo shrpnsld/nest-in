@@ -58,7 +58,7 @@ print-help()
 {
 	printf \
 "${TS_B}USAGE${TS_N}
-  ${TS_B}nest-in${TS_N} [${TS_U}-dsni${TS_N}] [${TS_U}twigs-file${TS_N}] [-- ${TS_U}targets${TS_N} ${TS_U}...${TS_N}]
+  ${TS_B}nest-in${TS_N} ${TS_U}twigs-file${TS_N} [${TS_U}-dsni${TS_N}] [-- ${TS_U}targets${TS_N} ${TS_U}...${TS_N}]
 
 ${TS_B}OPTIONS${TS_N}
   ${TS_B}-d, --dependencies${TS_N}    Show dependencies for targets.
@@ -1873,7 +1873,8 @@ run-scripts()
 			fi
 
 			printf-error 'failed to nest target "%s". See output above for more information.' "$(basename "$path")"
-			prompt-choice 'Do you want to' 'perform this manually' 'm' 'stop nesting' 's'
+			printf '\n'
+			prompt-choice $'You can try to fix things using shell. After that you would be offered\nto restart current target or continue nesting the next one.\nDo you want to' 'open shell' 'o' 'stop nesting' 's'
 			if [[ $PROMPT_CHOICE_RETURN__ANSWER == 's' ]]
 			then
 				printf-message 'Nesting stopped.'

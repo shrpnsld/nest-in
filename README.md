@@ -14,34 +14,35 @@ Setup your personal environment with a single command. Useful when *a shell-scri
 ### One-liners
 
 ```bash
-curl -fsSL PUT-URL-TO-YOUR-TWIGS-FILE-HERE.txt | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)" -- --
+curl -fsSL TWIGS-FILE | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)"
 ```
 
 ```bash
-wget -qO- PUT-URL-TO-YOUR-TWIGS-FILE-HERE.txt | /bin/bash -c "$(wget -qO- https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)" -- --
+wget -qO- TWIGS-FILE | /bin/bash -c "$(wget -qO- https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)"
 ```
 
 ### Command-line interface
 
 ```bash
-$ nest-in [-sdnh] [-- [<twigs.txt>]]
+$ nest-in <twigs-file> [-sdnh] [-- targets ...]
 ```
 
 ### Options
 
-* `<target>...` – specify targets to nest.
-* `-d` – show all target dependencies.
-* `-n` – do not run, only show assembled script.
-* `--system-info` – print detected system information.
-* `-- <twigs.txt>` – specify file with nesting configuration (should be the last argument).
-* `--` – read nesting configuration from *stdin* (should be the last argument).
+* `<twigs-file>` – file with nesting configuration.
+* `-d`, `--dependencies` – show dependencies for targets.
+* `-n`, `--dry-run` – do not run scripts, only show them.
+* `-i`, `--system-info` – print detected system information.
+* `-- targets ...` – targets to work with.
 * `-h` – show help message.
 
-If no `--` was passed, then input file is searched under `~/.config/nest-in/twigs.txt`.
+If no `<twigs-file>` was passed, then configuration is read from *stdin*.
 
 ## Guide
 
-The entire nesting process is divided into steps. Each nesting step is defined as a target with zero or more requirements, dependencies, and artifacts, with or without a script. Requirements are preconditions for the environment that must be met for the target to be nested. Dependencies are other targets that are nested before the target itself. Artifacts are files, directories, or programs produced by the target. If these artifacts already exist, the target is considered to be already nested. All shell scripts for the chosen targets will be combined into a single work script, sharing the same scope.
+The entire nesting process is divided into steps. Each nesting step is defined as a target with zero or more requirements, dependencies, and artifacts, with or without a script. Requirements are preconditions for the environment that must be met for the target to be nested. Dependencies are other targets that are nested before the target itself. Artifacts are files, directories, or programs produced by the target. If these artifacts already exist, the target is considered to be already nested.
+
+Shell scripts for selected targets run independently, while share variable and function definitions. If some script fails, nest-in will suggest to open shell and fix things.
 
 ### Targets
 
@@ -49,16 +50,16 @@ Target declaration should start at the beginning of the line and *should not* be
 
 ```bash
 cmake
-	brew install cmake
+    brew install cmake
 ```
 
 Dependencies should be listed after a `/`.
 
-``` bash
+```bash
 nvim / dotfiles stow
-	brew install neovim
-	cd ~/.dotfiles
-	stow nvim
+    brew install neovim
+    cd ~/.dotfiles
+    stow nvim
 ```
 
 ### Artifacts
@@ -67,7 +68,7 @@ Artifacts are also listed after the same `/` as dependencies. Each artifact shou
 
 ```bash
 dotfiles / git '~/.dotfiles/'
-	git clone https://github.com/me/dotfiles ~/.dotfiles
+    git clone https://github.com/me/dotfiles ~/.dotfiles
 ```
 
 ### Requirements
@@ -76,33 +77,33 @@ Requirements are listed after the same `/` as dependencies and artifacts. Each r
 
 ```bash
 installer / [macos]
-	INSTALL='brew install'
+    INSTALL='brew install'
 
 installer / [avail:apt-get]
-	INSTALL='sudo apt install'
+    INSTALL='sudo apt install'
 ```
 
 If multiple target variants have their requirements met, the first one declared will be chosen. So, with the example below, if the environment has both `curl` and `wget` installed, the first variant will be chosen; if only `wget` is present, then the second one will be selected.
 
 ```bash
 downloader / [avail:curl]
-	DOWNLOAD='curl -fsSL'
-	
+    DOWNLOAD='curl -fsSL'
+
 downloader / [avail:wget]
-	DOWNLOAD='wget -qO-'
+    DOWNLOAD='wget -qO-'
 ```
 
 Targets might not always have a variant with met requirements for every environment. In such a case, if nothing depends on this target, it will be skipped without an error. In the example below, when nesting in Ubuntu, `brew` doesn't have any variant for Ubuntu, but since `pkgmgr / [ubuntu]` does not depend on it, there is no error.
 
 ```bash
 brew / [macos]
-	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/.../install.sh)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/.../install.sh)"
 
 pkgmgr / [macos] brew
-	INSTALL='brew install'
+    INSTALL='brew install'
 
 pkgmgr / [ubuntu]
-	INSTALL='sudo apt install'
+    INSTALL='sudo apt install'
 ```
 
 ### Special targets
@@ -111,28 +112,28 @@ By default, all targets will be chosen for nesting. But some targets may not hav
 
 ```bash
 cleanup!
-	cd ~/.dotfiles
-	stow --delete tmux ranger nvim git
-	rm -rf ~/.dotfiles
-	brew uninstall tmux ranger nvim git stow
-	brew autoremove
+    cd ~/.dotfiles
+    stow --delete tmux ranger nvim git
+    rm -rf ~/.dotfiles
+    brew uninstall tmux ranger nvim git stow
+    brew autoremove
 ```
 
 When some work needs to be done before or after nesting, `.first` and `.last` targets can be used. These targets can have requirements but cannot have dependencies or artifacts. In the example below, `.first` defines a global variable with the dotfiles path.
 
 ```bash
 .first
-	DOTFILES_PATH="~/.dotfiles"
+    DOTFILES_PATH="~/.dotfiles"
 ```
 
 When predefined requirements are not enough, `.reqs` target can be used to define Bash functions as custom requirements. This target can't have requirements, dependencies or artifacts.
 
 ```bash
 spyware / [name:jasonbourne]
-	sudo apt install spyware
+    sudo apt install spyware
 
 .reqs
-	name()	{ [[ $USER == $1 ]]; }
+    name() { [[ $USER == $1 ]]; }
 ```
 
 ### More on requirements
@@ -155,13 +156,15 @@ Requirements always constist of a name and may have a set of specifiers, where e
 
 ### More on artifacts
 
-Artifact types are determined by the following examples: 
+Artifact types are determined by the following examples:
 
 * `~/artifact/is/a/file` – path *with no* trailing `/`
 * `~/artifact/is/a/direcotry/` – path *with* trailing `/`
 * `program` – no path, just a name
 
 ### Additional notes
+
+When recovering from a script error inside a shell, any variable and function definitions made inside that shell will not be visible in subsequent scripts.
 
 Comments are not supported and any syntax-check pass for a shell-style comment is just a happy accident :)
 
@@ -172,44 +175,43 @@ Comments are not supported and any syntax-check pass for a shell-style comment i
 ```bash
 # "nvim" depends on "pkgmgr" and "dotfiles" being nested first
 nvim / pkgmgr dotfiles
-	$INSTALL neovim
-	cd "$DOTFILES_DIR"
-	stow nvim
+    $INSTALL neovim
+    cd "$DOTFILES_DIR"
+    stow nvim
 
 # "dotfiles" needs no dependencies but it produces two artifacts: directory "~/.dotfiles/"
 # and program "stow". if both already exist, then target is considered nested.
 dotfiles / '~/.dotfiles/' 'stow'
-	$INSTALL stow
-	git clone https://github.com/me/dotfiles "$DOTFILES_DIR"
+    $INSTALL stow
+    git clone https://github.com/me/dotfiles "$DOTFILES_DIR"
 
 # this variant of "pkgmgr" will be used only on macOS. its script uses Homebrew,
 # so target declaration lists dependency on "brew" target.
 pkgmgr / [macos] brew
-	$INSTALL='brew install'
-	$UNINSTALL='brew uninstall'
+    $INSTALL='brew install'
+    $UNINSTALL='brew uninstall'
 
 # this variant of "pkgmgr" will be used only if "apt-get" is available.
 pkgmgr / [avail:apt-get]
-	$INSTALL='sudo apt-get -y install'
-	$UNINSTALL='sudo apt-get -y uninstall'
+    $INSTALL='sudo apt-get -y install'
+    $UNINSTALL='sudo apt-get -y uninstall'
 
 # target for installing Homebrew on macOS. it lists "brew" as an artifact,
 # so if Homebrew is already installed, there's no need for installation
 brew / [macos] 'brew'
-	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # dedicated target for cleanup, intended to be used only explicitly, like so:
 # $ nest-in cleanup
 clenaup!
-	cd "$DOTFILES_DIR"
-	stow --delete nvim
-	rm -rf "$DOTFILES_DIR"
-	$UNINSTALL nvim stow
+    cd "$DOTFILES_DIR"
+    stow --delete nvim
+    rm -rf "$DOTFILES_DIR"
+    $UNINSTALL nvim stow
 
 # "setup" target that defines a variable that would be used throughout the nesting process
 .first
-	DOTFILES_DIR="$HOME/.dotfiles"
-
+    DOTFILES_DIR="$HOME/.dotfiles"
 ```
 
 ### Home/Work setup
@@ -223,50 +225,50 @@ work! / git-work caffeinate games
 
 # your personal ".gitconfig" for your pet projects
 git-personal! / stow
-	cd "$DOTFILES_DIR"
-	stow git-personal
+    cd "$DOTFILES_DIR"
+    stow git-personal
 
 # setting up ".gitconfig" at your work
 git-work!
-	read -p 'git name: ' name
-	read -p 'git email: ' email
-	git config --global user.name="$name"
-	git config --global user.email="$email"
+    read -p 'git name: ' name
+    read -p 'git email: ' email
+    git config --global user.name="$name"
+    git config --global user.email="$email"
 
 # will keep your status "online", while you're avoiding your responsibilities
 caffeinate
-	$INSTALL caffeinate
+    $INSTALL caffeinate
 
 # keeps your sanity and helps to get through your work day
 games
-	$INSTALL nethack myman ninvaders
+    $INSTALL nethack myman ninvaders
 
 pet-projects / git-personal
-	mkdir "$PROJECTS_DIR"
-	cd "$PROJECTS_DIR"
-	git clone https://github.com/me/pet
-	git clone https://github.com/me/another-pet
-	git clone https://github.com/me/and-another-one
+    mkdir "$PROJECTS_DIR"
+    cd "$PROJECTS_DIR"
+    git clone https://github.com/me/pet
+    git clone https://github.com/me/another-pet
+    git clone https://github.com/me/and-another-one
 
 # in case you're fired, hide the evidence
 cleanup!
-	$UNINSTALL games caffeinate
+    $UNINSTALL games caffeinate
 
 # and you've seen all this before
 pkgmgr / [macos] brew
-	$INSTALL='brew install'
-	$UNINSTALL='brew uninstall'
+    $INSTALL='brew install'
+    $UNINSTALL='brew uninstall'
 
 pkgmgr / [avail:apt-get]
-	$INSTALL='sudo apt-get -y install'
-	$UNINSTALL='sudo apt-get -y uninstall'
+    $INSTALL='sudo apt-get -y install'
+    $UNINSTALL='sudo apt-get -y uninstall'
 
 brew / [macos] 'brew'
-	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 .first
-	DOTFILES_DIR="$HOME/.dotfiles"
-	PROJECTS_DIR="$HOME/Projects"
+    DOTFILES_DIR="$HOME/.dotfiles"
+    PROJECTS_DIR="$HOME/Projects"
 ```
 
 ### My own twigs.txt
