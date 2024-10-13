@@ -3,6 +3,8 @@
 #
 # Essentials
 
+# [bash-test:start]
+
 readonly UTILITY_NAME=nest-in
 
 readonly TS_N='\e[0m'
@@ -1931,6 +1933,8 @@ cat-scripts()
 		cat "$path" | head -n $(( $(cat "$path" | wc -l) - 3 )) | tail -n +3
 	done
 }
+
+# [bash-test:end]
 
 #
 # Main
