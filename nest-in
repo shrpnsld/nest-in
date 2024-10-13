@@ -20,7 +20,7 @@ TS_PROMPT=''
 TS_PROMPT_END=''
 TS_ERR=''
 TS_ERR_END=''
-if [[ -t 1 ]] && (( $(tput colors) -gt 0 ))
+if [[ -t 1 ]] && (( $(tput colors) > 0 ))
 then
 	TS_TARGET_TITLE="$TS_R"
 	TS_TARGET_TITLE_END="$TS_N"
