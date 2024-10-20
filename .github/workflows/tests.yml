@@ -7,5 +7,5 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'true'
-      - run: tests/external/bash-test/bash-test --sample amalgamate --tests tests/tests/
+      - run: tests/external/bash-test/bash-test --sample nest-in --tests tests/tests/
 
