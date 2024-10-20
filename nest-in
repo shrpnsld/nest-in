@@ -91,6 +91,11 @@ versions-equal()
 	local old_IFS="$IFS"
 	IFS='.'
 
+	if [[ -z $first || -z $second ]]
+	then
+		return 1
+	fi
+
 	first=($first)
 	second=($second)
 
