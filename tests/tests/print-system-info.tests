@@ -1,0 +1,22 @@
+source $(SAMPLE nest-in)
+source $(PATH-TO 'utils/set-system-info')
+
+TEST-CASE 'macos'
+	set-system-info 'macos' '' '' '1.2.3'
+	expected=$'os: "macos"\nversion: "1.2.3"\n'
+	CHECK-OUTPUT WITH-STRING "$expected" COMMAND print-system-info
+
+	set-system-info 'macos' '' '' '4.5.6'
+	expected=$'os: "macos"\nversion: "4.5.6"\n'
+	CHECK-OUTPUT WITH-STRING "$expected" COMMAND print-system-info
+
+TEST-CASE 'ubuntu'
+	set-system-info 'linux' 'debian' 'ubuntu' '1.2.3'
+	expected=$'os: "linux"\nfamily: "debian"\ndistribution: "ubuntu"\nversion: "1.2.3"\n'
+	CHECK-OUTPUT WITH-STRING "$expected" COMMAND print-system-info
+
+TEST-CASE 'manjaro'
+	set-system-info 'linux' 'arch' 'manjaro' '4.5.6'
+	expected=$'os: "linux"\nfamily: "arch"\ndistribution: "manjaro"\nversion: "4.5.6"\n'
+	CHECK-OUTPUT WITH-STRING "$expected" COMMAND print-system-info
+
