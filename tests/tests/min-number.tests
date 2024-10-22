@@ -1,20 +1,20 @@
 source $(SAMPLE nest-in)
 
-TEST-CASE "min-number() with [first] < [second]"
+TEST-CASE 'with [first] < [second]'
 	min-number 1 2
 	CHECK [ $? == 1 ]
 
 	min-number 2 3
 	CHECK [ $? == 2 ]
 
-TEST-CASE "min-number() with [first] > [second]"
+TEST-CASE 'with [first] > [second]'
 	min-number 2 1
 	CHECK [ $? == 1 ]
 
 	min-number 3 2
 	CHECK [ $? == 2 ]
 
-TEST-CASE "min-number() with equal arguments"
+TEST-CASE 'with equal arguments'
 	min-number 1 1
 	CHECK [ $? == 1 ]
 
