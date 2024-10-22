@@ -1,0 +1,16 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'with unquoted values'
+	result=$(extract-value 'some' 'some=1')
+	CHECK [ "$result" == 1 ]
+
+	result=$(extract-value 'some' 'some=hellomoto!')
+	CHECK [ "$result" == 'hellomoto!' ]
+
+TEST-CASE 'with quoted values'
+	result=$(extract-value 'some' 'some="1"')
+	CHECK [ "$result" == 1 ]
+
+	result=$(extract-value 'some' 'some="hellomoto!"')
+	CHECK [ "$result" == 'hellomoto!' ]
+

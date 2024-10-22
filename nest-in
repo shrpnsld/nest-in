@@ -202,7 +202,7 @@ gather-linux-info()
 		fi
 	fi
 
-	if [[ $SYSTEM_INFO__LINUX_DISTRIBUTION == opensuse* ]] # OpenSUSE stores ID="opensuse-leap"
+	if [[ $SYSTEM_INFO__LINUX_DISTRIBUTION == opensuse* ]]
 	then
 		SYSTEM_INFO__LINUX_DISTRIBUTION=opensuse
 	elif [[ -z $SYSTEM_INFO__LINUX_DISTRIBUTION ]]
@@ -264,7 +264,7 @@ gather-system-info()
 			SYSTEM_INFO__OS=cygwin
 			SYSTEM_INFO__LINUX_FAMILY=''
 			SYSTEM_INFO__LINUX_DISTRIBUTION=''
-			SYSTEM_INFO__OS_VERSION=''
+			SYSTEM_INFO__OS_VERSION=$(cygcheck -cd cygwin | awk '/^cygwin/ {print $2}')
 			;;
 
 		msys)
@@ -309,7 +309,7 @@ os()
 
 	if [[ -n $version ]]
 	then
-		versions-equal $SYSTEM_INFO__OS_VERSION $version
+		versions-equal "$SYSTEM_INFO__OS_VERSION" "$version"
 	fi
 }
 
@@ -328,7 +328,7 @@ macos()
 	[[ $SYSTEM_INFO__OS == 'macos' ]] &&
 	if [[ -n $version ]]
 	then
-		versions-equal $SYSTEM_INFO__OS_VERSION $version
+		versions-equal "$SYSTEM_INFO__OS_VERSION" "$version"
 	fi
 }
 
@@ -349,15 +349,16 @@ linux()
 	fi &&
 	if [[ -n $version ]]
 	then
-		versions-equal $SYSTEM_INFO__OS_VERSION $version
+		versions-equal "$SYSTEM_INFO__OS_VERSION" $version
 	fi
 }
 
 debian() { linux 'debian' "$@"; }
-ubuntu() { debian 'ubuntu' "$@"; }
 elementary() { debian 'elementary' "$@"; }
 kali() { debian 'kali' "$@"; } # not tested yet
+mint() { debian 'mint' "$@"; } # not tested yet
 tails() { debian 'tails' "$@"; } # not tested yet
+ubuntu() { debian 'ubuntu' "$@"; }
 
 redhat() { linux 'redhat' "$@"; }
 fedora() { redhat 'fedora' "$@"; }
@@ -368,7 +369,15 @@ manjaro() { arch 'manjaro' "$@"; }
 suse() { linux 'suse' "$@"; }
 opensuse() { suse 'opensuse' "$@"; }
 
-cygwin() { [[ $SYSTEM_INFO__OS == 'cygwin' ]]; }
+cygwin() {
+	local version=$1
+
+	[[ $SYSTEM_INFO__OS == 'cygwin' ]] &&
+	if [[ -n $version ]]
+	then
+		versions-equal "$SYSTEM_INFO__OS_VERSION" "$version"
+	fi
+}
 
 #
 # Functions
