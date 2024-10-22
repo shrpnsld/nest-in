@@ -1,0 +1,32 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'existing utils'
+	avail 'date'
+	CHECK [ $? == 0 ]
+
+	avail 'find'
+	CHECK [ $? == 0 ]
+
+TEST-CASE 'existing functions'
+	some-function() { :; }
+	avail 'some-function'
+	CHECK [ $? == 0 ]
+
+	another-function() { :; }
+	avail 'another-function'
+	CHECK [ $? == 0 ]
+
+TEST-CASE 'non-existing utils'
+	avail 'shmate'
+	CHECK [ $? == 1 ]
+
+	avail 'shmind'
+	CHECK [ $? == 1 ]
+
+TEST-CASE 'non-existing functions'
+	avail 'some-shmunction'
+	CHECK [ $? == 1 ]
+
+	avail 'another-shmunction'
+	CHECK [ $? == 1 ]
+
