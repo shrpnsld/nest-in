@@ -1,10 +1,50 @@
 source $(SAMPLE nest-in)
 
-TEST-CASE "versions-equal() with equal arguments"
+TEST-CASE 'equal version numbers'
 	versions-equal '1.2.3' '1.2.3'
 	CHECK [ $? == 0 ]
 
-TEST-CASE "versions-equal() with different arguments"
+	versions-equal '1.2' '1.2'
+	CHECK [ $? == 0 ]
+
+	versions-equal '1' '1'
+	CHECK [ $? == 0 ]
+
+	versions-equal '4.5.6' '4.5.6'
+	CHECK [ $? == 0 ]
+
+	versions-equal '4.5' '4.5'
+	CHECK [ $? == 0 ]
+
+	versions-equal '4' '4'
+	CHECK [ $? == 0 ]
+
+TEST-CASE 'compatible version numbers'
+	versions-equal '1' '1.2.3'
+	CHECK [ $? == 0 ]
+
+	versions-equal '1.2' '1.2.3'
+	CHECK [ $? == 0 ]
+
+	versions-equal '1.2.3' '1'
+	CHECK [ $? == 0 ]
+
+	versions-equal '1.2.3' '1.2'
+	CHECK [ $? == 0 ]
+
+	versions-equal '4' '4.5.6'
+	CHECK [ $? == 0 ]
+
+	versions-equal '4.5' '4.5.6'
+	CHECK [ $? == 0 ]
+
+	versions-equal '4.5.6' '4'
+	CHECK [ $? == 0 ]
+
+	versions-equal '4.5.6' '4.5'
+	CHECK [ $? == 0 ]
+
+TEST-CASE 'different version numbers'
 	versions-equal '2.2.3' '1.2.3'
 	CHECK [ $? == 1 ]
 
@@ -12,5 +52,27 @@ TEST-CASE "versions-equal() with different arguments"
 	CHECK [ $? == 1 ]
 
 	versions-equal '1.2.4' '1.2.3'
+	CHECK [ $? == 1 ]
+
+	versions-equal '2.2' '1.2.3'
+	CHECK [ $? == 1 ]
+
+	versions-equal '1.2.3' '2.2'
+	CHECK [ $? == 1 ]
+
+	versions-equal '2' '1.2.3'
+	CHECK [ $? == 1 ]
+
+	versions-equal '1.2.3' '2'
+	CHECK [ $? == 1 ]
+
+TEST-CASE 'empty strings'
+	versions-equal '' ''
+	CHECK [ $? == 1 ]
+
+	versions-equal '' '1.2.3'
+	CHECK [ $? == 1 ]
+
+	versions-equal '1.2.3' ''
 	CHECK [ $? == 1 ]
 
