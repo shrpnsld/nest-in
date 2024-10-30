@@ -434,7 +434,7 @@ validate-and-apply-options()
 		TWIGS_DESCRIPTOR=0
 	else
 		TWIGS_DESCRIPTOR=3
-		open-file $TWIGS_DESCRIPTOR "$TWIGS_PATH" >/dev/null 2>&1
+		file-open $TWIGS_DESCRIPTOR "$TWIGS_PATH" >/dev/null 2>&1
 		if [[ $? != 0 ]]
 		then
 			printf-error 'failed to open config file "%s"' "$TWIGS_PATH"
@@ -448,12 +448,12 @@ validate-and-apply-options()
 	fi
 }
 
-open-file()
+file-open()
 {
 	local descriptor=$1
 	local path=$2
 
-	eval "exec $descriptor< \"$path\""
+	eval "exec $descriptor< '$path'" > /dev/null > 2&>1
 	if [[ $? != 0 ]]
 	then
 		return 1
@@ -509,7 +509,7 @@ file-read-line()
 	fi
 }
 
-next-non-empty-line()
+file-next-non-empty-line()
 {
 	local descriptor=$1
 
@@ -1106,7 +1106,7 @@ gather-twigs()
 
 	while true
 	do
-		if ! next-non-empty-line $descriptor || ! file-peek-line $descriptor
+		if ! file-next-non-empty-line $descriptor || ! file-peek-line $descriptor # NOTE: looks like there's no need for `|| ! file-peek-line $descriptor`
 		then
 			break
 		fi

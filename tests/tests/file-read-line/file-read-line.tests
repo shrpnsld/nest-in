@@ -1,0 +1,216 @@
+source $(SAMPLE nest-in)
+source $(PATH-TO 'utils/file')
+
+cleanup()
+{
+	FILE_READ_LINE_RETURN__LINE=''
+	FILE_READ_LINE_RETURN__LINE_NUMBER=0
+	FILE_PEEK_LINE_RETURN__LINE=''
+	FILE_PEEK_LINE_RETURN__PEEKED=false
+}
+
+USE-SANDBOX
+
+SECTION 'reading single line'
+
+TEST-CASE 'single-line-1.txt'
+USE-REQUISITES 'single-line-1.txt'
+	CHECK open-file 3 'single-line-1.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'one' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+TEST-CASE 'single-line-2.txt'
+USE-REQUISITES 'single-line-2.txt'
+	CHECK open-file 3 'single-line-2.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'two' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+TEST-CASE 'multi-line-1.txt'
+USE-REQUISITES 'multi-line-1.txt'
+	CHECK open-file 3 'multi-line-1.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'one' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+TEST-CASE 'multi-line-2.txt'
+USE-REQUISITES 'multi-line-2.txt'
+	CHECK open-file 3 'multi-line-2.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'three' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+SECTION 'reading mutiple lines'
+
+TEST-CASE 'multi-line-1.txt'
+USE-REQUISITES 'multi-line-1.txt'
+	CHECK open-file 3 'multi-line-1.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'one' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'two' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 2 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+TEST-CASE 'multi-line-2.txt'
+USE-REQUISITES 'multi-line-2.txt'
+	CHECK open-file 3 'multi-line-2.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'three' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'four' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 2 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+SECTION 'reading past the last line'
+
+TEST-CASE 'empty.txt'
+USE-REQUISITES 'empty.txt'
+	CHECK open-file 3 'empty.txt'
+
+	CHECK ! file-read-line 3
+	CHECK [ -z "$FILE_READ_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 0 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK ! file-read-line 3
+	CHECK [ -z "$FILE_READ_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 0 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+TEST-CASE 'single-line-1.txt'
+USE-REQUISITES 'single-line-1.txt'
+	CHECK open-file 3 'single-line-1.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'one' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK ! file-read-line 3
+	CHECK [ -z "$FILE_READ_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+TEST-CASE 'single-line-2.txt'
+USE-REQUISITES 'single-line-2.txt'
+	CHECK open-file 3 'single-line-2.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'two' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK ! file-read-line 3
+	CHECK [ -z "$FILE_READ_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+TEST-CASE 'multi-line-1.txt'
+USE-REQUISITES 'multi-line-1.txt'
+	CHECK open-file 3 'multi-line-1.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'one' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'two' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 2 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK ! file-read-line 3
+	CHECK [ -z "$FILE_READ_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 2 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+
+TEST-CASE 'multi-line-2.txt'
+USE-REQUISITES 'multi-line-2.txt'
+	CHECK open-file 3 'multi-line-2.txt'
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'three' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 1 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK file-read-line 3
+	CHECK [ "$FILE_READ_LINE_RETURN__LINE" == 'four' ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 2 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK ! file-read-line 3
+	CHECK [ -z "$FILE_READ_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_READ_LINE_RETURN__LINE_NUMBER == 2 ]
+	CHECK [ -z "$FILE_PEEK_LINE_RETURN__LINE" ]
+	CHECK [ $FILE_PEEK_LINE_RETURN__PEEKED == false ]
+
+	CHECK close-file 3
+	cleanup
+

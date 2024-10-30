@@ -1,0 +1,13 @@
+source $(SAMPLE nest-in)
+
+USE-SANDBOX
+
+TEST-CASE 'with existing file'
+USE-REQUISITES 'some.txt' 'another.txt'
+	CHECK file-open 3 'some.txt'
+	CHECK file-open 4 'another.txt'
+
+TEST-CASE 'with not exiting file'
+	CHECK ! file-open 3 'not-there.txt'
+	CHECK ! file-open 4 'ghost.txt'
+
