@@ -1,0 +1,211 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE "target / [requirement] dependency 'artifact'"
+	CHECK is-target-declaration "one / [two] four 'five'"
+	CHECK is-target-declaration "one / [two] 'five' four"
+	CHECK is-target-declaration "one / four [two] 'five'"
+	CHECK is-target-declaration "one / four 'five' [two]"
+	CHECK is-target-declaration "one / 'five' [two] four"
+	CHECK is-target-declaration "one / 'five' four [two]"
+
+	CHECK is-target-declaration "one / [two] four 'five' [seven]"
+	CHECK is-target-declaration "one / [two] 'five' four [seven]"
+	CHECK is-target-declaration "one / four [two] 'five' [seven]"
+	CHECK is-target-declaration "one / four 'five' [two] [seven]"
+	CHECK is-target-declaration "one / 'five' [two] four [seven]"
+	CHECK is-target-declaration "one / 'five' four [two] [seven]"
+
+	CHECK is-target-declaration "one / [two] four 'five' nine"
+	CHECK is-target-declaration "one / [two] 'five' four nine"
+	CHECK is-target-declaration "one / four [two] 'five' nine"
+	CHECK is-target-declaration "one / four 'five' [two] nine"
+	CHECK is-target-declaration "one / 'five' [two] four nine"
+	CHECK is-target-declaration "one / 'five' four [two] nine"
+
+	CHECK is-target-declaration "one / [two] four 'five' 'ten'"
+	CHECK is-target-declaration "one / [two] 'five' four 'ten'"
+	CHECK is-target-declaration "one / four [two] 'five' 'ten'"
+	CHECK is-target-declaration "one / four 'five' [two] 'ten'"
+	CHECK is-target-declaration "one / 'five' [two] four 'ten'"
+	CHECK is-target-declaration "one / 'five' four [two] 'ten'"
+
+	CHECK is-target-declaration "six / [seven] nine 'ten'"
+	CHECK is-target-declaration "six / [seven] 'ten' nine"
+	CHECK is-target-declaration "six / nine [seven] 'ten'"
+	CHECK is-target-declaration "six / nine 'ten' [seven]"
+	CHECK is-target-declaration "six / 'ten' [seven] nine"
+	CHECK is-target-declaration "six / 'ten' nine [seven]"
+
+	CHECK is-target-declaration "six / [seven] nine 'ten' [two]"
+	CHECK is-target-declaration "six / [seven] 'ten' nine [two]"
+	CHECK is-target-declaration "six / nine [seven] 'ten' [two]"
+	CHECK is-target-declaration "six / nine 'ten' [seven] [two]"
+	CHECK is-target-declaration "six / 'ten' [seven] nine [two]"
+	CHECK is-target-declaration "six / 'ten' nine [seven] [two]"
+
+	CHECK is-target-declaration "six / [seven] nine 'ten' four"
+	CHECK is-target-declaration "six / [seven] 'ten' nine four"
+	CHECK is-target-declaration "six / nine [seven] 'ten' four"
+	CHECK is-target-declaration "six / nine 'ten' [seven] four"
+	CHECK is-target-declaration "six / 'ten' [seven] nine four"
+	CHECK is-target-declaration "six / 'ten' nine [seven] four"
+
+	CHECK is-target-declaration "six / [seven] nine 'ten' 'five'"
+	CHECK is-target-declaration "six / [seven] 'ten' nine 'five'"
+	CHECK is-target-declaration "six / nine [seven] 'ten' 'five'"
+	CHECK is-target-declaration "six / nine 'ten' [seven] 'five'"
+	CHECK is-target-declaration "six / 'ten' [seven] nine 'five'"
+	CHECK is-target-declaration "six / 'ten' nine [seven] 'five'"
+
+TEST-CASE "target / [requirement:specifier] dependency 'artifact'"
+	CHECK is-target-declaration "one / [two:three] four 'five'"
+	CHECK is-target-declaration "one / [two:three] 'five' four"
+	CHECK is-target-declaration "one / four [two:three] 'five'"
+	CHECK is-target-declaration "one / four 'five' [two:three]"
+	CHECK is-target-declaration "one / 'five' [two:three] four"
+	CHECK is-target-declaration "one / 'five' four [two:three]"
+
+	CHECK is-target-declaration "one / [two:three] four 'five' [seven:eight]"
+	CHECK is-target-declaration "one / [two:three] 'five' four [seven:eight]"
+	CHECK is-target-declaration "one / four [two:three] 'five' [seven:eight]"
+	CHECK is-target-declaration "one / four 'five' [two:three] [seven:eight]"
+	CHECK is-target-declaration "one / 'five' [two:three] four [seven:eight]"
+	CHECK is-target-declaration "one / 'five' four [two:three] [seven:eight]"
+
+	CHECK is-target-declaration "one / [two:three] four 'five' nine"
+	CHECK is-target-declaration "one / [two:three] 'five' four nine"
+	CHECK is-target-declaration "one / four [two:three] 'five' nine"
+	CHECK is-target-declaration "one / four 'five' [two:three] nine"
+	CHECK is-target-declaration "one / 'five' [two:three] four nine"
+	CHECK is-target-declaration "one / 'five' four [two:three] nine"
+
+	CHECK is-target-declaration "one / [two:three] four 'five' 'ten'"
+	CHECK is-target-declaration "one / [two:three] 'five' four 'ten'"
+	CHECK is-target-declaration "one / four [two:three] 'five' 'ten'"
+	CHECK is-target-declaration "one / four 'five' [two:three] 'ten'"
+	CHECK is-target-declaration "one / 'five' [two:three] four 'ten'"
+	CHECK is-target-declaration "one / 'five' four [two:three] 'ten'"
+
+	CHECK is-target-declaration "six / [seven:eight] nine 'ten'"
+	CHECK is-target-declaration "six / [seven:eight] 'ten' nine"
+	CHECK is-target-declaration "six / nine [seven:eight] 'ten'"
+	CHECK is-target-declaration "six / nine 'ten' [seven:eight]"
+	CHECK is-target-declaration "six / 'ten' [seven:eight] nine"
+	CHECK is-target-declaration "six / 'ten' nine [seven:eight]"
+
+	CHECK is-target-declaration "six / [seven:eight] nine 'ten' [two:three]"
+	CHECK is-target-declaration "six / [seven:eight] 'ten' nine [two:three]"
+	CHECK is-target-declaration "six / nine [seven:eight] 'ten' [two:three]"
+	CHECK is-target-declaration "six / nine 'ten' [seven:eight] [two:three]"
+	CHECK is-target-declaration "six / 'ten' [seven:eight] nine [two:three]"
+	CHECK is-target-declaration "six / 'ten' nine [seven:eight] [two:three]"
+
+	CHECK is-target-declaration "six / [seven:eight] nine 'ten' four"
+	CHECK is-target-declaration "six / [seven:eight] 'ten' nine four"
+	CHECK is-target-declaration "six / nine [seven:eight] 'ten' four"
+	CHECK is-target-declaration "six / nine 'ten' [seven:eight] four"
+	CHECK is-target-declaration "six / 'ten' [seven:eight] nine four"
+	CHECK is-target-declaration "six / 'ten' nine [seven:eight] four"
+
+	CHECK is-target-declaration "six / [seven:eight] nine 'ten' 'five'"
+	CHECK is-target-declaration "six / [seven:eight] 'ten' nine 'five'"
+	CHECK is-target-declaration "six / nine [seven:eight] 'ten' 'five'"
+	CHECK is-target-declaration "six / nine 'ten' [seven:eight] 'five'"
+	CHECK is-target-declaration "six / 'ten' [seven:eight] nine 'five'"
+	CHECK is-target-declaration "six / 'ten' nine [seven:eight] 'five'"
+
+TEST-CASE "target / [requirement] dependency"
+	CHECK is-target-declaration "one / [two] four"
+	CHECK is-target-declaration "one / four [two]"
+
+	CHECK is-target-declaration "one / [two] four [seven]"
+	CHECK is-target-declaration "one / four [two] [seven]"
+
+	CHECK is-target-declaration "one / [two] four nine"
+	CHECK is-target-declaration "one / four [two] nine"
+
+	CHECK is-target-declaration "six / [seven] nine"
+	CHECK is-target-declaration "six / nine [seven]"
+
+	CHECK is-target-declaration "six / [seven] nine [two]"
+	CHECK is-target-declaration "six / nine [seven] [two]"
+
+	CHECK is-target-declaration "six / [seven] nine four"
+	CHECK is-target-declaration "six / nine [seven] four"
+
+TEST-CASE "target / [requirement:specifier] dependency"
+	CHECK is-target-declaration "one / [two:three] four"
+	CHECK is-target-declaration "one / four [two:three]"
+
+	CHECK is-target-declaration "one / [two:three] four [seven:eight]"
+	CHECK is-target-declaration "one / four [two:three] [seven:eight]"
+
+	CHECK is-target-declaration "one / [two:three] four nine"
+	CHECK is-target-declaration "one / four [two:three] nine"
+
+	CHECK is-target-declaration "six / [seven:eight] nine"
+	CHECK is-target-declaration "six / nine [seven:eight]"
+
+	CHECK is-target-declaration "six / [seven:eight] nine [two:three]"
+	CHECK is-target-declaration "six / nine [seven:eight] [two:three]"
+
+	CHECK is-target-declaration "six / [seven:eight] nine four"
+	CHECK is-target-declaration "six / nine [seven:eight] four"
+
+TEST-CASE "target / [requirement] 'artifact'"
+	CHECK is-target-declaration "one / [two] 'five'"
+	CHECK is-target-declaration "one / 'five' [two]"
+
+	CHECK is-target-declaration "one / [two] 'five' [seven]"
+	CHECK is-target-declaration "one / 'five' [two] [seven]"
+
+	CHECK is-target-declaration "one / [two] 'five' 'ten'"
+	CHECK is-target-declaration "one / 'five' [two] 'ten'"
+
+	CHECK is-target-declaration "six / [seven] 'ten'"
+	CHECK is-target-declaration "six / 'ten' [seven]"
+
+	CHECK is-target-declaration "six / [seven] 'ten' [two]"
+	CHECK is-target-declaration "six / 'ten' [seven] [two]"
+
+	CHECK is-target-declaration "six / [seven] 'ten' 'five'"
+	CHECK is-target-declaration "six / 'ten' [seven] 'five'"
+
+TEST-CASE "target / [requirement:specifier] 'artifact'"
+	CHECK is-target-declaration "one / [two:three] 'five'"
+	CHECK is-target-declaration "one / 'five' [two:three]"
+
+	CHECK is-target-declaration "one / [two:three] 'five' [seven:eight]"
+	CHECK is-target-declaration "one / 'five' [two:three] [seven:eight]"
+
+	CHECK is-target-declaration "one / [two:three] 'five' 'ten'"
+	CHECK is-target-declaration "one / 'five' [two:three] 'ten'"
+
+	CHECK is-target-declaration "six / [seven:eight] 'ten'"
+	CHECK is-target-declaration "six / 'ten' [seven:eight]"
+
+	CHECK is-target-declaration "six / [seven:eight] 'ten' [two:three]"
+	CHECK is-target-declaration "six / 'ten' [seven:eight] [two:three]"
+
+	CHECK is-target-declaration "six / [seven:eight] 'ten' 'five'"
+	CHECK is-target-declaration "six / 'ten' [seven:eight] 'five'"
+
+TEST-CASE "target / dependency 'artifact'"
+	CHECK is-target-declaration "one / four 'five'"
+	CHECK is-target-declaration "one / 'five' four"
+
+	CHECK is-target-declaration "one / four 'five' nine"
+	CHECK is-target-declaration "one / 'five' four nine"
+
+	CHECK is-target-declaration "one / four 'five' 'ten'"
+	CHECK is-target-declaration "one / 'five' four 'ten'"
+
+	CHECK is-target-declaration "six / nine 'ten'"
+	CHECK is-target-declaration "six / 'ten' nine"
+
+	CHECK is-target-declaration "six / nine 'ten' four"
+	CHECK is-target-declaration "six / 'ten' nine four"
+
+	CHECK is-target-declaration "six / nine 'ten' 'five'"
+	CHECK is-target-declaration "six / 'ten' nine 'five'"
+

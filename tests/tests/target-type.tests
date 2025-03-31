@@ -1,0 +1,150 @@
+source $(SAMPLE nest-in)
+
+SECTION 'regular target'
+
+TEST-CASE "target / [requirement] dependency 'artifact'"
+	target-type "one / [two] four 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+	target-type "six / [seven] nine 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+TEST-CASE "target / [requirement:specifer] dependency 'artifact'"
+	target-type "one / [two:three] four 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+	target-type "six / [seven:eight] nine 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+TEST-CASE "target / [requirement] dependency"
+	target-type "one / [two] four"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+	target-type "six / [seven] nine"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+TEST-CASE "target / [requirement:specifer] dependency"
+	target-type "one / [two:three] four"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+	target-type "six / [seven:eight] nine"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+TEST-CASE "target / [requirement] 'artifact'"
+	target-type "one / [two] 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+	target-type "six / [seven] 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+TEST-CASE "target / [requirement:specifer] 'artifact'"
+	target-type "one / [two:three] 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+	target-type "six / [seven:eight] 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+TEST-CASE "target / dependency 'artifact'"
+	target-type "one / four 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+	target-type "six / nine 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__REGULAR ]
+
+
+SECTION 'dedicated target'
+
+TEST-CASE "target! / [requirement] dependency 'artifact'"
+	target-type "one! / [two] four 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+	target-type "six! / [seven] nine 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+TEST-CASE "target! / [requirement:specifer] dependency 'artifact'"
+	target-type "one! / [two:three] four 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+	target-type "six! / [seven:eight] nine 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+TEST-CASE "target! / [requirement] dependency"
+	target-type "one! / [two] four"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+	target-type "six! / [seven] nine"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+TEST-CASE "target! / [requirement:specifer] dependency"
+	target-type "one! / [two:three] four"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+	target-type "six! / [seven:eight] nine"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+TEST-CASE "target! / [requirement] 'artifact'"
+	target-type "one! / [two] 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+	target-type "six! / [seven] 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+TEST-CASE "target! / [requirement:specifer] 'artifact'"
+	target-type "one! / [two:three] 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+	target-type "six! / [seven:eight] 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+TEST-CASE "target! / dependency 'artifact'"
+	target-type "one! / four 'five'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+	target-type "six! / nine 'ten'"
+	CHECK [ $? == $TARGET_TYPE_CODE__DEDICATED ]
+
+
+SECTION '.first'
+
+TEST-CASE '.first'
+	target-type '.first'
+	CHECK [ $? == $TARGET_TYPE_CODE__FIRST_STEP ]
+
+TEST-CASE '.first / [requirements]'
+	target-type '.first / [two]'
+	CHECK [ $? == $TARGET_TYPE_CODE__FIRST_STEP ]
+
+	target-type '.first / [seven]'
+	CHECK [ $? == $TARGET_TYPE_CODE__FIRST_STEP ]
+
+TEST-CASE '.first / [requirements:specifier]'
+	target-type '.first / [two:three]'
+	CHECK [ $? == $TARGET_TYPE_CODE__FIRST_STEP ]
+
+	target-type '.first / [seven:eight]'
+	CHECK [ $? == $TARGET_TYPE_CODE__FIRST_STEP ]
+
+
+SECTION '.last'
+
+TEST-CASE '.last / [requirements]'
+	target-type '.last / [two]'
+	CHECK [ $? == $TARGET_TYPE_CODE__LAST_STEP ]
+
+	target-type '.last / [seven]'
+	CHECK [ $? == $TARGET_TYPE_CODE__LAST_STEP ]
+
+TEST-CASE '.last / [requirements:specifier]'
+	target-type '.last / [two:three]'
+	CHECK [ $? == $TARGET_TYPE_CODE__LAST_STEP ]
+
+	target-type '.last / [seven:eight]'
+	CHECK [ $? == $TARGET_TYPE_CODE__LAST_STEP ]
+
+
+SECTION '.reqs'
+
+TEST-CASE '.reqs'
+	target-type '.reqs'
+	CHECK [ $? == $TARGET_TYPE_CODE__CUSTOM_REQS ]
+

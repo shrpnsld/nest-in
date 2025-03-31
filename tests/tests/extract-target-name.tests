@@ -1,0 +1,295 @@
+source $(SAMPLE nest-in)
+
+SECTION 'regular'
+
+TEST-CASE "target"
+	extract-target-name "one"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+TEST-CASE "target / [requirement]"
+	extract-target-name "one / [two]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "six / [two] [seven]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+TEST-CASE "target / [requirement:specifier]"
+	extract-target-name "one / [two:three]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven:eight]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / [two:three] [seven:eight]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target / dependency"
+	extract-target-name "one / four"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / four nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target / 'artifact'"
+	extract-target-name "one / 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target / [requirement] dependency"
+	extract-target-name "one / [two] four"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven] nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / [two] [seven] nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one / [seven] four nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target / [requirement:specifier] dependency"
+	extract-target-name "one / [two:three] four"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven:eight] nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / [two:three] [seven:eight] four"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one / [seven:eight] four nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target / [requirement] 'artifact'"
+	extract-target-name "one / [two] 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven] 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / [two] [seven] 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one / [seven] 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target / [requirement:specifier] 'artifact'"
+	extract-target-name "one / [two:three] 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven:eight] 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / [two:three] [seven:eight] 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven:eight] 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+TEST-CASE "target / dependency 'artifact'"
+	extract-target-name "one / four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / nine 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / four nine 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / nine 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+TEST-CASE "target / [requirement] dependency 'artifact'"
+	extract-target-name "one / [two] four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven] nine 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / [two] [seven] four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one / [seven] four nine 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one / [two] four 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target / [requirement:specifier] dependency 'artifact'"
+	extract-target-name "one / [two:three] four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six / [seven:eight] nine 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one / [two:three] [seven:eight] four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one / [seven:eight] four nine 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one / [two:three] four 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+
+SECTION 'dedicated'
+
+TEST-CASE "target!"
+	extract-target-name "one!"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six!"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+TEST-CASE "target! / [requirement]"
+	extract-target-name "one! / [two]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "six! / [two] [seven]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+TEST-CASE "target! / [requirement:specifier]"
+	extract-target-name "one! / [two:three]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven:eight]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / [two:three] [seven:eight]"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target! / dependency"
+	extract-target-name "one! / four"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / four nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target! / 'artifact'"
+	extract-target-name "one! / 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target! / [requirement] dependency"
+	extract-target-name "one! / [two] four"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven] nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / [two] [seven] nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one! / [seven] four nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target! / [requirement:specifier] dependency"
+	extract-target-name "one! / [two:three] four"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven:eight] nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / [two:three] [seven:eight] four"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one! / [seven:eight] four nine"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target! / [requirement] 'artifact'"
+	extract-target-name "one! / [two] 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven] 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / [two] [seven] 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one! / [seven] 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target! / [requirement:specifier] 'artifact'"
+	extract-target-name "one! / [two:three] 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven:eight] 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / [two:three] [seven:eight] 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven:eight] 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+TEST-CASE "target! / dependency 'artifact'"
+	extract-target-name "one! / four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / nine 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / four nine 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / nine 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+TEST-CASE "target! / [requirement] dependency 'artifact'"
+	extract-target-name "one! / [two] four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven] nine 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / [two] [seven] four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one! / [seven] four nine 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one! / [two] four 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+TEST-CASE "target! / [requirement:specifier] dependency 'artifact'"
+	extract-target-name "one! / [two:three] four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "six! / [seven:eight] nine 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'six' ]
+
+	extract-target-name "one! / [two:three] [seven:eight] four 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one! / [seven:eight] four nine 'five'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+
+	extract-target-name "one! / [two:three] four 'five' 'ten'"
+	CHECK [ "$EXTRACT_TARGET_NAME_RETURN__TARGET" == 'one' ]
+

@@ -1,0 +1,38 @@
+source $(SAMPLE nest-in)
+
+SECTION 'valid'
+
+TEST-CASE 'plain'
+	CHECK is-target-declaration '.reqs'
+
+TEST-CASE '.reqs{SPACIG}'
+	CHECK is-target-declaration $'.reqs '
+	CHECK is-target-declaration $'.reqs\t'
+
+	CHECK is-target-declaration $'.reqs  '
+	CHECK is-target-declaration $'.reqs \t'
+	CHECK is-target-declaration $'.reqs\t '
+	CHECK is-target-declaration $'.reqs\t\t'
+	CHECK is-target-declaration $'.reqs\t  '
+	CHECK is-target-declaration $'.reqs\t \t'
+	CHECK is-target-declaration $'.reqs\t\t '
+
+
+SECTION 'invalid'
+
+TEST-CASE '.reqs / [requirements]'
+	CHECK ! is-target-declaration '.reqs / [one]'
+	CHECK ! is-target-declaration '.reqs / [two] [three]'
+
+TEST-CASE '.reqs / [requirements:specifiers]'
+	CHECK ! is-target-declaration '.reqs / [one:two]'
+	CHECK ! is-target-declaration '.reqs / [three:four] [five:six]'
+
+TEST-CASE ".reqs / 'artifacts'"
+	CHECK ! is-target-declaration ".reqs / 'one'"
+	CHECK ! is-target-declaration ".reqs / 'two'"
+	CHECK ! is-target-declaration ".reqs / 'one/two'"
+	CHECK ! is-target-declaration ".reqs / 'three/four'"
+	CHECK ! is-target-declaration ".reqs / 'one/two/'"
+	CHECK ! is-target-declaration ".reqs / 'three/four/'"
+

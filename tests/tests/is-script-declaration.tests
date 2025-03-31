@@ -1,0 +1,31 @@
+source $(SAMPLE nest-in)
+
+SECTION 'is a script declaration'
+
+TEST-CASE 'blank line'
+	CHECK is-script-declaration ''
+
+TEST-CASE 'indentation'
+	CHECK is-script-declaration ' '
+	CHECK is-script-declaration $'\t'
+	CHECK is-script-declaration $' \t'
+	CHECK is-script-declaration $'\t '
+
+TEST-CASE 'indentation with printables'
+	CHECK is-script-declaration $' one'
+	CHECK is-script-declaration $'\tone'
+	CHECK is-script-declaration $' \tone'
+	CHECK is-script-declaration $'\t one'
+
+	CHECK is-script-declaration $' two'
+	CHECK is-script-declaration $'\ttwo'
+	CHECK is-script-declaration $' \ttwo'
+	CHECK is-script-declaration $'\t two'
+
+
+SECTION 'not a script declaration'
+
+TEST-CASE 'printables with no indentation'
+	CHECK ! is-script-declaration 'one'
+	CHECK ! is-script-declaration 'two'
+

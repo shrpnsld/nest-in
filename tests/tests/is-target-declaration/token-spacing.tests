@@ -1,0 +1,1075 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'target{SPACING}'
+	CHECK is-target-declaration $'one '
+	CHECK is-target-declaration $'one\t'
+	CHECK is-target-declaration $'one  '
+	CHECK is-target-declaration $'one \t'
+	CHECK is-target-declaration $'one\t '
+	CHECK is-target-declaration $'one\t\t'
+	CHECK is-target-declaration $'one\t  '
+	CHECK is-target-declaration $'one\t \t'
+	CHECK is-target-declaration $'one\t\t '
+
+	CHECK is-target-declaration $'two'
+	CHECK is-target-declaration $'two '
+	CHECK is-target-declaration $'two\t'
+	CHECK is-target-declaration $'two  '
+	CHECK is-target-declaration $'two \t'
+	CHECK is-target-declaration $'two\t '
+	CHECK is-target-declaration $'two\t\t'
+	CHECK is-target-declaration $'two\t  '
+	CHECK is-target-declaration $'two\t \t'
+	CHECK is-target-declaration $'two\t\t '
+
+
+SECTION 'target / dependency'
+
+TEST-CASE 'target{SPACING}/ dependency'
+	CHECK is-target-declaration $'one/two'
+	CHECK is-target-declaration $'one /two'
+	CHECK is-target-declaration $'one\t/two'
+	CHECK is-target-declaration $'one  /two'
+	CHECK is-target-declaration $'one \t/two'
+	CHECK is-target-declaration $'one\t /two'
+	CHECK is-target-declaration $'one\t\t/two'
+	CHECK is-target-declaration $'one\t  /two'
+	CHECK is-target-declaration $'one\t \t/two'
+	CHECK is-target-declaration $'one\t\t /two'
+
+	CHECK is-target-declaration $'three/four'
+	CHECK is-target-declaration $'three /four'
+	CHECK is-target-declaration $'three\t/four'
+	CHECK is-target-declaration $'three  /four'
+	CHECK is-target-declaration $'three \t/four'
+	CHECK is-target-declaration $'three\t /four'
+	CHECK is-target-declaration $'three\t\t/four'
+	CHECK is-target-declaration $'three\t  /four'
+	CHECK is-target-declaration $'three\t \t/four'
+	CHECK is-target-declaration $'three\t\t /four'
+
+TEST-CASE 'target /{SPACING}dependency'
+	CHECK is-target-declaration $'one/  two'
+	CHECK is-target-declaration $'one/ \ttwo'
+	CHECK is-target-declaration $'one/\t two'
+	CHECK is-target-declaration $'one/\t\ttwo'
+	CHECK is-target-declaration $'one/\t  two'
+	CHECK is-target-declaration $'one/\t \ttwo'
+	CHECK is-target-declaration $'one/\t\t two'
+
+	CHECK is-target-declaration $'three/  four'
+	CHECK is-target-declaration $'three/ \tfour'
+	CHECK is-target-declaration $'three/\t four'
+	CHECK is-target-declaration $'three/\t\tfour'
+	CHECK is-target-declaration $'three/\t  four'
+	CHECK is-target-declaration $'three/\t \tfour'
+	CHECK is-target-declaration $'three/\t\t four'
+
+TEST-CASE 'target / dependency{SPACING}'
+	CHECK is-target-declaration $'one/two  '
+	CHECK is-target-declaration $'one/two \t'
+	CHECK is-target-declaration $'one/two\t '
+	CHECK is-target-declaration $'one/two\t\t'
+	CHECK is-target-declaration $'one/two\t  '
+	CHECK is-target-declaration $'one/two\t \t'
+	CHECK is-target-declaration $'one/two\t\t '
+
+	CHECK is-target-declaration $'three/four  '
+	CHECK is-target-declaration $'three/four \t'
+	CHECK is-target-declaration $'three/four\t '
+	CHECK is-target-declaration $'three/four\t\t'
+	CHECK is-target-declaration $'three/four\t  '
+	CHECK is-target-declaration $'three/four\t \t'
+	CHECK is-target-declaration $'three/four\t\t '
+
+TEST-CASE 'target / dependency{SPACING}dependency'
+	CHECK is-target-declaration $'one/two  four'
+	CHECK is-target-declaration $'one/two \tfour'
+	CHECK is-target-declaration $'one/two\t four'
+	CHECK is-target-declaration $'one/two\t\tfour'
+	CHECK is-target-declaration $'one/two\t  four'
+	CHECK is-target-declaration $'one/two\t \tfour'
+	CHECK is-target-declaration $'one/two\t\t four'
+
+
+SECTION 'target / [requirement]'
+
+TEST-CASE 'target{SPACING}/ [requirement]'
+	CHECK is-target-declaration $'one/[two]'
+	CHECK is-target-declaration $'one /[two]'
+	CHECK is-target-declaration $'one\t/[two]'
+	CHECK is-target-declaration $'one  /[two]'
+	CHECK is-target-declaration $'one \t/[two]'
+	CHECK is-target-declaration $'one\t /[two]'
+	CHECK is-target-declaration $'one\t\t/[two]'
+	CHECK is-target-declaration $'one\t  /[two]'
+	CHECK is-target-declaration $'one\t \t/[two]'
+	CHECK is-target-declaration $'one\t\t /[two]'
+
+	CHECK is-target-declaration $'three/[four]'
+	CHECK is-target-declaration $'three /[four]'
+	CHECK is-target-declaration $'three\t/[four]'
+	CHECK is-target-declaration $'three  /[four]'
+	CHECK is-target-declaration $'three \t/[four]'
+	CHECK is-target-declaration $'three\t /[four]'
+	CHECK is-target-declaration $'three\t\t/[four]'
+	CHECK is-target-declaration $'three\t  /[four]'
+	CHECK is-target-declaration $'three\t \t/[four]'
+	CHECK is-target-declaration $'three\t\t /[four]'
+
+TEST-CASE 'target{SPACING}/ [requirement:specifier]'
+	CHECK is-target-declaration $'one/[two:three]'
+	CHECK is-target-declaration $'one /[two:three]'
+	CHECK is-target-declaration $'one\t/[two:three]'
+	CHECK is-target-declaration $'one  /[two:three]'
+	CHECK is-target-declaration $'one \t/[two:three]'
+	CHECK is-target-declaration $'one\t /[two:three]'
+	CHECK is-target-declaration $'one\t\t/[two:three]'
+	CHECK is-target-declaration $'one\t  /[two:three]'
+	CHECK is-target-declaration $'one\t \t/[two:three]'
+	CHECK is-target-declaration $'one\t\t /[two:three]'
+
+	CHECK is-target-declaration $'fourt/[five:six]'
+	CHECK is-target-declaration $'fourt /[five:six]'
+	CHECK is-target-declaration $'fourt\t/[five:six]'
+	CHECK is-target-declaration $'fourt  /[five:six]'
+	CHECK is-target-declaration $'fourt \t/[five:six]'
+	CHECK is-target-declaration $'fourt\t /[five:six]'
+	CHECK is-target-declaration $'fourt\t\t/[five:six]'
+	CHECK is-target-declaration $'fourt\t  /[five:six]'
+	CHECK is-target-declaration $'fourt\t \t/[five:six]'
+	CHECK is-target-declaration $'fourt\t\t /[five:six]'
+
+TEST-CASE 'target /{SPACING}[requirement]'
+	CHECK is-target-declaration $'one/  [two]'
+	CHECK is-target-declaration $'one/ \t[two]'
+	CHECK is-target-declaration $'one/\t [two]'
+	CHECK is-target-declaration $'one/\t\t[two]'
+	CHECK is-target-declaration $'one/\t  [two]'
+	CHECK is-target-declaration $'one/\t \t[two]'
+	CHECK is-target-declaration $'one/\t\t [two]'
+
+	CHECK is-target-declaration $'three/  [four]'
+	CHECK is-target-declaration $'three/ \t[four]'
+	CHECK is-target-declaration $'three/\t [four]'
+	CHECK is-target-declaration $'three/\t\t[four]'
+	CHECK is-target-declaration $'three/\t  [four]'
+	CHECK is-target-declaration $'three/\t \t[four]'
+	CHECK is-target-declaration $'three/\t\t [four]'
+
+TEST-CASE 'target /{SPACING}[requirement:specifier]'
+	CHECK is-target-declaration $'one/  [two:three]'
+	CHECK is-target-declaration $'one/ \t[two:three]'
+	CHECK is-target-declaration $'one/\t [two:three]'
+	CHECK is-target-declaration $'one/\t\t[two:three]'
+	CHECK is-target-declaration $'one/\t  [two:three]'
+	CHECK is-target-declaration $'one/\t \t[two:three]'
+	CHECK is-target-declaration $'one/\t\t [two:three]'
+
+	CHECK is-target-declaration $'four/  [five:six]'
+	CHECK is-target-declaration $'four/ \t[five:six]'
+	CHECK is-target-declaration $'four/\t [five:six]'
+	CHECK is-target-declaration $'four/\t\t[five:six]'
+	CHECK is-target-declaration $'four/\t  [five:six]'
+	CHECK is-target-declaration $'four/\t \t[five:six]'
+	CHECK is-target-declaration $'four/\t\t [five:six]'
+
+TEST-CASE 'target / [requirement]{SPACING}'
+	CHECK is-target-declaration $'one/[two]  '
+	CHECK is-target-declaration $'one/[two] \t'
+	CHECK is-target-declaration $'one/[two]\t '
+	CHECK is-target-declaration $'one/[two]\t\t'
+	CHECK is-target-declaration $'one/[two]\t  '
+	CHECK is-target-declaration $'one/[two]\t \t'
+	CHECK is-target-declaration $'one/[two]\t\t '
+
+	CHECK is-target-declaration $'three/[four]  '
+	CHECK is-target-declaration $'three/[four] \t'
+	CHECK is-target-declaration $'three/[four]\t '
+	CHECK is-target-declaration $'three/[four]\t\t'
+	CHECK is-target-declaration $'three/[four]\t  '
+	CHECK is-target-declaration $'three/[four]\t \t'
+	CHECK is-target-declaration $'three/[four]\t\t '
+
+TEST-CASE 'target / [requirement:specifier]{SPACING}'
+	CHECK is-target-declaration $'one/[two:three]  '
+	CHECK is-target-declaration $'one/[two:three] \t'
+	CHECK is-target-declaration $'one/[two:three]\t '
+	CHECK is-target-declaration $'one/[two:three]\t\t'
+	CHECK is-target-declaration $'one/[two:three]\t  '
+	CHECK is-target-declaration $'one/[two:three]\t \t'
+	CHECK is-target-declaration $'one/[two:three]\t\t '
+
+	CHECK is-target-declaration $'four/[five:six]  '
+	CHECK is-target-declaration $'four/[five:six] \t'
+	CHECK is-target-declaration $'four/[five:six]\t '
+	CHECK is-target-declaration $'four/[five:six]\t\t'
+	CHECK is-target-declaration $'four/[five:six]\t  '
+	CHECK is-target-declaration $'four/[five:six]\t \t'
+	CHECK is-target-declaration $'four/[five:six]\t\t '
+
+TEST-CASE 'target / [requirement]{SPACING}[requirement]'
+	CHECK is-target-declaration $'one/[two]  [five]'
+	CHECK is-target-declaration $'one/[two] \t[five]'
+	CHECK is-target-declaration $'one/[two]\t [five]'
+	CHECK is-target-declaration $'one/[two]\t\t[five]'
+	CHECK is-target-declaration $'one/[two]\t  [five]'
+	CHECK is-target-declaration $'one/[two]\t \t[five]'
+	CHECK is-target-declaration $'one/[two]\t\t [five]'
+
+TEST-CASE 'target / [requirement:specifier]{SPACING}[requirement:specifier]'
+	CHECK is-target-declaration $'one/[two:three]  [five:six]'
+	CHECK is-target-declaration $'one/[two:three] \t[five:six]'
+	CHECK is-target-declaration $'one/[two:three]\t [five:six]'
+	CHECK is-target-declaration $'one/[two:three]\t\t[five:six]'
+	CHECK is-target-declaration $'one/[two:three]\t  [five:six]'
+	CHECK is-target-declaration $'one/[two:three]\t \t[five:six]'
+	CHECK is-target-declaration $'one/[two:three]\t\t [five:six]'
+
+
+SECTION "target / 'artifact'"
+
+TEST-CASE "target{SPACING}/ 'artifact'"
+	CHECK is-target-declaration $'one/\'two\''
+	CHECK is-target-declaration $'one /\'two\''
+	CHECK is-target-declaration $'one\t/\'two\''
+	CHECK is-target-declaration $'one  /\'two\''
+	CHECK is-target-declaration $'one \t/\'two\''
+	CHECK is-target-declaration $'one\t /\'two\''
+	CHECK is-target-declaration $'one\t\t/\'two\''
+	CHECK is-target-declaration $'one\t  /\'two\''
+	CHECK is-target-declaration $'one\t \t/\'two\''
+	CHECK is-target-declaration $'one\t\t /\'two\''
+
+	CHECK is-target-declaration $'three/\'four\''
+	CHECK is-target-declaration $'three /\'four\''
+	CHECK is-target-declaration $'three\t/\'four\''
+	CHECK is-target-declaration $'three  /\'four\''
+	CHECK is-target-declaration $'three \t/\'four\''
+	CHECK is-target-declaration $'three\t /\'four\''
+	CHECK is-target-declaration $'three\t\t/\'four\''
+	CHECK is-target-declaration $'three\t  /\'four\''
+	CHECK is-target-declaration $'three\t \t/\'four\''
+	CHECK is-target-declaration $'three\t\t /\'four\''
+
+TEST-CASE "target /{SPACING}'artifact'"
+	CHECK is-target-declaration $'one/  \'two\''
+	CHECK is-target-declaration $'one/ \t\'two\''
+	CHECK is-target-declaration $'one/\t \'two\''
+	CHECK is-target-declaration $'one/\t\t\'two\''
+	CHECK is-target-declaration $'one/\t  \'two\''
+	CHECK is-target-declaration $'one/\t \t\'two\''
+	CHECK is-target-declaration $'one/\t\t \'two\''
+
+	CHECK is-target-declaration $'three/  \'four\''
+	CHECK is-target-declaration $'three/ \t\'four\''
+	CHECK is-target-declaration $'three/\t \'four\''
+	CHECK is-target-declaration $'three/\t\t\'four\''
+	CHECK is-target-declaration $'three/\t  \'four\''
+	CHECK is-target-declaration $'three/\t \t\'four\''
+	CHECK is-target-declaration $'three/\t\t \'four\''
+
+TEST-CASE "target / 'artifact'{SPACING}"
+	CHECK is-target-declaration $'one/\'two\'  '
+	CHECK is-target-declaration $'one/\'two\' \t'
+	CHECK is-target-declaration $'one/\'two\'\t '
+	CHECK is-target-declaration $'one/\'two\'\t\t'
+	CHECK is-target-declaration $'one/\'two\'\t  '
+	CHECK is-target-declaration $'one/\'two\'\t \t'
+	CHECK is-target-declaration $'one/\'two\'\t\t '
+
+	CHECK is-target-declaration $'three/\'four\'  '
+	CHECK is-target-declaration $'three/\'four\' \t'
+	CHECK is-target-declaration $'three/\'four\'\t '
+	CHECK is-target-declaration $'three/\'four\'\t\t'
+	CHECK is-target-declaration $'three/\'four\'\t  '
+	CHECK is-target-declaration $'three/\'four\'\t \t'
+	CHECK is-target-declaration $'three/\'four\'\t\t '
+
+TEST-CASE "target / 'artifact'{SPACING}'artifact'"
+	CHECK is-target-declaration $'one/\'two\'  \'four\''
+	CHECK is-target-declaration $'one/\'two\' \t\'four\''
+	CHECK is-target-declaration $'one/\'two\'\t \'four\''
+	CHECK is-target-declaration $'one/\'two\'\t\t\'four\''
+	CHECK is-target-declaration $'one/\'two\'\t  \'four\''
+	CHECK is-target-declaration $'one/\'two\'\t \t\'four\''
+	CHECK is-target-declaration $'one/\'two\'\t\t \'four\''
+
+
+SECTION "target / [requirement] dependency 'artifact'"
+
+TEST-CASE "target{SPACING}/ [requirement] dependency 'artifact'"
+	CHECK is-target-declaration $'one /[two] three \'four\''
+	CHECK is-target-declaration $'one\t/[two] three \'four\''
+	CHECK is-target-declaration $'one  /[two] three \'four\''
+	CHECK is-target-declaration $'one \t/[two] three \'four\''
+	CHECK is-target-declaration $'one\t /[two] three \'four\''
+	CHECK is-target-declaration $'one\t\t/[two] three \'four\''
+	CHECK is-target-declaration $'one\t  /[two] three \'four\''
+	CHECK is-target-declaration $'one\t \t/[two] three \'four\''
+	CHECK is-target-declaration $'one\t\t /[two] three \'four\''
+
+	CHECK is-target-declaration $'five /[six] seven \'eight\''
+	CHECK is-target-declaration $'five\t/[six] seven \'eight\''
+	CHECK is-target-declaration $'five  /[six] seven \'eight\''
+	CHECK is-target-declaration $'five \t/[six] seven \'eight\''
+	CHECK is-target-declaration $'five\t /[six] seven \'eight\''
+	CHECK is-target-declaration $'five\t\t/[six] seven \'eight\''
+	CHECK is-target-declaration $'five\t  /[six] seven \'eight\''
+	CHECK is-target-declaration $'five\t \t/[six] seven \'eight\''
+	CHECK is-target-declaration $'five\t\t /[six] seven \'eight\''
+
+TEST-CASE "target{SPACING}/ [requirement:specifier] dependency 'artifact'"
+	CHECK is-target-declaration $'one /[two:three] four \'five\''
+	CHECK is-target-declaration $'one\t/[two:three] four \'five\''
+	CHECK is-target-declaration $'one  /[two:three] four \'five\''
+	CHECK is-target-declaration $'one \t/[two:three] four \'five\''
+	CHECK is-target-declaration $'one\t /[two:three] four \'five\''
+	CHECK is-target-declaration $'one\t\t/[two:three] four \'five\''
+	CHECK is-target-declaration $'one\t  /[two:three] four \'five\''
+	CHECK is-target-declaration $'one\t \t/[two:three] four \'five\''
+	CHECK is-target-declaration $'one\t\t /[two:three] four \'five\''
+
+	CHECK is-target-declaration $'five /[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five\t/[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five  /[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five \t/[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five\t /[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five\t\t/[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five\t  /[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five\t \t/[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five\t\t /[six:seven] eight \'nine\''
+
+TEST-CASE "target /{SPACING}[requirement] dependency 'artifact'"
+	CHECK is-target-declaration $'one/ [two] three \'four\''
+	CHECK is-target-declaration $'one/\t[two] three \'four\''
+	CHECK is-target-declaration $'one/  [two] three \'four\''
+	CHECK is-target-declaration $'one/ \t[two] three \'four\''
+	CHECK is-target-declaration $'one/\t [two] three \'four\''
+	CHECK is-target-declaration $'one/\t\t[two] three \'four\''
+	CHECK is-target-declaration $'one/\t  [two] three \'four\''
+	CHECK is-target-declaration $'one/\t \t[two] three \'four\''
+	CHECK is-target-declaration $'one/\t\t [two] three \'four\''
+
+	CHECK is-target-declaration $'five/ [six] seven \'eight\''
+	CHECK is-target-declaration $'five/\t[six] seven \'eight\''
+	CHECK is-target-declaration $'five/  [six] seven \'eight\''
+	CHECK is-target-declaration $'five/ \t[six] seven \'eight\''
+	CHECK is-target-declaration $'five/\t [six] seven \'eight\''
+	CHECK is-target-declaration $'five/\t\t[six] seven \'eight\''
+	CHECK is-target-declaration $'five/\t  [six] seven \'eight\''
+	CHECK is-target-declaration $'five/\t \t[six] seven \'eight\''
+	CHECK is-target-declaration $'five/\t\t [six] seven \'eight\''
+
+TEST-CASE "target /{SPACING}[requirement:specifier] dependency 'artifact'"
+	CHECK is-target-declaration $'one/ [two:three] four \'five\''
+	CHECK is-target-declaration $'one/\t[two:three] four \'five\''
+	CHECK is-target-declaration $'one/  [two:three] four \'five\''
+	CHECK is-target-declaration $'one/ \t[two:three] four \'five\''
+	CHECK is-target-declaration $'one/\t [two:three] four \'five\''
+	CHECK is-target-declaration $'one/\t\t[two:three] four \'five\''
+	CHECK is-target-declaration $'one/\t  [two:three] four \'five\''
+	CHECK is-target-declaration $'one/\t \t[two:three] four \'five\''
+	CHECK is-target-declaration $'one/\t\t [two:three] four \'five\''
+
+	CHECK is-target-declaration $'five/ [six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/\t[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/  [six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/ \t[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/\t [six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/\t\t[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/\t  [six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/\t \t[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/\t\t [six:seven] eight \'nine\''
+
+TEST-CASE "target / [requirement]{SPACING}dependency 'artifact'"
+	CHECK is-target-declaration $'one/[two] three \'four\''
+	CHECK is-target-declaration $'one/[two]\tthree \'four\''
+	CHECK is-target-declaration $'one/[two]  three \'four\''
+	CHECK is-target-declaration $'one/[two] \tthree \'four\''
+	CHECK is-target-declaration $'one/[two]\t three \'four\''
+	CHECK is-target-declaration $'one/[two]\t\tthree \'four\''
+	CHECK is-target-declaration $'one/[two]\t  three \'four\''
+	CHECK is-target-declaration $'one/[two]\t \tthree \'four\''
+	CHECK is-target-declaration $'one/[two]\t\t three \'four\''
+
+	CHECK is-target-declaration $'five/[six] seven \'eight\''
+	CHECK is-target-declaration $'five/[six]\tseven \'eight\''
+	CHECK is-target-declaration $'five/[six]  seven \'eight\''
+	CHECK is-target-declaration $'five/[six] \tseven \'eight\''
+	CHECK is-target-declaration $'five/[six]\t seven \'eight\''
+	CHECK is-target-declaration $'five/[six]\t\tseven \'eight\''
+	CHECK is-target-declaration $'five/[six]\t  seven \'eight\''
+	CHECK is-target-declaration $'five/[six]\t \tseven \'eight\''
+	CHECK is-target-declaration $'five/[six]\t\t seven \'eight\''
+
+TEST-CASE "target / [requirement:specifier]{SPACING}dependency 'artifact'"
+	CHECK is-target-declaration $'one/[two:three] four \'five\''
+	CHECK is-target-declaration $'one/[two:three]\tfour \'five\''
+	CHECK is-target-declaration $'one/[two:three]  four \'five\''
+	CHECK is-target-declaration $'one/[two:three] \tfour \'five\''
+	CHECK is-target-declaration $'one/[two:three]\t four \'five\''
+	CHECK is-target-declaration $'one/[two:three]\t\tfour \'five\''
+	CHECK is-target-declaration $'one/[two:three]\t  four \'five\''
+	CHECK is-target-declaration $'one/[two:three]\t \tfour \'five\''
+	CHECK is-target-declaration $'one/[two:three]\t\t four \'five\''
+
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven]\teight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven]  eight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven] \teight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven]\t eight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven]\t\teight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven]\t  eight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven]\t \teight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven]\t\t eight \'nine\''
+
+TEST-CASE "target / [requirement] dependency{SPACING}'artifact'"
+	CHECK is-target-declaration $'one/[two] three \'four\''
+	CHECK is-target-declaration $'one/[two] three\t\'four\''
+	CHECK is-target-declaration $'one/[two] three  \'four\''
+	CHECK is-target-declaration $'one/[two] three \t\'four\''
+	CHECK is-target-declaration $'one/[two] three\t \'four\''
+	CHECK is-target-declaration $'one/[two] three\t\t\'four\''
+	CHECK is-target-declaration $'one/[two] three\t  \'four\''
+	CHECK is-target-declaration $'one/[two] three\t \t\'four\''
+	CHECK is-target-declaration $'one/[two] three\t\t \'four\''
+
+	CHECK is-target-declaration $'five/[six] seven \'eight\''
+	CHECK is-target-declaration $'five/[six] seven\t\'eight\''
+	CHECK is-target-declaration $'five/[six] seven  \'eight\''
+	CHECK is-target-declaration $'five/[six] seven \t\'eight\''
+	CHECK is-target-declaration $'five/[six] seven\t \'eight\''
+	CHECK is-target-declaration $'five/[six] seven\t\t\'eight\''
+	CHECK is-target-declaration $'five/[six] seven\t  \'eight\''
+	CHECK is-target-declaration $'five/[six] seven\t \t\'eight\''
+	CHECK is-target-declaration $'five/[six] seven\t\t \'eight\''
+
+TEST-CASE "target / [requirement:specifier] dependency{SPACING}'artifact'"
+	CHECK is-target-declaration $'one/[two:three] four \'five\''
+	CHECK is-target-declaration $'one/[two:three] four\t\'five\''
+	CHECK is-target-declaration $'one/[two:three] four  \'five\''
+	CHECK is-target-declaration $'one/[two:three] four \t\'five\''
+	CHECK is-target-declaration $'one/[two:three] four\t \'five\''
+	CHECK is-target-declaration $'one/[two:three] four\t\t\'five\''
+	CHECK is-target-declaration $'one/[two:three] four\t  \'five\''
+	CHECK is-target-declaration $'one/[two:three] four\t \t\'five\''
+	CHECK is-target-declaration $'one/[two:three] four\t\t \'five\''
+
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\''
+	CHECK is-target-declaration $'five/[six:seven] eight\t\'nine\''
+	CHECK is-target-declaration $'five/[six:seven] eight  \'nine\''
+	CHECK is-target-declaration $'five/[six:seven] eight \t\'nine\''
+	CHECK is-target-declaration $'five/[six:seven] eight\t \'nine\''
+	CHECK is-target-declaration $'five/[six:seven] eight\t\t\'nine\''
+	CHECK is-target-declaration $'five/[six:seven] eight\t  \'nine\''
+	CHECK is-target-declaration $'five/[six:seven] eight\t \t\'nine\''
+	CHECK is-target-declaration $'five/[six:seven] eight\t\t \'nine\''
+
+TEST-CASE "target / [requirement] dependency 'artifact'{SPACING}"
+	CHECK is-target-declaration $'one/[two] three \'four\' '
+	CHECK is-target-declaration $'one/[two] three \'four\'\t'
+	CHECK is-target-declaration $'one/[two] three \'four\'  '
+	CHECK is-target-declaration $'one/[two] three \'four\' \t'
+	CHECK is-target-declaration $'one/[two] three \'four\'\t '
+	CHECK is-target-declaration $'one/[two] three \'four\'\t\t'
+	CHECK is-target-declaration $'one/[two] three \'four\'\t  '
+	CHECK is-target-declaration $'one/[two] three \'four\'\t \t'
+	CHECK is-target-declaration $'one/[two] three \'four\'\t\t '
+
+	CHECK is-target-declaration $'five/[six] seven \'eight\' '
+	CHECK is-target-declaration $'five/[six] seven \'eight\'\t'
+	CHECK is-target-declaration $'five/[six] seven \'eight\'  '
+	CHECK is-target-declaration $'five/[six] seven \'eight\' \t'
+	CHECK is-target-declaration $'five/[six] seven \'eight\'\t '
+	CHECK is-target-declaration $'five/[six] seven \'eight\'\t\t'
+	CHECK is-target-declaration $'five/[six] seven \'eight\'\t  '
+	CHECK is-target-declaration $'five/[six] seven \'eight\'\t \t'
+	CHECK is-target-declaration $'five/[six] seven \'eight\'\t\t '
+
+TEST-CASE "target / [requirement:specifier] dependency 'artifact'{SPACING}"
+	CHECK is-target-declaration $'one/[two:three] four \'five\' '
+	CHECK is-target-declaration $'one/[two:three] four \'five\'\t'
+	CHECK is-target-declaration $'one/[two:three] four \'five\'  '
+	CHECK is-target-declaration $'one/[two:three] four \'five\' \t'
+	CHECK is-target-declaration $'one/[two:three] four \'five\'\t '
+	CHECK is-target-declaration $'one/[two:three] four \'five\'\t\t'
+	CHECK is-target-declaration $'one/[two:three] four \'five\'\t  '
+	CHECK is-target-declaration $'one/[two:three] four \'five\'\t \t'
+	CHECK is-target-declaration $'one/[two:three] four \'five\'\t\t '
+
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\' '
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\'\t'
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\'  '
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\' \t'
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\'\t '
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\'\t\t'
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\'\t  '
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\'\t \t'
+	CHECK is-target-declaration $'five/[six:seven] eight \'nine\'\t\t '
+
+
+SECTION 'target / [requirement] dependency'
+
+TEST-CASE 'target{SPACING}/ [requirement] dependency'
+	CHECK is-target-declaration $'one /[two] three'
+	CHECK is-target-declaration $'one\t/[two] three'
+	CHECK is-target-declaration $'one  /[two] three'
+	CHECK is-target-declaration $'one \t/[two] three'
+	CHECK is-target-declaration $'one\t /[two] three'
+	CHECK is-target-declaration $'one\t\t/[two] three'
+	CHECK is-target-declaration $'one\t  /[two] three'
+	CHECK is-target-declaration $'one\t \t/[two] three'
+	CHECK is-target-declaration $'one\t\t /[two] three'
+
+	CHECK is-target-declaration $'five /[six] seven'
+	CHECK is-target-declaration $'five\t/[six] seven'
+	CHECK is-target-declaration $'five  /[six] seven'
+	CHECK is-target-declaration $'five \t/[six] seven'
+	CHECK is-target-declaration $'five\t /[six] seven'
+	CHECK is-target-declaration $'five\t\t/[six] seven'
+	CHECK is-target-declaration $'five\t  /[six] seven'
+	CHECK is-target-declaration $'five\t \t/[six] seven'
+	CHECK is-target-declaration $'five\t\t /[six] seven'
+
+TEST-CASE 'target{SPACING}/ [requirement:specifier] dependency'
+	CHECK is-target-declaration $'one /[two:three] four'
+	CHECK is-target-declaration $'one\t/[two:three] four'
+	CHECK is-target-declaration $'one  /[two:three] four'
+	CHECK is-target-declaration $'one \t/[two:three] four'
+	CHECK is-target-declaration $'one\t /[two:three] four'
+	CHECK is-target-declaration $'one\t\t/[two:three] four'
+	CHECK is-target-declaration $'one\t  /[two:three] four'
+	CHECK is-target-declaration $'one\t \t/[two:three] four'
+	CHECK is-target-declaration $'one\t\t /[two:three] four'
+
+	CHECK is-target-declaration $'five /[six:seven] eight'
+	CHECK is-target-declaration $'five\t/[six:seven] eight'
+	CHECK is-target-declaration $'five  /[six:seven] eight'
+	CHECK is-target-declaration $'five \t/[six:seven] eight'
+	CHECK is-target-declaration $'five\t /[six:seven] eight'
+	CHECK is-target-declaration $'five\t\t/[six:seven] eight'
+	CHECK is-target-declaration $'five\t  /[six:seven] eight'
+	CHECK is-target-declaration $'five\t \t/[six:seven] eight'
+	CHECK is-target-declaration $'five\t\t /[six:seven] eight'
+
+TEST-CASE 'target /{SPACING}[requirement] dependency'
+	CHECK is-target-declaration $'one/ [two] three'
+	CHECK is-target-declaration $'one/\t[two] three'
+	CHECK is-target-declaration $'one/  [two] three'
+	CHECK is-target-declaration $'one/ \t[two] three'
+	CHECK is-target-declaration $'one/\t [two] three'
+	CHECK is-target-declaration $'one/\t\t[two] three'
+	CHECK is-target-declaration $'one/\t  [two] three'
+	CHECK is-target-declaration $'one/\t \t[two] three'
+	CHECK is-target-declaration $'one/\t\t [two] three'
+
+	CHECK is-target-declaration $'five/ [six] seven'
+	CHECK is-target-declaration $'five/\t[six] seven'
+	CHECK is-target-declaration $'five/  [six] seven'
+	CHECK is-target-declaration $'five/ \t[six] seven'
+	CHECK is-target-declaration $'five/\t [six] seven'
+	CHECK is-target-declaration $'five/\t\t[six] seven'
+	CHECK is-target-declaration $'five/\t  [six] seven'
+	CHECK is-target-declaration $'five/\t \t[six] seven'
+	CHECK is-target-declaration $'five/\t\t [six] seven'
+
+TEST-CASE 'target /{SPACING}[requirement:specifier] dependency'
+	CHECK is-target-declaration $'one/ [two:three] four'
+	CHECK is-target-declaration $'one/\t[two:three] four'
+	CHECK is-target-declaration $'one/  [two:three] four'
+	CHECK is-target-declaration $'one/ \t[two:three] four'
+	CHECK is-target-declaration $'one/\t [two:three] four'
+	CHECK is-target-declaration $'one/\t\t[two:three] four'
+	CHECK is-target-declaration $'one/\t  [two:three] four'
+	CHECK is-target-declaration $'one/\t \t[two:three] four'
+	CHECK is-target-declaration $'one/\t\t [two:three] four'
+
+	CHECK is-target-declaration $'five/ [six:seven] eight'
+	CHECK is-target-declaration $'five/\t[six:seven] eight'
+	CHECK is-target-declaration $'five/  [six:seven] eight'
+	CHECK is-target-declaration $'five/ \t[six:seven] eight'
+	CHECK is-target-declaration $'five/\t [six:seven] eight'
+	CHECK is-target-declaration $'five/\t\t[six:seven] eight'
+	CHECK is-target-declaration $'five/\t  [six:seven] eight'
+	CHECK is-target-declaration $'five/\t \t[six:seven] eight'
+	CHECK is-target-declaration $'five/\t\t [six:seven] eight'
+
+TEST-CASE 'target / [requirement]{SPACING}dependency'
+	CHECK is-target-declaration $'one/[two] three'
+	CHECK is-target-declaration $'one/[two]\tthree'
+	CHECK is-target-declaration $'one/[two]  three'
+	CHECK is-target-declaration $'one/[two] \tthree'
+	CHECK is-target-declaration $'one/[two]\t three'
+	CHECK is-target-declaration $'one/[two]\t\tthree'
+	CHECK is-target-declaration $'one/[two]\t  three'
+	CHECK is-target-declaration $'one/[two]\t \tthree'
+	CHECK is-target-declaration $'one/[two]\t\t three'
+
+	CHECK is-target-declaration $'five/[six] seven'
+	CHECK is-target-declaration $'five/[six]\tseven'
+	CHECK is-target-declaration $'five/[six]  seven'
+	CHECK is-target-declaration $'five/[six] \tseven'
+	CHECK is-target-declaration $'five/[six]\t seven'
+	CHECK is-target-declaration $'five/[six]\t\tseven'
+	CHECK is-target-declaration $'five/[six]\t  seven'
+	CHECK is-target-declaration $'five/[six]\t \tseven'
+	CHECK is-target-declaration $'five/[six]\t\t seven'
+
+TEST-CASE 'target / [requirement:specifier]{SPACING}dependency'
+	CHECK is-target-declaration $'one/[two:three] four'
+	CHECK is-target-declaration $'one/[two:three]\tfour'
+	CHECK is-target-declaration $'one/[two:three]  four'
+	CHECK is-target-declaration $'one/[two:three] \tfour'
+	CHECK is-target-declaration $'one/[two:three]\t four'
+	CHECK is-target-declaration $'one/[two:three]\t\tfour'
+	CHECK is-target-declaration $'one/[two:three]\t  four'
+	CHECK is-target-declaration $'one/[two:three]\t \tfour'
+	CHECK is-target-declaration $'one/[two:three]\t\t four'
+
+	CHECK is-target-declaration $'five/[six:seven] eight'
+	CHECK is-target-declaration $'five/[six:seven]\teight'
+	CHECK is-target-declaration $'five/[six:seven]  eight'
+	CHECK is-target-declaration $'five/[six:seven] \teight'
+	CHECK is-target-declaration $'five/[six:seven]\t eight'
+	CHECK is-target-declaration $'five/[six:seven]\t\teight'
+	CHECK is-target-declaration $'five/[six:seven]\t  eight'
+	CHECK is-target-declaration $'five/[six:seven]\t \teight'
+	CHECK is-target-declaration $'five/[six:seven]\t\t eight'
+
+TEST-CASE 'target / [requirement] dependency{SPACING}'
+	CHECK is-target-declaration $'one/[two] three '
+	CHECK is-target-declaration $'one/[two] three\t'
+	CHECK is-target-declaration $'one/[two] three  '
+	CHECK is-target-declaration $'one/[two] three \t'
+	CHECK is-target-declaration $'one/[two] three\t '
+	CHECK is-target-declaration $'one/[two] three\t\t'
+	CHECK is-target-declaration $'one/[two] three\t  '
+	CHECK is-target-declaration $'one/[two] three\t \t'
+	CHECK is-target-declaration $'one/[two] three\t\t '
+
+	CHECK is-target-declaration $'five/[six] seven '
+	CHECK is-target-declaration $'five/[six] seven\t'
+	CHECK is-target-declaration $'five/[six] seven  '
+	CHECK is-target-declaration $'five/[six] seven \t'
+	CHECK is-target-declaration $'five/[six] seven\t '
+	CHECK is-target-declaration $'five/[six] seven\t\t'
+	CHECK is-target-declaration $'five/[six] seven\t  '
+	CHECK is-target-declaration $'five/[six] seven\t \t'
+	CHECK is-target-declaration $'five/[six] seven\t\t '
+
+TEST-CASE 'target / [requirement:specifier] dependency{SPACING}'
+	CHECK is-target-declaration $'one/[two:three] four '
+	CHECK is-target-declaration $'one/[two:three] four\t'
+	CHECK is-target-declaration $'one/[two:three] four  '
+	CHECK is-target-declaration $'one/[two:three] four \t'
+	CHECK is-target-declaration $'one/[two:three] four\t '
+	CHECK is-target-declaration $'one/[two:three] four\t\t'
+	CHECK is-target-declaration $'one/[two:three] four\t  '
+	CHECK is-target-declaration $'one/[two:three] four\t \t'
+	CHECK is-target-declaration $'one/[two:three] four\t\t '
+
+	CHECK is-target-declaration $'five/[six] seven '
+	CHECK is-target-declaration $'five/[six] seven\t'
+	CHECK is-target-declaration $'five/[six] seven  '
+	CHECK is-target-declaration $'five/[six] seven \t'
+	CHECK is-target-declaration $'five/[six] seven\t '
+	CHECK is-target-declaration $'five/[six] seven\t\t'
+	CHECK is-target-declaration $'five/[six] seven\t  '
+	CHECK is-target-declaration $'five/[six] seven\t \t'
+	CHECK is-target-declaration $'five/[six] seven\t\t '
+
+
+SECTION "target / [requirement] 'artifact'"
+
+TEST-CASE "target{SPACING}/ [requirement] 'artifact'"
+	CHECK is-target-declaration $'one /[two] \'four\''
+	CHECK is-target-declaration $'one\t/[two] \'four\''
+	CHECK is-target-declaration $'one  /[two] \'four\''
+	CHECK is-target-declaration $'one \t/[two] \'four\''
+	CHECK is-target-declaration $'one\t /[two] \'four\''
+	CHECK is-target-declaration $'one\t\t/[two] \'four\''
+	CHECK is-target-declaration $'one\t  /[two] \'four\''
+	CHECK is-target-declaration $'one\t \t/[two] \'four\''
+	CHECK is-target-declaration $'one\t\t /[two] \'four\''
+
+	CHECK is-target-declaration $'five /[six] \'eight\''
+	CHECK is-target-declaration $'five\t/[six] \'eight\''
+	CHECK is-target-declaration $'five  /[six] \'eight\''
+	CHECK is-target-declaration $'five \t/[six] \'eight\''
+	CHECK is-target-declaration $'five\t /[six] \'eight\''
+	CHECK is-target-declaration $'five\t\t/[six] \'eight\''
+	CHECK is-target-declaration $'five\t  /[six] \'eight\''
+	CHECK is-target-declaration $'five\t \t/[six] \'eight\''
+	CHECK is-target-declaration $'five\t\t /[six] \'eight\''
+
+TEST-CASE "target{SPACING}/ [requirement:specifier] 'artifact'"
+	CHECK is-target-declaration $'one /[two:three] \'four\''
+	CHECK is-target-declaration $'one\t/[two:three] \'four\''
+	CHECK is-target-declaration $'one  /[two:three] \'four\''
+	CHECK is-target-declaration $'one \t/[two:three] \'four\''
+	CHECK is-target-declaration $'one\t /[two:three] \'four\''
+	CHECK is-target-declaration $'one\t\t/[two:three] \'four\''
+	CHECK is-target-declaration $'one\t  /[two:three] \'four\''
+	CHECK is-target-declaration $'one\t \t/[two:three] \'four\''
+	CHECK is-target-declaration $'one\t\t /[two:three] \'four\''
+
+	CHECK is-target-declaration $'five /[six:seven] \'eight\''
+	CHECK is-target-declaration $'five\t/[six:seven] \'eight\''
+	CHECK is-target-declaration $'five  /[six:seven] \'eight\''
+	CHECK is-target-declaration $'five \t/[six:seven] \'eight\''
+	CHECK is-target-declaration $'five\t /[six:seven] \'eight\''
+	CHECK is-target-declaration $'five\t\t/[six:seven] \'eight\''
+	CHECK is-target-declaration $'five\t  /[six:seven] \'eight\''
+	CHECK is-target-declaration $'five\t \t/[six:seven] \'eight\''
+	CHECK is-target-declaration $'five\t\t /[six:seven] \'eight\''
+
+TEST-CASE "target /{SPACING}[requirement] 'artifact'"
+	CHECK is-target-declaration $'one/ [two] \'four\''
+	CHECK is-target-declaration $'one/\t[two] \'four\''
+	CHECK is-target-declaration $'one/  [two] \'four\''
+	CHECK is-target-declaration $'one/ \t[two] \'four\''
+	CHECK is-target-declaration $'one/\t [two] \'four\''
+	CHECK is-target-declaration $'one/\t\t[two] \'four\''
+	CHECK is-target-declaration $'one/\t  [two] \'four\''
+	CHECK is-target-declaration $'one/\t \t[two] \'four\''
+	CHECK is-target-declaration $'one/\t\t [two] \'four\''
+
+	CHECK is-target-declaration $'five/ [six] \'eight\''
+	CHECK is-target-declaration $'five/\t[six] \'eight\''
+	CHECK is-target-declaration $'five/  [six] \'eight\''
+	CHECK is-target-declaration $'five/ \t[six] \'eight\''
+	CHECK is-target-declaration $'five/\t [six] \'eight\''
+	CHECK is-target-declaration $'five/\t\t[six] \'eight\''
+	CHECK is-target-declaration $'five/\t  [six] \'eight\''
+	CHECK is-target-declaration $'five/\t \t[six] \'eight\''
+	CHECK is-target-declaration $'five/\t\t [six] \'eight\''
+
+TEST-CASE "target /{SPACING}[requirement:specifier] 'artifact'"
+	CHECK is-target-declaration $'one/ [two:three] \'four\''
+	CHECK is-target-declaration $'one/\t[two:three] \'four\''
+	CHECK is-target-declaration $'one/  [two:three] \'four\''
+	CHECK is-target-declaration $'one/ \t[two:three] \'four\''
+	CHECK is-target-declaration $'one/\t [two:three] \'four\''
+	CHECK is-target-declaration $'one/\t\t[two:three] \'four\''
+	CHECK is-target-declaration $'one/\t  [two:three] \'four\''
+	CHECK is-target-declaration $'one/\t \t[two:three] \'four\''
+	CHECK is-target-declaration $'one/\t\t [two:three] \'four\''
+
+	CHECK is-target-declaration $'five/ [six:seven] \'eight\''
+	CHECK is-target-declaration $'five/\t[six:seven] \'eight\''
+	CHECK is-target-declaration $'five/  [six:seven] \'eight\''
+	CHECK is-target-declaration $'five/ \t[six:seven] \'eight\''
+	CHECK is-target-declaration $'five/\t [six:seven] \'eight\''
+	CHECK is-target-declaration $'five/\t\t[six:seven] \'eight\''
+	CHECK is-target-declaration $'five/\t  [six:seven] \'eight\''
+	CHECK is-target-declaration $'five/\t \t[six:seven] \'eight\''
+	CHECK is-target-declaration $'five/\t\t [six:seven] \'eight\''
+
+TEST-CASE "target / [requirement]{SPACING}'artifact'"
+	CHECK is-target-declaration $'one/[two] \'four\''
+	CHECK is-target-declaration $'one/[two]\t\'four\''
+	CHECK is-target-declaration $'one/[two]  \'four\''
+	CHECK is-target-declaration $'one/[two] \t\'four\''
+	CHECK is-target-declaration $'one/[two]\t \'four\''
+	CHECK is-target-declaration $'one/[two]\t\t\'four\''
+	CHECK is-target-declaration $'one/[two]\t  \'four\''
+	CHECK is-target-declaration $'one/[two]\t \t\'four\''
+	CHECK is-target-declaration $'one/[two]\t\t \'four\''
+
+	CHECK is-target-declaration $'five/[six] \'eight\''
+	CHECK is-target-declaration $'five/[six]\t\'eight\''
+	CHECK is-target-declaration $'five/[six]  \'eight\''
+	CHECK is-target-declaration $'five/[six] \t\'eight\''
+	CHECK is-target-declaration $'five/[six]\t \'eight\''
+	CHECK is-target-declaration $'five/[six]\t\t\'eight\''
+	CHECK is-target-declaration $'five/[six]\t  \'eight\''
+	CHECK is-target-declaration $'five/[six]\t \t\'eight\''
+	CHECK is-target-declaration $'five/[six]\t\t \'eight\''
+
+TEST-CASE "target / [requirement:specifier]{SPACING}'artifact'"
+	CHECK is-target-declaration $'one/[two:three] \'four\''
+	CHECK is-target-declaration $'one/[two:three]\t\'four\''
+	CHECK is-target-declaration $'one/[two:three]  \'four\''
+	CHECK is-target-declaration $'one/[two:three] \t\'four\''
+	CHECK is-target-declaration $'one/[two:three]\t \'four\''
+	CHECK is-target-declaration $'one/[two:three]\t\t\'four\''
+	CHECK is-target-declaration $'one/[two:three]\t  \'four\''
+	CHECK is-target-declaration $'one/[two:three]\t \t\'four\''
+	CHECK is-target-declaration $'one/[two:three]\t\t \'four\''
+
+	CHECK is-target-declaration $'five/[six:seven] \'eight\''
+	CHECK is-target-declaration $'five/[six:seven]\t\'eight\''
+	CHECK is-target-declaration $'five/[six:seven]  \'eight\''
+	CHECK is-target-declaration $'five/[six:seven] \t\'eight\''
+	CHECK is-target-declaration $'five/[six:seven]\t \'eight\''
+	CHECK is-target-declaration $'five/[six:seven]\t\t\'eight\''
+	CHECK is-target-declaration $'five/[six:seven]\t  \'eight\''
+	CHECK is-target-declaration $'five/[six:seven]\t \t\'eight\''
+	CHECK is-target-declaration $'five/[six:seven]\t\t \'eight\''
+
+TEST-CASE "target / [requirement] 'artifact'{SPACING}"
+	CHECK is-target-declaration $'one/[two] \'four\' '
+	CHECK is-target-declaration $'one/[two] \'four\'\t'
+	CHECK is-target-declaration $'one/[two] \'four\'  '
+	CHECK is-target-declaration $'one/[two] \'four\' \t'
+	CHECK is-target-declaration $'one/[two] \'four\'\t '
+	CHECK is-target-declaration $'one/[two] \'four\'\t\t'
+	CHECK is-target-declaration $'one/[two] \'four\'\t  '
+	CHECK is-target-declaration $'one/[two] \'four\'\t \t'
+	CHECK is-target-declaration $'one/[two] \'four\'\t\t '
+
+	CHECK is-target-declaration $'five/[six] \'eight\' '
+	CHECK is-target-declaration $'five/[six] \'eight\'\t'
+	CHECK is-target-declaration $'five/[six] \'eight\'  '
+	CHECK is-target-declaration $'five/[six] \'eight\' \t'
+	CHECK is-target-declaration $'five/[six] \'eight\'\t '
+	CHECK is-target-declaration $'five/[six] \'eight\'\t\t'
+	CHECK is-target-declaration $'five/[six] \'eight\'\t  '
+	CHECK is-target-declaration $'five/[six] \'eight\'\t \t'
+	CHECK is-target-declaration $'five/[six] \'eight\'\t\t '
+
+TEST-CASE "target / [requirement:specifier] 'artifact'{SPACING}"
+	CHECK is-target-declaration $'one/[two:three] \'four\' '
+	CHECK is-target-declaration $'one/[two:three] \'four\'\t'
+	CHECK is-target-declaration $'one/[two:three] \'four\'  '
+	CHECK is-target-declaration $'one/[two:three] \'four\' \t'
+	CHECK is-target-declaration $'one/[two:three] \'four\'\t '
+	CHECK is-target-declaration $'one/[two:three] \'four\'\t\t'
+	CHECK is-target-declaration $'one/[two:three] \'four\'\t  '
+	CHECK is-target-declaration $'one/[two:three] \'four\'\t \t'
+	CHECK is-target-declaration $'one/[two:three] \'four\'\t\t '
+
+	CHECK is-target-declaration $'five/[six:seven] \'eight\' '
+	CHECK is-target-declaration $'five/[six:seven] \'eight\'\t'
+	CHECK is-target-declaration $'five/[six:seven] \'eight\'  '
+	CHECK is-target-declaration $'five/[six:seven] \'eight\' \t'
+	CHECK is-target-declaration $'five/[six:seven] \'eight\'\t '
+	CHECK is-target-declaration $'five/[six:seven] \'eight\'\t\t'
+	CHECK is-target-declaration $'five/[six:seven] \'eight\'\t  '
+	CHECK is-target-declaration $'five/[six:seven] \'eight\'\t \t'
+	CHECK is-target-declaration $'five/[six:seven] \'eight\'\t\t '
+
+
+SECTION "target / dependency 'artifact'"
+
+TEST-CASE "target{SPACING}/ dependency 'artifact'"
+	CHECK is-target-declaration $'one /three \'four\''
+	CHECK is-target-declaration $'one\t/three \'four\''
+	CHECK is-target-declaration $'one  /three \'four\''
+	CHECK is-target-declaration $'one \t/three \'four\''
+	CHECK is-target-declaration $'one\t /three \'four\''
+	CHECK is-target-declaration $'one\t\t/three \'four\''
+	CHECK is-target-declaration $'one\t  /three \'four\''
+	CHECK is-target-declaration $'one\t \t/three \'four\''
+	CHECK is-target-declaration $'one\t\t /three \'four\''
+
+	CHECK is-target-declaration $'five /seven \'eight\''
+	CHECK is-target-declaration $'five\t/seven \'eight\''
+	CHECK is-target-declaration $'five  /seven \'eight\''
+	CHECK is-target-declaration $'five \t/seven \'eight\''
+	CHECK is-target-declaration $'five\t /seven \'eight\''
+	CHECK is-target-declaration $'five\t\t/seven \'eight\''
+	CHECK is-target-declaration $'five\t  /seven \'eight\''
+	CHECK is-target-declaration $'five\t \t/seven \'eight\''
+	CHECK is-target-declaration $'five\t\t /seven \'eight\''
+
+TEST-CASE "target /{SPACING}dependency 'artifact'"
+	CHECK is-target-declaration $'one/ three \'four\''
+	CHECK is-target-declaration $'one/\tthree \'four\''
+	CHECK is-target-declaration $'one/  three \'four\''
+	CHECK is-target-declaration $'one/ \tthree \'four\''
+	CHECK is-target-declaration $'one/\t three \'four\''
+	CHECK is-target-declaration $'one/\t\tthree \'four\''
+	CHECK is-target-declaration $'one/\t  three \'four\''
+	CHECK is-target-declaration $'one/\t \tthree \'four\''
+	CHECK is-target-declaration $'one/\t\t three \'four\''
+
+	CHECK is-target-declaration $'five/ seven \'eight\''
+	CHECK is-target-declaration $'five/\tseven \'eight\''
+	CHECK is-target-declaration $'five/  seven \'eight\''
+	CHECK is-target-declaration $'five/ \tseven \'eight\''
+	CHECK is-target-declaration $'five/\t seven \'eight\''
+	CHECK is-target-declaration $'five/\t\tseven \'eight\''
+	CHECK is-target-declaration $'five/\t  seven \'eight\''
+	CHECK is-target-declaration $'five/\t \tseven \'eight\''
+	CHECK is-target-declaration $'five/\t\t seven \'eight\''
+
+TEST-CASE "target / dependency{SPACING}'artifact'"
+	CHECK is-target-declaration $'one/three \'four\''
+	CHECK is-target-declaration $'one/three\t\'four\''
+	CHECK is-target-declaration $'one/three  \'four\''
+	CHECK is-target-declaration $'one/three \t\'four\''
+	CHECK is-target-declaration $'one/three\t \'four\''
+	CHECK is-target-declaration $'one/three\t\t\'four\''
+	CHECK is-target-declaration $'one/three\t  \'four\''
+	CHECK is-target-declaration $'one/three\t \t\'four\''
+	CHECK is-target-declaration $'one/three\t\t \'four\''
+
+	CHECK is-target-declaration $'five/seven \'eight\''
+	CHECK is-target-declaration $'five/seven\t\'eight\''
+	CHECK is-target-declaration $'five/seven  \'eight\''
+	CHECK is-target-declaration $'five/seven \t\'eight\''
+	CHECK is-target-declaration $'five/seven\t \'eight\''
+	CHECK is-target-declaration $'five/seven\t\t\'eight\''
+	CHECK is-target-declaration $'five/seven\t  \'eight\''
+	CHECK is-target-declaration $'five/seven\t \t\'eight\''
+	CHECK is-target-declaration $'five/seven\t\t \'eight\''
+
+TEST-CASE "target / dependency 'artifact'{SPACING}"
+	CHECK is-target-declaration $'one/three \'four\' '
+	CHECK is-target-declaration $'one/three \'four\'\t'
+	CHECK is-target-declaration $'one/three \'four\'  '
+	CHECK is-target-declaration $'one/three \'four\' \t'
+	CHECK is-target-declaration $'one/three \'four\'\t '
+	CHECK is-target-declaration $'one/three \'four\'\t\t'
+	CHECK is-target-declaration $'one/three \'four\'\t  '
+	CHECK is-target-declaration $'one/three \'four\'\t \t'
+	CHECK is-target-declaration $'one/three \'four\'\t\t '
+
+	CHECK is-target-declaration $'five/seven \'eight\' '
+	CHECK is-target-declaration $'five/seven \'eight\'\t'
+	CHECK is-target-declaration $'five/seven \'eight\'  '
+	CHECK is-target-declaration $'five/seven \'eight\' \t'
+	CHECK is-target-declaration $'five/seven \'eight\'\t '
+	CHECK is-target-declaration $'five/seven \'eight\'\t\t'
+	CHECK is-target-declaration $'five/seven \'eight\'\t  '
+	CHECK is-target-declaration $'five/seven \'eight\'\t \t'
+	CHECK is-target-declaration $'five/seven \'eight\'\t\t '
+
+
+SECTION 'invalid'
+
+TEST-CASE 'target / [requirement][requirement]'
+	CHECK ! is-target-declaration 'one / [two][six]'
+	CHECK ! is-target-declaration 'five / [six][two]'
+
+TEST-CASE 'target / [requirement]dependency'
+	CHECK ! is-target-declaration 'one / [two]three'
+	CHECK ! is-target-declaration 'one / three[two]'
+
+	CHECK ! is-target-declaration 'five / [six]seven'
+	CHECK ! is-target-declaration 'five / seven[six]'
+
+TEST-CASE 'target / [requirement:specifier]dependency'
+	CHECK ! is-target-declaration 'one / [two:three]four'
+	CHECK ! is-target-declaration 'one / four[two:three]'
+
+	CHECK ! is-target-declaration 'five / [six:seven]eight'
+	CHECK ! is-target-declaration 'five / eight[six:seven]'
+
+TEST-CASE "target / dependency'artifact'"
+	CHECK ! is-target-declaration "one / three'four'"
+	CHECK ! is-target-declaration "one / 'four'three"
+
+	CHECK ! is-target-declaration "five / seven'eight'"
+	CHECK ! is-target-declaration "five / 'eight'seven"
+
+TEST-CASE "target / [requirement]dependency'artifact'"
+	CHECK ! is-target-declaration "one / [two]three'four'"
+	CHECK ! is-target-declaration "five / [six]seven'eight'"
+
+TEST-CASE "target / [requirement:specifier]dependency'artifact'"
+	CHECK ! is-target-declaration "one / [two:three]four'five'"
+	CHECK ! is-target-declaration "five / [six:seven]eight'nine'"
+
+TEST-CASE "target / [requirement]dependency 'artifact'"
+	CHECK ! is-target-declaration "one / [two]three 'four'"
+	CHECK ! is-target-declaration "five / [six]seven 'eight'"
+
+TEST-CASE "target / [requirement:specifier]dependency 'artifact'"
+	CHECK ! is-target-declaration "one / [two:three]four 'five'"
+	CHECK ! is-target-declaration "five / [six:seven]eight 'nine'"
+
+TEST-CASE "target / [requirement] dependency'artifact'"
+	CHECK ! is-target-declaration "one / [two] three'four'"
+	CHECK ! is-target-declaration "five / [six] seven'eight'"
+
+TEST-CASE "target / [requirement:specifier] dependency'artifact'"
+	CHECK ! is-target-declaration "one / [two:three] four'five'"
+	CHECK ! is-target-declaration "five / [six:seven] eight'nine'"
+
+TEST-CASE "target / [requirement]'artifact' dependency "
+	CHECK ! is-target-declaration "one / [two]'four' three "
+	CHECK ! is-target-declaration "five / [six]'eight' seven "
+
+TEST-CASE "target / [requirement:specifier]'artifact' dependency "
+	CHECK ! is-target-declaration "one / [two:three]'five' four "
+	CHECK ! is-target-declaration "five / [six:seven]'nine' eight "
+
+TEST-CASE "target / [requirement] 'artifact'dependency "
+	CHECK ! is-target-declaration "one / [two] 'four'three "
+	CHECK ! is-target-declaration "five / [six] 'eight'seven "
+
+TEST-CASE "target / [requirement:specifier] 'artifact'dependency "
+	CHECK ! is-target-declaration "one / [two:three] 'five'four "
+	CHECK ! is-target-declaration "five / [six:seven] 'nine'eight "
+
+TEST-CASE "target / dependency[requirement] 'artifact'"
+	CHECK ! is-target-declaration "one / three[two] 'four'"
+	CHECK ! is-target-declaration "five / seven[six] 'eight'"
+
+TEST-CASE "target / dependency[requirement:specifier] 'artifact'"
+	CHECK ! is-target-declaration "one / four[two:three] 'five'"
+	CHECK ! is-target-declaration "five / eight[six:seven] 'nine'"
+
+TEST-CASE "target / dependency [requirement]'artifact'"
+	CHECK ! is-target-declaration "one / three [two]'four'"
+	CHECK ! is-target-declaration "five / seven [six]'eight'"
+
+TEST-CASE "target / dependency [requirement:specifier]'artifact'"
+	CHECK ! is-target-declaration "one / four [two:three]'five'"
+	CHECK ! is-target-declaration "five / eight [six:seven]'nine'"
+
+TEST-CASE "target / dependency'artifact' [requirement]"
+	CHECK ! is-target-declaration "one / three'four' [two]"
+	CHECK ! is-target-declaration "five / seven'eight' [six]"
+
+TEST-CASE "target / dependency'artifact' [requirement:specifier]"
+	CHECK ! is-target-declaration "one / two'five' [three:four]"
+	CHECK ! is-target-declaration "five / eight'nine' [six:seven]"
+
+TEST-CASE "target / dependency 'artifact'[requirement]"
+	CHECK ! is-target-declaration "one / three 'four'[two]"
+	CHECK ! is-target-declaration "five / seven 'eight'[six]"
+
+TEST-CASE "target / dependency 'artifact'[requirement:specifier]"
+	CHECK ! is-target-declaration "one / four 'five'[two:three]"
+	CHECK ! is-target-declaration "five / eight 'nine'[six:seven]"
+
+TEST-CASE "target / 'artifact''artifact'"
+	CHECK ! is-target-declaration "one / 'four''eight'"
+	CHECK ! is-target-declaration "five / 'eight''four'"
+
+TEST-CASE "target / 'artifact'dependency [requirement]"
+	CHECK ! is-target-declaration "one / 'four'three [two]"
+	CHECK ! is-target-declaration "five / 'eight'seven [six]"
+
+TEST-CASE "target / 'artifact'dependency [requirement:specifier]"
+	CHECK ! is-target-declaration "one / 'five'four [two:three]"
+	CHECK ! is-target-declaration "five / 'nine'eight [six:seven]"
+
+TEST-CASE "target / 'artifact' dependency[requirement]"
+	CHECK ! is-target-declaration "one / 'four' three[two]"
+	CHECK ! is-target-declaration "five / 'eight' seven[six]"
+
+TEST-CASE "target / 'artifact' dependency[requirement:specifier]"
+	CHECK ! is-target-declaration "one / 'five' four[two:three]"
+	CHECK ! is-target-declaration "five / 'nine' eight[six:seven]"
+
+TEST-CASE "target / 'artifact'[requirement] dependency"
+	CHECK ! is-target-declaration "one / 'four'[two] three"
+	CHECK ! is-target-declaration "five / 'eight'[six] seven"
+
+TEST-CASE "target / 'artifact'[requirement:spcifier] dependency"
+	CHECK ! is-target-declaration "one / 'five'[two:three] four"
+	CHECK ! is-target-declaration "five / 'nine'[six:seven] eight"
+
+TEST-CASE "target / 'artifact' [requirement]dependency"
+	CHECK ! is-target-declaration "one / 'four' [two]three"
+	CHECK ! is-target-declaration "five / 'eight' [six]seven"
+
+TEST-CASE "target / 'artifact' [requirement:specifier]dependency"
+	CHECK ! is-target-declaration "one / 'five' [two:three]four"
+	CHECK ! is-target-declaration "five / 'nine' [six:seven]eight"
+

@@ -533,24 +533,31 @@ is-target-declaration()
 {
 	local line=$1
 
-	# Example
-	# target-name
+	# Example:
+	# "target-name"
 	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*$ ]] ||
 	#            target-name...............             !
 
-	# Example
-	# target-name! / [requirement:specifier] [requirement] another-target and-another
-	#                                                                               (                           |                                       |                   |                       )(                                       |                                                   |                               |                                  )
-	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/[[:blank:]]*([[:alpha:]]+[[:alnum:]_\-]*|\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|\[[[:alpha:]_\-]+\]|\'[[:alnum:]_\.~/\-]+\')([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\]|[[:blank:]+\'[[:alnum:]_\.~/\-]+\')*[[:blank:]]*$ ]] ||
-	#            target-name................            !              /             dependency-name............  [requirement.... :specifier........ ]  [requirement..... ]  'artifact............'              dependency-name............              [requirement.... :specifier......... ]              [requirement.... ]             'artifact............'
+	# Example:
+	# "target-name! / [requirement:specifier] [requirement] another-target and-another '~/.config/artifact' 'another-artifact'"
+	#                                                                               (                           |                             (                  )   |                               |                      )(                                       |                                         (                  )   |                                           |                                  )
+	[[ $line =~ ^[[:alpha:]]+[[:alnum:]_\-]*[[:blank:]]*!?[[:blank:]]*\/[[:blank:]]*([[:alpha:]]+[[:alnum:]_\-]*|\[[[:alpha:]]+[[:alnum:]_\-]*(\:[[:alnum:]_.\-]+)*\]|\[[[:alpha:]]+[[:alnum:]_\-]*\]|\'[[:alnum:]_.~/\-]+\')([[:blank:]]+[[:alpha:]]+[[:alnum:]_\-]*|[[:blank:]]+\[[[:alpha:]]+[[:alnum:]_\-]*(\:[[:alnum:]_.\-]+)*\]|[[:blank:]]+\[[[:alpha:]]+[[:alnum:]_\-]*\]|[[:blank:]]+\'[[:alnum:]_.~/\-]+\')*[[:blank:]]*$ ]] ||
+	#            target-name................            !              /             dependency-name............  [requirement................  :specifier.......   ]  [requirement................ ]  'artifact.......... '              dependency-name............              [requirement................  :specifier.......   ]              [requirement................ ]              'artifact.......... '
 
+	# Example:
+	# ".first"
+	# ".last"
 	[[ $line =~ ^(\.first|\.last)[[:blank:]]*$ ]] ||
 
-	# Example + / [requirement:specifier] [requirement]
-	#            (       |      )                          (                                       |                   )(                                                   |                               )
-	[[ $line =~ ^(\.first|\.last)[[:blank:]]*\/[[:blank:]]*(\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|\[[[:alpha:]_\-]+\])([[:blank:]]+\[[[:alpha:]_\-]+\:[[:alnum:]:_\.\-]+\]|[[:blank:]]+\[[[:alpha:]_\-]+\])*$ ]] ||
-	#              .first  .last              /              [requirement.... :specifier......... ]  [requirement.... ]               [requirement.... :specifier......... ]              [requirement.... ]
+	# Example:
+	# ".first / [requirement:specifier] [requirement]"
+	# ".last / [requirement:specifier] [requirement]"
+	#            (       |      )                          (                             (                  )   |                               )(                                         (                  )   |                                           )
+	[[ $line =~ ^(\.first|\.last)[[:blank:]]*\/[[:blank:]]*(\[[[:alpha:]]+[[:alnum:]_\-]*(\:[[:alnum:]_.\-]+)*\]|\[[[:alpha:]]+[[:alnum:]_\-]*\])([[:blank:]]+\[[[:alpha:]]+[[:alnum:]_\-]*(\:[[:alnum:]_.\-]+)*\]|[[:blank:]]+\[[[:alpha:]]+[[:alnum:]_\-]*\])*[[:blank:]]*$ ]] ||
+	#              .first  .last              /              [requirement................  :specifier.......   ]  [requirement................ ]               [requirement................  :specifier.......   ]              [requirement................ ]
 
+	# Example:
+	# ".reqs"
 	[[ $line =~ ^\.reqs[[:blank:]]*$ ]]
 }
 
@@ -558,17 +565,17 @@ is-script-declaration()
 {
 	local line=$1
 
-	[ -z "$line" ] || [[ $line =~ ^[[:blank:]]+.*$ ]]
+	[[ -z "$line" ]] || [[ $line =~ ^[[:blank:]]+.*$ ]]
 }
 
-EXTRACT_TARGET_RETURN__TARGET=''
-extract-target()
+EXTRACT_TARGET_NAME_RETURN__TARGET=''
+extract-target-name()
 {
 	local line=$1
 
 	line="${line%%/*}"
 	line="${line%%!*}"
-	EXTRACT_TARGET_RETURN__TARGET="${line%% *}"
+	EXTRACT_TARGET_NAME_RETURN__TARGET="${line%% *}"
 }
 
 readonly TARGET_TYPE_CODE__REGULAR=1
@@ -578,6 +585,8 @@ readonly TARGET_TYPE_CODE__CUSTOM_REQS=4
 readonly TARGET_TYPE_CODE__DEDICATED=5
 target-type()
 {
+	local line=$1
+
 	if [[ $line =~ ^\.first[[:blank:]]* ]]
 	then
 		return $TARGET_TYPE_CODE__FIRST_STEP
@@ -587,13 +596,12 @@ target-type()
 	elif [[ $line =~ ^\.reqs[[:blank:]]* ]]
 	then
 		return $TARGET_TYPE_CODE__CUSTOM_REQS
-	elif [[ $line == *!* ]]
+	elif [[ $line == *'!'* ]]
 	then
 		return $TARGET_TYPE_CODE__DEDICATED
 	else
 		return $TARGET_TYPE_CODE__REGULAR
 	fi
-
 }
 
 EXTRACT_REQS_DEPS_ARTS_RETURN__REQUIREMENTS=()
@@ -1138,8 +1146,8 @@ gather-twigs()
 			CUSTOM_REQS="$TARGET_CUSTOM_REQS_NAME"
 			target="$TARGET_CUSTOM_REQS_NAME"
 		else
-			extract-target "$line"
-			target="$EXTRACT_TARGET_RETURN__TARGET"
+			extract-target-name "$line"
+			target="$EXTRACT_TARGET_NAME_RETURN__TARGET"
 		fi
 
 		target-add-declaration "$target" "$line" $line_number
