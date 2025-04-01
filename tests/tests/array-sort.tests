@@ -1,0 +1,63 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'array-sort() with empty array'
+	result=($(array-sort))
+	CHECK [ ${#result[@]} == 0 ]
+
+TEST-CASE 'array-sort() 1 item'
+	result=($(array-sort '1'))
+	CHECK [ ${#result[@]} == 1 ]
+	CHECK [ ${result[0]} == '1' ]
+
+	result=($(array-sort 'a'))
+	CHECK [ ${#result[@]} == 1 ]
+	CHECK [ ${result[0]} == 'a' ]
+
+TEST-CASE 'array-sort() 2 sorted items'
+	result=($(array-sort '1' '2'))
+	CHECK [ ${#result[@]} == 2 ]
+	CHECK [ "${result[0]}" == '1' ]
+	CHECK [ "${result[1]}" == '2' ]
+
+	result=($(array-sort 'a' 'b'))
+	CHECK [ ${#result[@]} == 2 ]
+	CHECK [ "${result[0]}" == 'a' ]
+	CHECK [ "${result[1]}" == 'b' ]
+
+TEST-CASE 'array-sort() 3 sorted items'
+	result=($(array-sort '1' '2' '3'))
+	CHECK [ ${#result[@]} == 3 ]
+	CHECK [ "${result[0]}" == '1' ]
+	CHECK [ "${result[1]}" == '2' ]
+	CHECK [ "${result[2]}" == '3' ]
+
+	result=($(array-sort 'a' 'b' 'c'))
+	CHECK [ ${#result[@]} == 3 ]
+	CHECK [ "${result[0]}" == 'a' ]
+	CHECK [ "${result[1]}" == 'b' ]
+	CHECK [ "${result[2]}" == 'c' ]
+
+TEST-CASE 'array-sort() 2 unsorted items'
+	result=($(array-sort '2' '1'))
+	CHECK [ ${#result[@]} == 2 ]
+	CHECK [ "${result[0]}" == '1' ]
+	CHECK [ "${result[1]}" == '2' ]
+
+	result=($(array-sort 'b' 'a'))
+	CHECK [ ${#result[@]} == 2 ]
+	CHECK [ "${result[0]}" == 'a' ]
+	CHECK [ "${result[1]}" == 'b' ]
+
+TEST-CASE 'array-sort() 3 unsorted items'
+	result=($(array-sort '3' '1' '2'))
+	CHECK [ ${#result[@]} == 3 ]
+	CHECK [ "${result[0]}" == '1' ]
+	CHECK [ "${result[1]}" == '2' ]
+	CHECK [ "${result[2]}" == '3' ]
+
+	result=($(array-sort 'b' 'c' 'a'))
+	CHECK [ ${#result[@]} == 3 ]
+	CHECK [ "${result[0]}" == 'a' ]
+	CHECK [ "${result[1]}" == 'b' ]
+	CHECK [ "${result[2]}" == 'c' ]
+
