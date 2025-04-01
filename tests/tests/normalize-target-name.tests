@@ -1,0 +1,17 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE "'.first' target"
+	result=$(normalize-target-name $TARGET_FIRST_STEP_NAME)
+	CHECK [ "$result" == '.first' ]
+
+TEST-CASE "'.last' target"
+	result=$(normalize-target-name $TARGET_LAST_STEP_NAME)
+	CHECK [ "$result" == '.last' ]
+
+TEST-CASE 'regular target'
+	result=$(normalize-target-name 'one')
+	CHECK [ "$result" == 'one' ]
+
+	result=$(normalize-target-name 'two')
+	CHECK [ "$result" == 'two' ]
+

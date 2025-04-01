@@ -1,0 +1,49 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'character-only name'
+	result=$(variable-name-from-target 'one')
+	CHECK [ "$result" == 'one' ]
+
+	result=$(variable-name-from-target 'two')
+	CHECK [ "$result" == 'two' ]
+
+TEST-CASE 'dashed-name'
+	result=$(variable-name-from-target 'one-')
+	CHECK [ "$result" == 'one_' ]
+
+	result=$(variable-name-from-target 'two-')
+	CHECK [ "$result" == 'two_' ]
+
+	result=$(variable-name-from-target 'one-two')
+	CHECK [ "$result" == 'one_two' ]
+
+	result=$(variable-name-from-target 'three-four')
+	CHECK [ "$result" == 'three_four' ]
+
+TEST-CASE 'underscored_name'
+	result=$(variable-name-from-target 'one_')
+	CHECK [ "$result" == 'one_' ]
+
+	result=$(variable-name-from-target 'two_')
+	CHECK [ "$result" == 'two_' ]
+
+	result=$(variable-name-from-target 'one_two')
+	CHECK [ "$result" == 'one_two' ]
+
+	result=$(variable-name-from-target 'three_four')
+	CHECK [ "$result" == 'three_four' ]
+
+TEST-CASE 'nam3 w1th numb3r5'
+	result=$(variable-name-from-target 'on3')
+	CHECK [ "$result" == 'on3' ]
+
+	result=$(variable-name-from-target 'tw0')
+	CHECK [ "$result" == 'tw0' ]
+
+TEST-CASE 'dashed-underscored_w1th_numb3r5'
+	result=$(variable-name-from-target 'one-two_thr33')
+	CHECK [ "$result" == 'one_two_thr33' ]
+
+	result=$(variable-name-from-target 'f1ve_51x-s3v3n')
+	CHECK [ "$result" == 'f1ve_51x_s3v3n' ]
+
