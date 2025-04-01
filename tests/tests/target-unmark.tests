@@ -1,0 +1,77 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'non-existent mark'
+	unset DB__MARKED_one
+	target-unmark 'one'
+	CHECK ! $DB__MARKED_one
+
+	unset DB__MARKED_two
+	target-unmark 'two'
+	CHECK ! $DB__MARKED_two
+
+	unset DB__MARKED_three_four
+	target-unmark 'three_four'
+	CHECK ! $DB__MARKED_three_four
+
+	unset DB__MARKED_five_six
+	target-unmark 'five_six'
+	CHECK ! $DB__MARKED_five_six
+
+TEST-CASE 'marked target'
+	DB__MARKED_one=true
+	target-unmark 'one'
+	CHECK ! $DB__MARKED_one
+
+	DB__MARKED_two=true
+	target-unmark 'two'
+	CHECK ! $DB__MARKED_two
+
+	DB__MARKED_three_four=true
+	target-unmark 'three_four'
+	CHECK ! $DB__MARKED_three_four
+
+	DB__MARKED_five_six=true
+	target-unmark 'five_six'
+	CHECK ! $DB__MARKED_five_six
+
+TEST-CASE 'unmarked target'
+	DB__MARKED_one=false
+	target-unmark 'one'
+	CHECK ! $DB__MARKED_one
+
+	DB__MARKED_two=false
+	target-unmark 'two'
+	CHECK ! $DB__MARKED_two
+
+	DB__MARKED_three_four=false
+	target-unmark 'three_four'
+	CHECK ! $DB__MARKED_three_four
+
+	DB__MARKED_five_six=false
+	target-unmark 'five_six'
+	CHECK ! $DB__MARKED_five_six
+
+TEST-CASE 'check if no other targets gets unmarked'
+	DB__MARKED_one=true
+	DB__MARKED_two=true
+	DB__MARKED_three=true
+	target-unmark 'one'
+	CHECK ! $DB__MARKED_one
+	CHECK $DB__MARKED_two
+	CHECK $DB__MARKED_three
+
+	DB__MARKED_one=true
+	DB__MARKED_two=true
+	DB__MARKED_three=true
+	target-unmark 'two'
+	CHECK $DB__MARKED_one
+	CHECK ! $DB__MARKED_two
+	CHECK $DB__MARKED_three
+
+	DB__MARKED_one=true
+	DB__MARKED_two=true
+	DB__MARKED_three=true
+	target-unmark 'three'
+	CHECK $DB__MARKED_one
+	CHECK $DB__MARKED_two
+	CHECK ! $DB__MARKED_three

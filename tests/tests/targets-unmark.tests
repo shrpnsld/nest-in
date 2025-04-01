@@ -1,0 +1,96 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'non-existent marks'
+	unset DB__MARKED_one
+	targets-unmark 'one'
+	CHECK ! $DB__MARKED_one
+
+	unset DB__MARKED_two
+	targets-unmark 'two'
+	CHECK ! $DB__MARKED_two
+
+	unset DB__MARKED_one
+	unset DB__MARKED_two
+	targets-unmark 'one' 'two'
+	CHECK ! $DB__MARKED_one
+	CHECK ! $DB__MARKED_two
+
+	unset DB__MARKED_one
+	unset DB__MARKED_two
+	unset DB__MARKED_three
+	targets-unmark 'one' 'two' 'three'
+	CHECK ! $DB__MARKED_one
+	CHECK ! $DB__MARKED_two
+	CHECK ! $DB__MARKED_three
+
+TEST-CASE 'marked targets'
+	DB__MARKED_one=true
+	targets-unmark 'one'
+	CHECK ! $DB__MARKED_one
+
+	DB__MARKED_two=true
+	targets-unmark 'two'
+	CHECK ! $DB__MARKED_two
+
+	DB__MARKED_one=true
+	DB__MARKED_two=true
+	targets-unmark 'one' 'two'
+	CHECK ! $DB__MARKED_one
+	CHECK ! $DB__MARKED_two
+
+	DB__MARKED_one=true
+	DB__MARKED_two=true
+	DB__MARKED_three=true
+	targets-unmark 'one' 'two' 'three'
+	CHECK ! $DB__MARKED_one
+	CHECK ! $DB__MARKED_two
+	CHECK ! $DB__MARKED_three
+
+TEST-CASE 'unmarked targets'
+	DB__MARKED_one=false
+	targets-unmark 'one'
+	CHECK ! $DB__MARKED_one
+
+	DB__MARKED_two=false
+	targets-unmark 'two'
+	CHECK ! $DB__MARKED_two
+
+	DB__MARKED_one=false
+	DB__MARKED_two=false
+	targets-unmark 'one' 'two'
+	CHECK ! $DB__MARKED_one
+	CHECK ! $DB__MARKED_two
+
+	DB__MARKED_one=false
+	DB__MARKED_two=false
+	DB__MARKED_three=false
+	targets-unmark 'one' 'two' 'three'
+	CHECK ! $DB__MARKED_one
+	CHECK ! $DB__MARKED_two
+	CHECK ! $DB__MARKED_three
+
+TEST-CASE 'check if no other targets get unmakred'
+	DB__MARKED_one=true
+	DB__MARKED_two=true
+	DB__MARKED_three=true
+	targets-unmark 'one'
+	CHECK !	$DB__MARKED_one
+	CHECK $DB__MARKED_two
+	CHECK $DB__MARKED_three
+
+	DB__MARKED_one=true
+	DB__MARKED_two=true
+	DB__MARKED_three=true
+	targets-unmark 'two'
+	CHECK $DB__MARKED_one
+	CHECK !	$DB__MARKED_two
+	CHECK $DB__MARKED_three
+
+	DB__MARKED_one=true
+	DB__MARKED_two=true
+	DB__MARKED_three=true
+	targets-unmark 'three'
+	CHECK $DB__MARKED_one
+	CHECK $DB__MARKED_two
+	CHECK !	$DB__MARKED_three
+

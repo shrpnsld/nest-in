@@ -1,0 +1,45 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'non-existent mark'
+	unset DB__MARKED_one
+	CHECK ! is-target-marked 'one'
+
+	unset DB__MARKED_two
+	CHECK ! is-target-marked 'two'
+
+	unset DB__MARKED_three
+	CHECK ! is-target-marked 'three_four'
+
+	unset DB__MARKED_five_six
+	CHECK ! is-target-marked 'five_six'
+
+TEST-CASE 'unmarke target'
+	unset DB__MARKED_one
+	DB__MARKED_one=false
+	CHECK ! is-target-marked 'one'
+
+	unset DB__MARKED_two
+	DB__MARKED_two=false
+	CHECK ! is-target-marked 'two'
+
+	unset DB__MARKED_three
+	DB__MARKED_three_four=false
+	CHECK ! is-target-marked 'three_four'
+
+	unset DB__MARKED_five_six
+	DB__MARKED_five_six=false
+	CHECK ! is-target-marked 'five_six'
+
+TEST-CASE 'marked target'
+	DB__MARKED_one=true
+	CHECK is-target-marked 'one'
+
+	DB__MARKED_two=true
+	CHECK is-target-marked 'two'
+
+	DB__MARKED_three_four=true
+	CHECK is-target-marked 'three_four'
+
+	DB__MARKED_five_six=true
+	CHECK is-target-marked 'five_six'
+
