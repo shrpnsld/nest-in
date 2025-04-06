@@ -1,0 +1,424 @@
+source $(SAMPLE nest-in)
+
+SECTION 'default variant'
+
+TEST-CASE 'one variant, one requirement'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('two')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'two' ]
+
+TEST-CASE 'one variant, two requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('three four')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'four' ]
+
+TEST-CASE 'one variant, three requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two three')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('four five six')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'six' ]
+
+TEST-CASE 'two variants, one requirement'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one' 'two')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('three' 'four')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+
+TEST-CASE 'two variants, two requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two' 'three four')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('five six' 'seven eight')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'six' ]
+
+TEST-CASE 'two variants, three requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two three' 'four five six')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('seven eight nine' 'one two three')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'eight' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'nine' ]
+
+TEST-CASE 'three variants, one requirement'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one' 'two' 'three')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('four' 'five' 'six')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+
+TEST-CASE 'three variants, two requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two' 'three four' 'five six')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('three four' 'five six' 'seven eight')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'four' ]
+
+TEST-CASE 'three variants, three requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two three' 'four five six' 'seven eight nine')
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('four five six' 'seven eight nine' 'one two three')
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'six' ]
+
+
+SECTION 'specific variant'
+
+TEST-CASE 'one variant, one requirement'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('two')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'two' ]
+
+TEST-CASE 'one variant, two requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('three four')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'four' ]
+
+TEST-CASE 'one variant, three requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two three')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('four five six')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'six' ]
+
+TEST-CASE 'two variants, one requirement'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one' 'two')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+
+		DB__REQUIREMENTS_target_1=('one' 'two')
+		target-requirements 'target_1' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('three' 'four')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+
+		DB__REQUIREMENTS_target_2=('three' 'four')
+		target-requirements 'target_2' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+
+TEST-CASE 'two variants, two requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two' 'three four')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+
+		DB__REQUIREMENTS_target_1=('one two' 'three four')
+		target-requirements 'target_1' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'four' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('five six' 'seven eight')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'six' ]
+
+		DB__REQUIREMENTS_target_2=('five six' 'seven eight')
+		target-requirements 'target_2' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'eight' ]
+
+TEST-CASE 'two variants, three requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two three' 'four five six')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'three' ]
+
+		DB__REQUIREMENTS_target_1=('one two three' 'four five six')
+		target-requirements 'target_1' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'six' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('seven eight nine' 'one two three')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'eight' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'nine' ]
+
+		DB__REQUIREMENTS_target_2=('seven eight nine' 'one two three')
+		target-requirements 'target_2' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'three' ]
+
+TEST-CASE 'three variants, one requirement'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one' 'two' 'three')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+
+		DB__REQUIREMENTS_target_1=('one' 'two' 'three')
+		target-requirements 'target_1' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'two' ]
+
+		DB__REQUIREMENTS_target_1=('one' 'two' 'three')
+		target-requirements 'target_1' 2
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('four' 'five' 'six')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+
+		DB__REQUIREMENTS_target_2=('four' 'five' 'six')
+		target-requirements 'target_2' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'five' ]
+
+		DB__REQUIREMENTS_target_2=('four' 'five' 'six')
+		target-requirements 'target_2' 2
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'six' ]
+
+TEST-CASE 'three variants, two requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two' 'three four' 'five six')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+
+		DB__REQUIREMENTS_target_1=('one two' 'three four' 'five six')
+		target-requirements 'target_1' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'four' ]
+
+		DB__REQUIREMENTS_target_1=('one two' 'three four' 'five six')
+		target-requirements 'target_1' 2
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'six' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('three four' 'five six' 'seven eight')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'four' ]
+
+		DB__REQUIREMENTS_target_2=('three four' 'five six' 'seven eight')
+		target-requirements 'target_2' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'six' ]
+
+		DB__REQUIREMENTS_target_2=('three four' 'five six' 'seven eight')
+		target-requirements 'target_2' 2
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '2' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'eight' ]
+
+TEST-CASE 'three variants, three requirements'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one two three' 'four five six' 'seven eight nine')
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'three' ]
+
+		DB__REQUIREMENTS_target_1=('one two three' 'four five six' 'seven eight nine')
+		target-requirements 'target_1' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'six' ]
+
+		DB__REQUIREMENTS_target_1=('one two three' 'four five six' 'seven eight nine')
+		target-requirements 'target_1' 2
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'eight' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'nine' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_2=('four five six' 'seven eight nine' 'one two three')
+		target-requirements 'target_2' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'six' ]
+
+		DB__REQUIREMENTS_target_2=('four five six' 'seven eight nine' 'one two three')
+		target-requirements 'target_2' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'eight' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'nine' ]
+
+		DB__REQUIREMENTS_target_2=('four five six' 'seven eight nine' 'one two three')
+		target-requirements 'target_2' 2
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '3' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[2]}" == 'three' ]
+
+
+SECTION 'not successfull'
+
+TEST-CASE 'non-existent target'
+	VARIANT 'set 1'
+		unset DB__REQUIREMENTS_target_1
+		target-requirements 'target_1'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '0' ]
+
+	VARIANT 'set 2'
+		unset DB__REQUIREMENTS_target_2
+		target-requirements 'target_2'
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '0' ]
+
+TEST-CASE 'non-existent variant'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_target_1=('one')
+
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+
+		target-requirements 'target_2' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '0' ]
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_target_1=('one' 'two')
+
+		target-requirements 'target_1' 0
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'one' ]
+
+		target-requirements 'target_1' 1
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '1' ]
+		CHECK [ "${TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[0]}" == 'two' ]
+
+		target-requirements 'target_1' 2
+		CHECK [ "${#TARGET_REQUIREMENTS_RETURN__REQUIREMENTS[@]}" == '0' ]
+

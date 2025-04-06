@@ -1,0 +1,144 @@
+source $(SAMPLE nest-in)
+
+SECTION 'default variant'
+
+TEST-CASE 'one variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '1' ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+		target-declaration 'two'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'two' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+TEST-CASE 'two variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one' 'two')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '1' ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two' 'three')
+		DB__DECLARATION_LINE_NUMBERS_two=(2 3)
+		target-declaration 'two'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'two' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+TEST-CASE 'three variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1' 'one-v2' 'one-v3')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2 3)
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '1' ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two-v1' 'two-v2' 'two-v3')
+		DB__DECLARATION_LINE_NUMBERS_two=(2 3 4)
+		target-declaration 'two'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'two-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_three=('three-v1' 'three-v2' 'three-v3')
+		DB__DECLARATION_LINE_NUMBERS_three=(3 4 5)
+		target-declaration 'three'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'three-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 3 ]
+
+
+SECTION 'specific variant'
+
+TEST-CASE 'one variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+		target-declaration 'one' 0
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '1' ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+		target-declaration 'two' 0
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'two' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '2' ]
+
+TEST-CASE 'two variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1' 'one-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+		target-declaration 'one' 0
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '1' ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two-v1' 'two-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+		target-declaration 'one' 1
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '2' ]
+
+TEST-CASE 'three variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1' 'one-v2' 'one-v3')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2 3)
+		target-declaration 'one' 0
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '1' ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two-v1' 'two-v2' 'two-v3')
+		DB__DECLARATION_LINE_NUMBERS_two=(4 5 6)
+		target-declaration 'two' 1
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'two-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '5' ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_three=('three-v1' 'three-v2' 'three-v3')
+		DB__DECLARATION_LINE_NUMBERS_three=(7 8 9)
+		target-declaration 'three' 2
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'three-v3' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == '9' ]
+
+
+SECTION 'not successfull'
+
+TEST-CASE 'non-existent target'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+		target-declaration 'one'
+		CHECK [ -z "$TARGET_DECLARATION_RETURN__DECLARATION" ]
+		CHECK [ -z "$TARGET_DECLARATION_RETURN__LINE_NUMBER" ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+		target-declaration 'two'
+		CHECK [ -z "$TARGET_DECLARATION_RETURN__DECLARATION" ]
+		CHECK [ -z "$TARGET_DECLARATION_RETURN__LINE_NUMBER" ]
+
+TEST-CASE 'non-existent variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+		target-declaration 'one' 1
+		CHECK [ -z "$TARGET_DECLARATION_RETURN__DECLARATION" ]
+		CHECK [ -z "$TARGET_DECLARATION_RETURN__LINE_NUMBER" ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+		target-declaration 'two' 2
+		CHECK [ -z "$TARGET_DECLARATION_RETURN__DECLARATION" ]
+		CHECK [ -z "$TARGET_DECLARATION_RETURN__LINE_NUMBER" ]
+

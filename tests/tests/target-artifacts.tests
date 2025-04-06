@@ -1,0 +1,424 @@
+source $(SAMPLE nest-in)
+
+SECTION 'default variant'
+
+TEST-CASE 'one variant, one artifact'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('two')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'two' ]
+
+TEST-CASE 'one variant, two artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('three four')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'four' ]
+
+TEST-CASE 'one variant, three artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two three')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('four five six')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'six' ]
+
+TEST-CASE 'two variants, one artifact'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one' 'two')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('three' 'four')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+
+TEST-CASE 'two variants, two artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two' 'three four')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('five six' 'seven eight')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'six' ]
+
+TEST-CASE 'two variants, three artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two three' 'four five six')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('seven eight nine' 'one two three')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'eight' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'nine' ]
+
+TEST-CASE 'three variants, one artifact'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one' 'two' 'three')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('four' 'five' 'six')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+
+TEST-CASE 'three variants, two artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two' 'three four' 'five six')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('three four' 'five six' 'seven eight')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'four' ]
+
+TEST-CASE 'three variants, three artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two three' 'four five six' 'seven eight nine')
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('four five six' 'seven eight nine' 'one two three')
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'six' ]
+
+
+SECTION 'specific variant'
+
+TEST-CASE 'one variant, one artifact'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('two')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'two' ]
+
+TEST-CASE 'one variant, two artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('three four')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'four' ]
+
+TEST-CASE 'one variant, three artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two three')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('four five six')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'six' ]
+
+TEST-CASE 'two variants, one artifact'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one' 'two')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+
+		DB__ARTIFACTS_target_1=('one' 'two')
+		target-artifacts 'target_1' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'two' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('three' 'four')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+
+		DB__ARTIFACTS_target_2=('three' 'four')
+		target-artifacts 'target_2' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+
+TEST-CASE 'two variants, two artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two' 'three four')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+
+		DB__ARTIFACTS_target_1=('one two' 'three four')
+		target-artifacts 'target_1' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'four' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('five six' 'seven eight')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'six' ]
+
+		DB__ARTIFACTS_target_2=('five six' 'seven eight')
+		target-artifacts 'target_2' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'eight' ]
+
+TEST-CASE 'two variants, three artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two three' 'four five six')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'three' ]
+
+		DB__ARTIFACTS_target_1=('one two three' 'four five six')
+		target-artifacts 'target_1' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'six' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('seven eight nine' 'one two three')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'eight' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'nine' ]
+
+		DB__ARTIFACTS_target_2=('seven eight nine' 'one two three')
+		target-artifacts 'target_2' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'three' ]
+
+TEST-CASE 'three variants, one artifact'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one' 'two' 'three')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+
+		DB__ARTIFACTS_target_1=('one' 'two' 'three')
+		target-artifacts 'target_1' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'two' ]
+
+		DB__ARTIFACTS_target_1=('one' 'two' 'three')
+		target-artifacts 'target_1' 2
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('four' 'five' 'six')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+
+		DB__ARTIFACTS_target_2=('four' 'five' 'six')
+		target-artifacts 'target_2' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'five' ]
+
+		DB__ARTIFACTS_target_2=('four' 'five' 'six')
+		target-artifacts 'target_2' 2
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'six' ]
+
+TEST-CASE 'three variants, two artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two' 'three four' 'five six')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+
+		DB__ARTIFACTS_target_1=('one two' 'three four' 'five six')
+		target-artifacts 'target_1' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'four' ]
+
+		DB__ARTIFACTS_target_1=('one two' 'three four' 'five six')
+		target-artifacts 'target_1' 2
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'six' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('three four' 'five six' 'seven eight')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'three' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'four' ]
+
+		DB__ARTIFACTS_target_2=('three four' 'five six' 'seven eight')
+		target-artifacts 'target_2' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'six' ]
+
+		DB__ARTIFACTS_target_2=('three four' 'five six' 'seven eight')
+		target-artifacts 'target_2' 2
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'eight' ]
+
+TEST-CASE 'three variants, three artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one two three' 'four five six' 'seven eight nine')
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'three' ]
+
+		DB__ARTIFACTS_target_1=('one two three' 'four five six' 'seven eight nine')
+		target-artifacts 'target_1' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'six' ]
+
+		DB__ARTIFACTS_target_1=('one two three' 'four five six' 'seven eight nine')
+		target-artifacts 'target_1' 2
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'eight' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'nine' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_2=('four five six' 'seven eight nine' 'one two three')
+		target-artifacts 'target_2' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'four' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'five' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'six' ]
+
+		DB__ARTIFACTS_target_2=('four five six' 'seven eight nine' 'one two three')
+		target-artifacts 'target_2' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'seven' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'eight' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'nine' ]
+
+		DB__ARTIFACTS_target_2=('four five six' 'seven eight nine' 'one two three')
+		target-artifacts 'target_2' 2
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '3' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'two' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[2]}" == 'three' ]
+
+
+SECTION 'not successfull'
+
+TEST-CASE 'non-existent target'
+	VARIANT 'set 1'
+		unset DB__ARTIFACTS_target_1
+		target-artifacts 'target_1'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '0' ]
+
+	VARIANT 'set 2'
+		unset DB__ARTIFACTS_target_2
+		target-artifacts 'target_2'
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '0' ]
+
+TEST-CASE 'non-existent variant'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_target_1=('one')
+
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+
+		target-artifacts 'target_2' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '0' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_target_1=('one' 'two')
+
+		target-artifacts 'target_1' 0
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one' ]
+
+		target-artifacts 'target_1' 1
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'two' ]
+
+		target-artifacts 'target_1' 2
+		CHECK [ "${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}" == '0' ]
+
