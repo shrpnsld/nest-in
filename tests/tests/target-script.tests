@@ -1,0 +1,108 @@
+source $(SAMPLE nest-in)
+
+SECTION 'default variant'
+
+TEST-CASE 'one variant'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one')
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_two=('two')
+		target-script 'two'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'two' ]
+
+TEST-CASE 'two variants'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one' 'two')
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_two=('two' 'three')
+		target-script 'two'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'two' ]
+
+TEST-CASE 'three variants'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one-v1' 'one-v2' 'one-v3')
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-v1' ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_two=('two-v1' 'two-v2' 'two-v3')
+		target-script 'two'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'two-v1' ]
+
+	VARIANT 'set 3'
+		DB__SCRIPT_three=('three-v1' 'three-v2' 'three-v3')
+		target-script 'three'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'three-v1' ]
+
+
+SECTION 'specific variant'
+
+TEST-CASE 'one variant'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one')
+		target-script 'one' 0
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one' ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_two=('two')
+		target-script 'two' 0
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'two' ]
+
+TEST-CASE 'two variants'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one-v1' 'one-v2')
+		target-script 'one' 0
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-v1' ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_two=('two-v1' 'two-v2')
+		target-script 'one' 1
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-v2' ]
+
+TEST-CASE 'three variants'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one-v1' 'one-v2' 'one-v3')
+		target-script 'one' 0
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-v1' ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_two=('two-v1' 'two-v2' 'two-v3')
+		target-script 'two' 1
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'two-v2' ]
+
+	VARIANT 'set 3'
+		DB__SCRIPT_three=('three-v1' 'three-v2' 'three-v3')
+		target-script 'three' 2
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'three-v3' ]
+
+
+SECTION 'not successfull'
+
+TEST-CASE 'non-existent target'
+	VARIANT 'set 1'
+		unset DB__SCRIPT_one
+		target-script 'one'
+		CHECK [ -z "$TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+	VARIANT 'set 2'
+		unset DB__SCRIPT_two
+		target-script 'two'
+		CHECK [ -z "$TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+TEST-CASE 'non-existent variant'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one')
+		target-script 'one' 1
+		CHECK [ -z "$TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_two=('two')
+		target-script 'two' 2
+		CHECK [ -z "$TARGET_SCRIPT_RETURN__SCRIPT" ]
+
