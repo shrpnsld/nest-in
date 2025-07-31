@@ -1,0 +1,116 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'one variant, one dependency'
+	VARIANT 'set 1'
+		unset DB__DEPENDENCIES_target_1
+
+		target-add-dependencies 'target_1' 'one'
+		CHECK [ "${#DB__DEPENDENCIES_target_1[@]}" == '1' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		unset DB__DEPENDENCIES_target_2
+
+		target-add-dependencies 'target_2' 'two'
+		CHECK [ "${#DB__DEPENDENCIES_target_2[@]}" == '1' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[0]}" == 'two' ]
+
+TEST-CASE 'one variant, two dependencies'
+	VARIANT 'set 1'
+		unset DB__DEPENDENCIES_target_1
+
+		target-add-dependencies 'target_1' 'one' 'two'
+		CHECK [ "${#DB__DEPENDENCIES_target_1[@]}" == '1' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[0]}" == 'one two' ]
+
+	VARIANT 'set 2'
+		unset DB__DEPENDENCIES_target_2
+
+		target-add-dependencies 'target_2' 'three' 'four'
+		CHECK [ "${#DB__DEPENDENCIES_target_2[@]}" == '1' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[0]}" == 'three four' ]
+
+TEST-CASE 'two variants, one dependency'
+	VARIANT 'set 1'
+		unset DB__DEPENDENCIES_target_1
+
+		target-add-dependencies 'target_1' 'one'
+		target-add-dependencies 'target_1' 'two'
+		CHECK [ "${#DB__DEPENDENCIES_target_1[@]}" == '2' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[0]}" == 'one' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		unset DB__DEPENDENCIES_target_2
+
+		target-add-dependencies 'target_2' 'three'
+		target-add-dependencies 'target_2' 'four'
+		CHECK [ "${#DB__DEPENDENCIES_target_2[@]}" == '2' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[0]}" == 'three' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[1]}" == 'four' ]
+
+TEST-CASE 'two variants, two dependencies'
+	VARIANT 'set 1'
+		unset DB__DEPENDENCIES_target_1
+
+		target-add-dependencies 'target_1' 'one' 'two'
+		target-add-dependencies 'target_1' 'three' 'four'
+		CHECK [ "${#DB__DEPENDENCIES_target_1[@]}" == '2' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[0]}" == 'one two' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[1]}" == 'three four' ]
+
+	VARIANT 'set 2'
+		unset DB__DEPENDENCIES_target_2
+
+		target-add-dependencies 'target_2' 'five' 'six'
+		target-add-dependencies 'target_2' 'seven' 'eight'
+		CHECK [ "${#DB__DEPENDENCIES_target_2[@]}" == '2' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[0]}" == 'five six' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[1]}" == 'seven eight' ]
+
+TEST-CASE 'three variants, one dependency'
+	VARIANT 'set 1'
+		unset DB__DEPENDENCIES_target_1
+
+		target-add-dependencies 'target_1' 'one'
+		target-add-dependencies 'target_1' 'two'
+		target-add-dependencies 'target_1' 'three'
+		CHECK [ "${#DB__DEPENDENCIES_target_1[@]}" == '3' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[0]}" == 'one' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[1]}" == 'two' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		unset DB__DEPENDENCIES_target_2
+
+		target-add-dependencies 'target_2' 'four'
+		target-add-dependencies 'target_2' 'five'
+		target-add-dependencies 'target_2' 'six'
+		CHECK [ "${#DB__DEPENDENCIES_target_2[@]}" == '3' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[0]}" == 'four' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[1]}" == 'five' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[2]}" == 'six' ]
+
+TEST-CASE 'three variants, two dependencies'
+	VARIANT 'set 1'
+		unset DB__DEPENDENCIES_target_1
+
+		target-add-dependencies 'target_1' 'one' 'two' 'three'
+		target-add-dependencies 'target_1' 'four' 'five' 'six'
+		target-add-dependencies 'target_1' 'seven' 'eight' 'nine'
+		CHECK [ "${#DB__DEPENDENCIES_target_1[@]}" == '3' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[0]}" == 'one two three' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[1]}" == 'four five six' ]
+		CHECK [ "${DB__DEPENDENCIES_target_1[2]}" == 'seven eight nine' ]
+
+	VARIANT 'set 2'
+		unset DB__DEPENDENCIES_target_2
+
+		target-add-dependencies 'target_2' 'four' 'five' 'six'
+		target-add-dependencies 'target_2' 'seven' 'eight' 'nine'
+		target-add-dependencies 'target_2' 'one' 'two' 'three'
+		CHECK [ "${#DB__DEPENDENCIES_target_2[@]}" == '3' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[0]}" == 'four five six' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[1]}" == 'seven eight nine' ]
+		CHECK [ "${DB__DEPENDENCIES_target_2[2]}" == 'one two three' ]
+

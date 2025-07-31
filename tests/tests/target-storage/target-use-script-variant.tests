@@ -1,0 +1,123 @@
+source $(SAMPLE nest-in)
+
+SECTION 'good variants'
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one-v1')
+		target-use-script-variant 'one' 0
+		CHECK [ "${DB__SCRIPT_one[0]}" == 'one-v1' ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_two=('two-v1')
+		target-use-script-variant 'two' 0
+		CHECK [ "${DB__SCRIPT_two[0]}" == 'two-v1' ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one-v1' 'one-v2')
+		target-use-script-variant 'one' 0
+		CHECK [ "${DB__SCRIPT_one[0]}" == 'one-v1' ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_one=('one-v1' 'one-v2')
+		target-use-script-variant 'one' 1
+		CHECK [ "${DB__SCRIPT_one[0]}" == 'one-v2' ]
+
+	VARIANT 'set 3'
+		DB__SCRIPT_two=('two-v1' 'two-v2')
+		target-use-script-variant 'two' 0
+		CHECK [ "${DB__SCRIPT_two[0]}" == 'two-v1' ]
+
+	VARIANT 'set 4'
+		DB__SCRIPT_two=('two-v1' 'two-v2')
+		target-use-script-variant 'two' 1
+		CHECK [ "${DB__SCRIPT_two[0]}" == 'two-v2' ]
+
+
+SECTION 'bad variants'
+
+TEST-CASE 'non-existent target'
+	VARIANT 'set 1'
+		unset DB__SCRIPT_one
+		target-use-script-variant 'one' 0
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 2'
+		unset DB__SCRIPT_one
+		target-use-script-variant 'one' 1
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 3'
+		unset DB__SCRIPT_two
+		target-use-script-variant 'two' 0
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+	VARIANT 'set 4'
+		unset DB__SCRIPT_two
+		target-use-script-variant 'two' 1
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+TEST-CASE 'empty-script'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=()
+		target-use-script-variant 'one' 0
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_one=()
+		target-use-script-variant 'one' 1
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__SCRIPT_two=()
+		target-use-script-variant 'two' 0
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__SCRIPT_two=()
+		target-use-script-variant 'two' 1
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one-v1')
+		target-use-script-variant 'one' 1
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_one=('one-v1')
+		target-use-script-variant 'one' 2
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__SCRIPT_two=('two-v1')
+		target-use-script-variant 'two' 1
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__SCRIPT_two=('two-v1')
+		target-use-script-variant 'two' 2
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		DB__SCRIPT_one=('one-v1' 'one-v2')
+		target-use-script-variant 'one' 2
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__SCRIPT_one=('one-v1' 'one-v2')
+		target-use-script-variant 'one' 3
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__SCRIPT_two=('two-v1' 'two-v2')
+		target-use-script-variant 'two' 2
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__SCRIPT_two=('two-v1' 'two-v2')
+		target-use-script-variant 'two' 3
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+

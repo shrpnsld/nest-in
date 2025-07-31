@@ -1,0 +1,20 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'resolved'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_RESOLVED_one=true
+		CHECK target-requirements-resolved 'one'
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_RESOLVED_two=true
+		CHECK target-requirements-resolved 'two'
+
+TEST-CASE 'unresolved'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_RESOLVED_one=false
+		CHECK ! target-requirements-resolved 'one'
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_RESOLVED_two=false
+		CHECK ! target-requirements-resolved 'two'
+

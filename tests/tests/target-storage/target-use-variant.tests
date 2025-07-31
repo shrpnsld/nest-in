@@ -1,0 +1,343 @@
+source $(SAMPLE nest-in)
+
+SECTION 'good variants'
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-declaration-v1')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+		DB__DEPENDENCIES_one=('one-dependencies-v1')
+		DB__ARTIFACTS_one=('one-artifacts-v1')
+		DB__SCRIPT_one=('one-script-v1')
+
+		target-use-variant 'one' 0
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one-declaration-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == 1 ]
+		CHECK [ "${DB__DEPENDENCIES_one[0]}" == 'one-dependencies-v1' ]
+		CHECK [ "${DB__ARTIFACTS_one[0]}" == 'one-artifacts-v1' ]
+		CHECK [ "${DB__SCRIPT_one[0]}" == 'one-script-v1' ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two-declaration-v1')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+		DB__DEPENDENCIES_two=('two-dependencies-v1')
+		DB__ARTIFACTS_two=('two-artifacts-v1')
+		DB__SCRIPT_two=('two-script-v1')
+
+		target-use-variant 'two' 0
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'two-declaration-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == 2 ]
+		CHECK [ "${DB__DEPENDENCIES_two[0]}" == 'two-dependencies-v1' ]
+		CHECK [ "${DB__ARTIFACTS_two[0]}" == 'two-artifacts-v1' ]
+		CHECK [ "${DB__SCRIPT_two[0]}" == 'two-script-v1' ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-declaration-v1' 'one-declaration-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+		DB__DEPENDENCIES_one=('one-dependencies-v1' 'one-dependencies-v2')
+		DB__ARTIFACTS_one=('one-artifacts-v1' 'one-artifacts-v2')
+		DB__SCRIPT_one=('one-script-v1' 'one-script-v2')
+
+		target-use-variant 'one' 0
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one-declaration-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == 1 ]
+		CHECK [ "${DB__DEPENDENCIES_one[0]}" == 'one-dependencies-v1' ]
+		CHECK [ "${DB__ARTIFACTS_one[0]}" == 'one-artifacts-v1' ]
+		CHECK [ "${DB__SCRIPT_one[0]}" == 'one-script-v1' ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_one=('one-declaration-v1' 'one-declaration-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+		DB__DEPENDENCIES_one=('one-dependencies-v1' 'one-dependencies-v2')
+		DB__ARTIFACTS_one=('one-artifacts-v1' 'one-artifacts-v2')
+		DB__SCRIPT_one=('one-script-v1' 'one-script-v2')
+
+		target-use-variant 'one' 1
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one-declaration-v2' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == 2 ]
+		CHECK [ "${DB__DEPENDENCIES_one[0]}" == 'one-dependencies-v2' ]
+		CHECK [ "${DB__ARTIFACTS_one[0]}" == 'one-artifacts-v2' ]
+		CHECK [ "${DB__SCRIPT_one[0]}" == 'one-script-v2' ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_two=('two-declaration-v1' 'two-declaration-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+		DB__DEPENDENCIES_two=('two-dependencies-v1' 'two-dependencies-v2')
+		DB__ARTIFACTS_two=('two-artifacts-v1' 'two-artifacts-v2')
+		DB__SCRIPT_two=('two-script-v1' 'two-script-v2')
+
+		target-use-variant 'two' 0
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'two-declaration-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == 3 ]
+		CHECK [ "${DB__DEPENDENCIES_two[0]}" == 'two-dependencies-v1' ]
+		CHECK [ "${DB__ARTIFACTS_two[0]}" == 'two-artifacts-v1' ]
+		CHECK [ "${DB__SCRIPT_two[0]}" == 'two-script-v1' ]
+
+	VARIANT 'set 4'
+		DB__DECLARATIONS_two=('two-declaration-v1' 'two-declaration-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+		DB__DEPENDENCIES_two=('two-dependencies-v1' 'two-dependencies-v2')
+		DB__ARTIFACTS_two=('two-artifacts-v1' 'two-artifacts-v2')
+		DB__SCRIPT_two=('two-script-v1' 'two-script-v2')
+
+		target-use-variant 'two' 1
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'two-declaration-v2' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == 4 ]
+		CHECK [ "${DB__DEPENDENCIES_two[0]}" == 'two-dependencies-v2' ]
+		CHECK [ "${DB__ARTIFACTS_two[0]}" == 'two-artifacts-v2' ]
+		CHECK [ "${DB__SCRIPT_two[0]}" == 'two-script-v2' ]
+
+SECTION 'bad variants'
+
+TEST-CASE 'non-existent target'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+		unset DB__DEPENDENCIES_one
+		unset DB__ARTIFACTS_one
+		unset DB__SCRIPT_one
+
+		target-use-variant 'one' 0
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_one[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+		unset DB__DEPENDENCIES_one
+		unset DB__ARTIFACTS_one
+		unset DB__SCRIPT_one
+
+		target-use-variant 'one' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_one[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 3'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+		unset DB__DEPENDENCIES_two
+		unset DB__ARTIFACTS_two
+		unset DB__SCRIPT_two
+
+		target-use-variant 'two' 0
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_two[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+	VARIANT 'set 4'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+		unset DB__DEPENDENCIES_two
+		unset DB__ARTIFACTS_two
+		unset DB__SCRIPT_two
+
+		target-use-variant 'two' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_two[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+TEST-CASE 'empty'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=()
+		DB__DECLARATION_LINE_NUMBERS_one=()
+		DB__DEPENDENCIES_one=()
+		DB__ARTIFACTS_one=()
+		DB__SCRIPT_one=()
+
+		target-use-variant 'one' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_one[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_one=()
+		DB__DECLARATION_LINE_NUMBERS_one=()
+		DB__DEPENDENCIES_one=()
+		DB__ARTIFACTS_one=()
+		DB__SCRIPT_one=()
+
+		target-use-variant 'one' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_one[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_two=()
+		DB__DECLARATION_LINE_NUMBERS_two=()
+		DB__DEPENDENCIES_two=()
+		DB__ARTIFACTS_two=()
+		DB__SCRIPT_two=()
+
+		target-use-variant 'two' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_two[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__DECLARATIONS_two=()
+		DB__DECLARATION_LINE_NUMBERS_two=()
+		DB__DEPENDENCIES_two=()
+		DB__ARTIFACTS_two=()
+		DB__SCRIPT_two=()
+
+		target-use-variant 'two' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_two[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-declaration-v1')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+		DB__DEPENDENCIES_one=('one-dependencies-v1')
+		DB__ARTIFACTS_one=('one-artifacts-v1')
+		DB__SCRIPT_one=('one-script-v1')
+
+		target-use-variant 'one' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_one[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_one=('one-declaration-v1')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+		DB__DEPENDENCIES_one=('one-dependencies-v1')
+		DB__ARTIFACTS_one=('one-artifacts-v1')
+		DB__SCRIPT_one=('one-script-v1')
+
+		target-use-variant 'one' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_one[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_two=('two-declaration-v1')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+		DB__DEPENDENCIES_two=('two-dependencies-v1')
+		DB__ARTIFACTS_two=('two-artifacts-v1')
+		DB__SCRIPT_two=('two-script-v1')
+
+		target-use-variant 'two' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_two[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__DECLARATIONS_two=('two-declaration-v1')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+		DB__DEPENDENCIES_two=('two-dependencies-v1')
+		DB__ARTIFACTS_two=('two-artifacts-v1')
+		DB__SCRIPT_two=('two-script-v1')
+
+		target-use-variant 'two' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_two[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+TEST-CASE '2 variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-declaration-v1' 'one-declaration-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+		DB__DEPENDENCIES_one=('one-dependencies-v1' 'one-dependencies-v2')
+		DB__ARTIFACTS_one=('one-artifacts-v1' 'one-artifacts-v2')
+		DB__SCRIPT_one=('one-script-v1' 'one-script-v2')
+
+		target-use-variant 'one' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_one[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_one=('one-declaration-v1' 'one-declaration-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+		DB__DEPENDENCIES_one=('one-dependencies-v1' 'one-dependencies-v2')
+		DB__ARTIFACTS_one=('one-artifacts-v1' 'one-artifacts-v2')
+		DB__SCRIPT_one=('one-script-v1' 'one-script-v2')
+
+		target-use-variant 'one' 3
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_one[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_two=('two-declaration-v1' 'two-declaration-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+		DB__DEPENDENCIES_two=('two-dependencies-v1' 'two-dependencies-v2')
+		DB__ARTIFACTS_two=('two-artifacts-v1' 'two-artifacts-v2')
+		DB__SCRIPT_two=('two-script-v1' 'two-script-v2')
+
+		target-use-variant 'two' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_two[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__DECLARATIONS_two=('two-declaration-v1' 'two-declaration-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+		DB__DEPENDENCIES_two=('two-dependencies-v1' 'two-dependencies-v2')
+		DB__ARTIFACTS_two=('tw4-artifacts-v1' 'two-artifacts-v2')
+		DB__SCRIPT_two=('two-script-v1' 'two-script-v2')
+
+		target-use-variant 'two' 3
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+		CHECK [ -z "${DB__DEPENDENCIES_two[0]}" ]
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+		CHECK [ -z "${DB__SCRIPT_two[0]}" ]
+

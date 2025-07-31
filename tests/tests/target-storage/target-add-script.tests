@@ -1,0 +1,59 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'one variant'
+	VARIANT 'set 1'
+		unset DB__SCRIPT_target_1
+
+		target-add-script 'target_1' 'one'
+		CHECK [ "${#DB__SCRIPT_target_1[@]}" == '1' ]
+		CHECK [ "${DB__SCRIPT_target_1[0]}" == 'one' ]
+
+	VARIANT 'set 2'
+		unset DB__SCRIPT_target_2
+
+		target-add-script 'target_2' 'two'
+		CHECK [ "${#DB__SCRIPT_target_2[@]}" == '1' ]
+		CHECK [ "${DB__SCRIPT_target_2[0]}" == 'two' ]
+
+TEST-CASE 'two variants'
+	VARIANT 'set 1'
+		unset DB__SCRIPT_target_1
+
+		target-add-script 'target_1' 'one'
+		target-add-script 'target_1' 'two'
+		CHECK [ "${#DB__SCRIPT_target_1[@]}" == '2' ]
+		CHECK [ "${DB__SCRIPT_target_1[0]}" == 'one' ]
+		CHECK [ "${DB__SCRIPT_target_1[1]}" == 'two' ]
+
+	VARIANT 'set 2'
+		unset DB__SCRIPT_target_2
+
+		target-add-script 'target_2' 'three'
+		target-add-script 'target_2' 'four'
+		CHECK [ "${#DB__SCRIPT_target_2[@]}" == '2' ]
+		CHECK [ "${DB__SCRIPT_target_2[0]}" == 'three' ]
+		CHECK [ "${DB__SCRIPT_target_2[1]}" == 'four' ]
+
+TEST-CASE 'three variants'
+	VARIANT 'set 1'
+		unset DB__SCRIPT_target_1
+
+		target-add-script 'target_1' 'one'
+		target-add-script 'target_1' 'two'
+		target-add-script 'target_1' 'three'
+		CHECK [ "${#DB__SCRIPT_target_1[@]}" == '3' ]
+		CHECK [ "${DB__SCRIPT_target_1[0]}" == 'one' ]
+		CHECK [ "${DB__SCRIPT_target_1[1]}" == 'two' ]
+		CHECK [ "${DB__SCRIPT_target_1[2]}" == 'three' ]
+
+	VARIANT 'set 2'
+		unset DB__SCRIPT_target_2
+
+		target-add-script 'target_2' 'four'
+		target-add-script 'target_2' 'five'
+		target-add-script 'target_2' 'six'
+		CHECK [ "${#DB__SCRIPT_target_2[@]}" == '3' ]
+		CHECK [ "${DB__SCRIPT_target_2[0]}" == 'four' ]
+		CHECK [ "${DB__SCRIPT_target_2[1]}" == 'five' ]
+		CHECK [ "${DB__SCRIPT_target_2[2]}" == 'six' ]
+

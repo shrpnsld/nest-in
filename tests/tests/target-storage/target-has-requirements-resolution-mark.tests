@@ -1,0 +1,38 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'no mark'
+	VARIANT 'set 1'
+		unset DB__REQUIREMENTS_RESOLVED_one
+		CHECK ! target-has-requirements-resolution-mark 'one'
+
+	VARIANT 'set 2'
+		unset DB__REQUIREMENTS_RESOLVED_two
+		CHECK ! target-has-requirements-resolution-mark 'two'
+
+TEST-CASE 'empty mark'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_RESOLVED_one=''
+		CHECK ! target-has-requirements-resolution-mark 'one'
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_RESOLVED_two=''
+		CHECK ! target-has-requirements-resolution-mark 'two'
+
+TEST-CASE 'unresolved mark'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_RESOLVED_one=false
+		CHECK target-has-requirements-resolution-mark 'one'
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_RESOLVED_two=false
+		CHECK target-has-requirements-resolution-mark 'two'
+
+TEST-CASE 'resolved mark'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_RESOLVED_one=true
+		CHECK target-has-requirements-resolution-mark 'one'
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_RESOLVED_two=true
+		CHECK target-has-requirements-resolution-mark 'two'
+

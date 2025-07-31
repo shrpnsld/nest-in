@@ -1,0 +1,48 @@
+source $(SAMPLE nest-in)
+
+SECTION 'good variants'
+
+TEST-CASE 'empty'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		target-variant-count 'one'
+		CHECK [ "$TARGET_VARIANT_COUNT_RETURN__COUNT" == 0 ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_two
+		target-variant-count 'two'
+		CHECK [ "$TARGET_VARIANT_COUNT_RETURN__COUNT" == 0 ]
+
+TEST-CASE '0 variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=()
+		target-variant-count 'one'
+		CHECK [ "$TARGET_VARIANT_COUNT_RETURN__COUNT" == 0 ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=()
+		target-variant-count 'two'
+		CHECK [ "$TARGET_VARIANT_COUNT_RETURN__COUNT" == 0 ]
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1')
+		target-variant-count 'one'
+		CHECK [ "$TARGET_VARIANT_COUNT_RETURN__COUNT" == 1 ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two-v1')
+		target-variant-count 'two'
+		CHECK [ "$TARGET_VARIANT_COUNT_RETURN__COUNT" == 1 ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1' 'one-v2')
+		target-variant-count 'one'
+		CHECK [ "$TARGET_VARIANT_COUNT_RETURN__COUNT" == 2 ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two-v1' 'two-v2')
+		target-variant-count 'two'
+		CHECK [ "$TARGET_VARIANT_COUNT_RETURN__COUNT" == 2 ]
+

@@ -55,7 +55,9 @@ TEST-CASE 'check if no other targets gets unmarked'
 	DB__MARKED_one=true
 	DB__MARKED_two=true
 	DB__MARKED_three=true
+
 	target-unmark 'one'
+
 	CHECK ! $DB__MARKED_one
 	CHECK $DB__MARKED_two
 	CHECK $DB__MARKED_three
@@ -63,7 +65,9 @@ TEST-CASE 'check if no other targets gets unmarked'
 	DB__MARKED_one=true
 	DB__MARKED_two=true
 	DB__MARKED_three=true
+
 	target-unmark 'two'
+
 	CHECK $DB__MARKED_one
 	CHECK ! $DB__MARKED_two
 	CHECK $DB__MARKED_three
@@ -71,7 +75,9 @@ TEST-CASE 'check if no other targets gets unmarked'
 	DB__MARKED_one=true
 	DB__MARKED_two=true
 	DB__MARKED_three=true
+
 	target-unmark 'three'
+
 	CHECK $DB__MARKED_one
 	CHECK $DB__MARKED_two
 	CHECK ! $DB__MARKED_three

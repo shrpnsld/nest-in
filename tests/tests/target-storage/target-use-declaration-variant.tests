@@ -1,0 +1,209 @@
+source $(SAMPLE nest-in)
+
+SECTION 'good variants'
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+
+		target-use-declaration-variant 'one' 0
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == 1 ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_two=('two-v1')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+
+		target-use-declaration-variant 'two' 0
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'two-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == 2 ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1' 'one-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+
+		target-use-declaration-variant 'one' 0
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == 1 ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_one=('one-v1' 'one-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+
+		target-use-declaration-variant 'one' 1
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one-v2' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == 2 ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_two=('two-v1' 'two-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+
+		target-use-declaration-variant 'two' 0
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'two-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == 3 ]
+
+	VARIANT 'set 4'
+		DB__DECLARATIONS_two=('two-v1' 'two-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+
+		target-use-declaration-variant 'two' 1
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'two-v2' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == 4 ]
+
+
+SECTION 'bad variants'
+
+TEST-CASE 'non-existent target'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-use-declaration-variant 'one' 0
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-use-declaration-variant 'one' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+
+	VARIANT 'set 3'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+
+		target-use-declaration-variant 'two' 0
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+
+	VARIANT 'set 4'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+
+		target-use-declaration-variant 'two' 1
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+
+TEST-CASE 'empty-declaration'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=()
+		DB__DECLARATION_LINE_NUMBERS_one=()
+
+		target-use-declaration-variant 'one' 0
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_one=()
+		DB__DECLARATION_LINE_NUMBERS_one=()
+
+		target-use-declaration-variant 'one' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_two=()
+		DB__DECLARATION_LINE_NUMBERS_two=()
+
+		target-use-declaration-variant 'two' 0
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__DECLARATIONS_two=()
+		DB__DECLARATION_LINE_NUMBERS_two=()
+
+		target-use-declaration-variant 'two' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+
+		target-use-declaration-variant 'one' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_one=('one-v1')
+		DB__DECLARATION_LINE_NUMBERS_one=(1)
+
+		target-use-declaration-variant 'one' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_two=('two-v1')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+
+		target-use-declaration-variant 'two' 1
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__DECLARATIONS_two=('two-v1')
+		DB__DECLARATION_LINE_NUMBERS_two=(2)
+
+		target-use-declaration-variant 'two' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		DB__DECLARATIONS_one=('one-v1' 'one-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+
+		target-use-declaration-variant 'one' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__DECLARATIONS_one=('one-v1' 'one-v2')
+		DB__DECLARATION_LINE_NUMBERS_one=(1 2)
+
+		target-use-declaration-variant 'one' 3
+
+		CHECK [ -z "${DB__DECLARATIONS_one[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__DECLARATIONS_two=('two-v1' 'two-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+
+		target-use-declaration-variant 'two' 2
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__DECLARATIONS_two=('two-v1' 'two-v2')
+		DB__DECLARATION_LINE_NUMBERS_two=(3 4)
+
+		target-use-declaration-variant 'two' 3
+
+		CHECK [ -z "${DB__DECLARATIONS_two[0]}" ]
+		CHECK [ -z "${DB__DECLARATION_LINE_NUMBERS_two[0]}" ]
+

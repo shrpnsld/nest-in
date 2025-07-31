@@ -1,0 +1,557 @@
+source $(SAMPLE nest-in)
+
+SETUP() {
+	unset DB__DECLARATIONS_one
+	unset DB__DECLARATION_LINE_NUMBERS_one
+	unset DB__DEPENDENCIES_one
+	unset DB__ARTIFACTS_one
+	unset DB__SCRIPT_one
+}
+
+TEST-CASE '0 variants'
+	target-use-variant 'one' 0
+
+	target-declaration 'one'
+	CHECK [ -z "$TARGET_DECLARATION_RETURN__DECLARATION" ]
+	CHECK [ -z "$TARGET_DECLARATION_RETURN__LINE_NUMBER" ]
+
+	target-dependencies 'one'
+	CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 0 ]
+
+	target-artifacts 'one'
+	CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 0 ]
+
+	target-script 'one'
+	CHECK [ -z "$TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+
+SECTION 'Full variants'
+
+TEST-CASE '1 variant'
+	target-add-declaration 'one' 'one-v1' 1
+	target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+	target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+	target-add-script 'one' 'one-script-v1'
+
+	target-use-variant 'one' 0
+
+	target-declaration 'one'
+	CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+	CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+	target-dependencies 'one'
+	CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+	CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+	CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+	target-artifacts 'one'
+	CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+	CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+	CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+	target-script 'one'
+	CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 0
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+	VARIANT 'set 2'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 1
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v2' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v2' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v2' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v2' ]
+
+
+SECTION 'Non-full variants'
+
+TEST-CASE '1 variant, no dependencies'
+	target-add-declaration 'one' 'one-v1' 1
+	target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+	target-add-script 'one' 'one-script-v1'
+
+	target-use-variant 'one' 0
+
+	target-declaration 'one'
+	CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+	CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+	target-dependencies 'one'
+	CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 0 ]
+
+	target-artifacts 'one'
+	CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+	CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+	CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+	target-script 'one'
+	CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+TEST-CASE '1 variant, no artifacts'
+	target-add-declaration 'one' 'one-v1' 1
+	target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+	target-add-script 'one' 'one-script-v1'
+
+	target-use-variant 'one' 0
+
+	target-declaration 'one'
+	CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+	CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+	target-dependencies 'one'
+	CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+	CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+	CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+	target-artifacts 'one'
+	CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 0 ]
+
+	target-script 'one'
+	CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+TEST-CASE '1 variant, no script'
+	target-add-declaration 'one' 'one-v1' 1
+	target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+	target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+
+	target-use-variant 'one' 0
+
+	target-declaration 'one'
+	CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+	CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+	target-dependencies 'one'
+	CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+	CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+	CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+	target-artifacts 'one'
+	CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+	CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+	CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+	target-script 'one'
+	CHECK [ -z "$TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+TEST-CASE '2 variants, no dependencies'
+	VARIANT 'set 1'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 0
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 0 ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+	VARIANT 'set 2'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 1
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 0 ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v2' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v2' ]
+
+TEST-CASE '2 variants, no artifacts'
+	VARIANT 'set 1'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 0
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 0 ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+	VARIANT 'set 2'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 1
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v2' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v2' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 0 ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v2' ]
+
+TEST-CASE '2 variants, no scripts'
+	VARIANT 'set 1'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+
+		target-use-variant 'one' 0
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+		target-script 'one'
+		CHECK [ -z "$TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+	VARIANT 'set 2'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+
+		target-use-variant 'one' 1
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v2' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v2' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v2' ]
+
+		target-script 'one'
+		CHECK [ -z "$TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+TEST-CASE '2 variants, different number of dependencies'
+	VARIANT 'set 1'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 0
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+	VARIANT 'set 2'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 1
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 1 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v2' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v2' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v2' ]
+
+	VARIANT 'set 3'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 0
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 1 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+TEST-CASE '2 variants, different number of artifacts'
+	VARIANT 'set 1'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 0
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v1' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+	VARIANT 'set 2'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1' 'one-artifact-2-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 1
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v2' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v2' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 1 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v2' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v2' ]
+
+	VARIANT 'set 3'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 0
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v1' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 1 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v1' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v1' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 1 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v1' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v1' ]
+
+	VARIANT 'set 4'
+		target-add-declaration 'one' 'one-v1' 1
+		target-add-dependencies 'one' 'one-dependency-1-v1' 'one-dependency-2-v1'
+		target-add-artifacts 'one' 'one-artifact-1-v1'
+		target-add-script 'one' 'one-script-v1'
+
+		target-add-declaration 'one' 'one-v2' 2
+		target-add-dependencies 'one' 'one-dependency-1-v2' 'one-dependency-2-v2'
+		target-add-artifacts 'one' 'one-artifact-1-v2' 'one-artifact-2-v2'
+		target-add-script 'one' 'one-script-v2'
+
+		target-use-variant 'one' 1
+
+		target-declaration 'one'
+		CHECK [ "$TARGET_DECLARATION_RETURN__DECLARATION" == 'one-v2' ]
+		CHECK [ "$TARGET_DECLARATION_RETURN__LINE_NUMBER" == 2 ]
+
+		target-dependencies 'one'
+		CHECK [ ${#TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]} == 2 ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[0]}" == 'one-dependency-1-v2' ]
+		CHECK [ "${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[1]}" == 'one-dependency-2-v2' ]
+
+		target-artifacts 'one'
+		CHECK [ ${#TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]} == 2 ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[0]}" == 'one-artifact-1-v2' ]
+		CHECK [ "${TARGET_ARTIFACTS_RETURN__ARTIFACTS[1]}" == 'one-artifact-2-v2' ]
+
+		target-script 'one'
+		CHECK [ "$TARGET_SCRIPT_RETURN__SCRIPT" == 'one-script-v2' ]
+

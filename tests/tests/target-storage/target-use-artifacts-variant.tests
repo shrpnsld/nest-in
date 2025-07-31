@@ -1,0 +1,123 @@
+source $(SAMPLE nest-in)
+
+SECTION 'good variants'
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_one=('one-v1')
+		target-use-artifacts-variant 'one' 0
+		CHECK [ "${DB__ARTIFACTS_one[0]}" == 'one-v1' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_two=('two-v1')
+		target-use-artifacts-variant 'two' 0
+		CHECK [ "${DB__ARTIFACTS_two[0]}" == 'two-v1' ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_one=('one-v1' 'one-v2')
+		target-use-artifacts-variant 'one' 0
+		CHECK [ "${DB__ARTIFACTS_one[0]}" == 'one-v1' ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_one=('one-v1' 'one-v2')
+		target-use-artifacts-variant 'one' 1
+		CHECK [ "${DB__ARTIFACTS_one[0]}" == 'one-v2' ]
+
+	VARIANT 'set 3'
+		DB__ARTIFACTS_two=('two-v1' 'two-v2')
+		target-use-artifacts-variant 'two' 0
+		CHECK [ "${DB__ARTIFACTS_two[0]}" == 'two-v1' ]
+
+	VARIANT 'set 4'
+		DB__ARTIFACTS_two=('two-v1' 'two-v2')
+		target-use-artifacts-variant 'two' 1
+		CHECK [ "${DB__ARTIFACTS_two[0]}" == 'two-v2' ]
+
+
+SECTION 'bad variants'
+
+TEST-CASE 'non-existent target'
+	VARIANT 'set 1'
+		unset DB__ARTIFACTS_one
+		target-use-artifacts-variant 'one' 0
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+
+	VARIANT 'set 2'
+		unset DB__ARTIFACTS_one
+		target-use-artifacts-variant 'one' 1
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+
+	VARIANT 'set 3'
+		unset DB__ARTIFACTS_two
+		target-use-artifacts-variant 'two' 0
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+
+	VARIANT 'set 4'
+		unset DB__ARTIFACTS_two
+		target-use-artifacts-variant 'two' 1
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+
+TEST-CASE 'empty-artifacts'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_one=()
+		target-use-artifacts-variant 'one' 0
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_one=()
+		target-use-artifacts-variant 'one' 1
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__ARTIFACTS_two=()
+		target-use-artifacts-variant 'two' 0
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__ARTIFACTS_two=()
+		target-use-artifacts-variant 'two' 1
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+
+TEST-CASE '1 variant'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_one=('one-v1')
+		target-use-artifacts-variant 'one' 1
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_one=('one-v1')
+		target-use-artifacts-variant 'one' 2
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__ARTIFACTS_two=('two-v1')
+		target-use-artifacts-variant 'two' 1
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__ARTIFACTS_two=('two-v1')
+		target-use-artifacts-variant 'two' 2
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+
+TEST-CASE '2 variants'
+	VARIANT 'set 1'
+		DB__ARTIFACTS_one=('one-v1' 'one-v2')
+		target-use-artifacts-variant 'one' 2
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+
+	VARIANT 'set 2'
+		DB__ARTIFACTS_one=('one-v1' 'one-v2')
+		target-use-artifacts-variant 'one' 3
+		CHECK [ -z "${DB__ARTIFACTS_one[0]}" ]
+
+	VARIANT 'set 3'
+		DB__ARTIFACTS_two=('two-v1' 'two-v2')
+		target-use-artifacts-variant 'two' 2
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+
+	VARIANT 'set 4'
+		DB__ARTIFACTS_two=('two-v1' 'two-v2')
+		target-use-artifacts-variant 'two' 3
+		CHECK [ -z "${DB__ARTIFACTS_two[0]}" ]
+

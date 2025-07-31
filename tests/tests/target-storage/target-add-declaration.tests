@@ -1,0 +1,209 @@
+source $(SAMPLE nest-in)
+
+SECTION 'single/multiple variants'
+
+TEST-CASE 'one variant'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-add-declaration 'one' 'one' '1'
+
+		CHECK [ "${#DB__DECLARATIONS_one[@]}" == '1' ]
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == '1' ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+
+		target-add-declaration 'two' 'two' '2'
+		CHECK [ "${#DB__DECLARATIONS_two[@]}" == '1' ]
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'two' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == '2' ]
+
+TEST-CASE 'two variants'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-add-declaration 'one' 'one-v1' '1'
+		target-add-declaration 'one' 'one-v2' '2'
+
+		CHECK [ "${#DB__DECLARATIONS_one[@]}" == '2' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == '1' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[1]}" == 'one-v2' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[1]}" == '2' ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+
+		target-add-declaration 'two' 'two-v1' '3'
+		target-add-declaration 'two' 'two-v2' '4'
+
+		CHECK [ "${#DB__DECLARATIONS_two[@]}" == '2' ]
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'two-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == '3' ]
+
+		CHECK [ "${DB__DECLARATIONS_two[1]}" == 'two-v2' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[1]}" == '4' ]
+
+TEST-CASE 'three variants'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-add-declaration 'one' 'one-v1' '1'
+		target-add-declaration 'one' 'one-v2' '2'
+		target-add-declaration 'one' 'one-v3' '3'
+
+		CHECK [ "${#DB__DECLARATIONS_one[@]}" == '3' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == '1' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[1]}" == 'one-v2' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[1]}" == '2' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[2]}" == 'one-v3' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[2]}" == '3' ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_three
+		unset DB__DECLARATION_LINE_NUMBERS_three
+
+		target-add-declaration 'three' 'three-v1' '4'
+		target-add-declaration 'three' 'three-v2' '5'
+		target-add-declaration 'three' 'three-v3' '6'
+
+		CHECK [ "${#DB__DECLARATIONS_three[@]}" == '3' ]
+
+		CHECK [ "${DB__DECLARATIONS_three[0]}" == 'three-v1' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_three[0]}" == '4' ]
+
+		CHECK [ "${DB__DECLARATIONS_three[1]}" == 'three-v2' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_three[1]}" == '5' ]
+
+		CHECK [ "${DB__DECLARATIONS_three[2]}" == 'three-v3' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_three[2]}" == '6' ]
+
+
+SECTION 'non-printable characters'
+
+TEST-CASE 'space, one variant'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-add-declaration 'one' 'one two' '1'
+
+		CHECK [ "${#DB__DECLARATIONS_one[@]}" == '1' ]
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one two' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == '1' ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_three
+		unset DB__DECLARATION_LINE_NUMBERS_three
+
+		target-add-declaration 'three' 'three four five' '2'
+
+		CHECK [ "${#DB__DECLARATIONS_three[@]}" == '1' ]
+		CHECK [ "${DB__DECLARATIONS_three[0]}" == 'three four five' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_three[0]}" == '2' ]
+
+TEST-CASE 'tab, one variant'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-add-declaration 'one' $'one\ttwo' '1'
+
+		CHECK [ "${#DB__DECLARATIONS_one[@]}" == '1' ]
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == $'one\ttwo' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == '1' ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_three
+		unset DB__DECLARATION_LINE_NUMBERS_three
+
+		target-add-declaration 'three' $'three\tfour\tfive' '2'
+
+		CHECK [ "${#DB__DECLARATIONS_three[@]}" == '1' ]
+		CHECK [ "${DB__DECLARATIONS_three[0]}" == $'three\tfour\tfive' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_three[0]}" == '2' ]
+
+TEST-CASE 'space, two variants'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-add-declaration 'one' 'one two' '1'
+		target-add-declaration 'one' 'three four' '2'
+
+		CHECK [ "${#DB__DECLARATIONS_one[@]}" == '2' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one two' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == '1' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[1]}" == 'three four' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[1]}" == '2' ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+
+		target-add-declaration 'two' 'five six' '3'
+		target-add-declaration 'two' 'seven eight' '4'
+
+		CHECK [ "${#DB__DECLARATIONS_two[@]}" == '2' ]
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'five six' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == '3' ]
+
+		CHECK [ "${DB__DECLARATIONS_two[1]}" == 'seven eight' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[1]}" == '4' ]
+
+TEST-CASE 'space, three variants'
+	VARIANT 'set 1'
+		unset DB__DECLARATIONS_one
+		unset DB__DECLARATION_LINE_NUMBERS_one
+
+		target-add-declaration 'one' 'one two' '1'
+		target-add-declaration 'one' 'three four' '2'
+		target-add-declaration 'one' 'five six' '3'
+
+		CHECK [ "${#DB__DECLARATIONS_one[@]}" == '3' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[0]}" == 'one two' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[0]}" == '1' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[1]}" == 'three four' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[1]}" == '2' ]
+
+		CHECK [ "${DB__DECLARATIONS_one[2]}" == 'five six' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_one[2]}" == '3' ]
+
+	VARIANT 'set 2'
+		unset DB__DECLARATIONS_two
+		unset DB__DECLARATION_LINE_NUMBERS_two
+
+		target-add-declaration 'two' 'five six' '4'
+		target-add-declaration 'two' 'seven eight' '5'
+		target-add-declaration 'two' 'nine ten' '6'
+
+		CHECK [ "${#DB__DECLARATIONS_two[@]}" == '3' ]
+
+		CHECK [ "${DB__DECLARATIONS_two[0]}" == 'five six' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[0]}" == '4' ]
+
+		CHECK [ "${DB__DECLARATIONS_two[1]}" == 'seven eight' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[1]}" == '5' ]
+
+		CHECK [ "${DB__DECLARATIONS_two[2]}" == 'nine ten' ]
+		CHECK [ "${DB__DECLARATION_LINE_NUMBERS_two[2]}" == '6' ]
+

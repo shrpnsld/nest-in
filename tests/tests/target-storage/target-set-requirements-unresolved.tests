@@ -1,0 +1,35 @@
+source $(SAMPLE nest-in)
+
+TEST-CASE 'initially unset'
+	VARIANT 'set 1'
+		unset DB__REQUIREMENTS_RESOLVED_one
+		target-set-requirements-unresolved 'one'
+		CHECK ! $DB__REQUIREMENTS_RESOLVED_one
+
+	VARIANT 'set 2'
+		unset DB__REQUIREMENTS_RESOLVED_two
+		target-set-requirements-unresolved 'two'
+		CHECK ! $DB__REQUIREMENTS_RESOLVED_two
+
+TEST-CASE 'initially unresolved'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_RESOLVED_one=false
+		target-set-requirements-unresolved 'one'
+		CHECK ! $DB__REQUIREMENTS_RESOLVED_one
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_RESOLVED_two=false
+		target-set-requirements-unresolved 'two'
+		CHECK ! $DB__REQUIREMENTS_RESOLVED_two
+
+TEST-CASE 'initially resolved'
+	VARIANT 'set 1'
+		DB__REQUIREMENTS_RESOLVED_one=true
+		target-set-requirements-unresolved 'one'
+		CHECK ! $DB__REQUIREMENTS_RESOLVED_one
+
+	VARIANT 'set 2'
+		DB__REQUIREMENTS_RESOLVED_two=true
+		target-set-requirements-unresolved 'two'
+		CHECK ! $DB__REQUIREMENTS_RESOLVED_two
+
