@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #
 # Essentials
@@ -785,7 +785,6 @@ target-variant-count()
 
 	local variable_name=$(variable-name-from-target "$target")
 	eval "TARGET_VARIANT_COUNT_RETURN__COUNT=\${#DB__DECLARATIONS_${variable_name}[@]}"
-
 }
 
 TARGET_REQUIREMENTS_RETURN__REQUIREMENTS=()
