@@ -902,7 +902,7 @@ target-dependencies-recursive()
 	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=()
 
 	target-dependencies-recursive-impl "$target"
-	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=($(IFS=$'\n' sort <<< "${TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES[*]}" | uniq))
+	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=($(printf '%s\n' "${TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES[@]}" | sort --unique))
 }
 
 target-add-dependencies()
