@@ -1,11 +1,13 @@
 # nest-in
 
+![tests](https://github.com/shrpnsld/nest-in/actions/workflows/tests.yml/badge.svg)
+
 Setup your personal environment with a single command. Useful when *a shell-script becomes too complicated or not enough for this task*.
 
 ### Features
 
 * Configuration file has well-defined structure and simple syntax.
-* Allows setup process to be granural, selective and adjustible.
+* Allows setup process to be granular, selective and recoverable.
 * Has no external dependencies, so can be used right away in a completely fresh environment.
 * Written with Bash 3.2, so it works even on macOS with its stock Bash installation.
 
@@ -14,11 +16,11 @@ Setup your personal environment with a single command. Useful when *a shell-scri
 ### One-liners
 
 ```bash
-curl -fsSL TWIGS-FILE | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)"
+curl -fsSL <twigs-file> | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)"
 ```
 
 ```bash
-wget -qO- TWIGS-FILE | /bin/bash -c "$(wget -qO- https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)"
+wget -qO- <twigt-file> | /bin/bash -c "$(wget -qO- https://raw.githubusercontent.com/shrpnsld/nest-in/master/nest-in)"
 ```
 
 ### Command-line interface
@@ -40,9 +42,11 @@ If no `<twigs-file>` was passed, then configuration is read from *stdin*.
 
 ## Guide
 
-The entire nesting process is divided into steps. Each nesting step is defined as a target with zero or more requirements, dependencies, and artifacts, with or without a script. Requirements are preconditions for the environment that must be met for the target to be nested. Dependencies are other targets that are nested before the target itself. Artifacts are files, directories, or programs produced by the target. If these artifacts already exist, the target is considered to be already nested.
+The entire nesting process is divided into steps. Each nesting step is defined as a target with zero or more requirements, dependencies, and artifacts, with or without a script. Requirements are preconditions for the environment that must be met for the target to be nested. Dependencies are other targets that are nested before the target itself. Artifacts are files, directories, or programs produced by the target. If these artifacts already exist, the target is considered to be already nested. And scripts are just Bash-scripts that nest target.
 
-Shell scripts for selected targets run independently, while share variable and function definitions. If some script fails, nest-in will suggest to open shell and fix things.
+Shell scripts for each target run independently, but they share variable and function definitions, so a variable or a function that was defined in one target will be accessible in a another target.
+
+If some script fails, nest-in will suggest to open shell to fix things, then, uppon exit, prompt to nest failed target again or continue nesting next target.
 
 ### Targets
 
@@ -73,7 +77,9 @@ dotfiles / git '~/.dotfiles/'
 
 ### Requirements
 
-Requirements are listed after the same `/` as dependencies and artifacts. Each requirement should be enclosed in square brackets. The same target can have multiple variants with different sets of requirements, each variant can have its own dependencies, artifacts, and script. The example below declares first variant to be chosen if the operating system is macOS, and the second variant will be chosen if the environment has the available program `apt-get`.
+Requirements are listed after the same `/` as dependencies and artifacts and each requirement should be enclosed in square brackets. Requirements can have specifiers, where each specifier must be preceded by a `:` character. Requirement and specifier names can include letters, numbers, dashes, and underscore characters, but requirement names must always start with a letter.
+
+The same target can have multiple variants with different sets of requirements, each variant can have its own dependencies, artifacts, and script. The example below declares first variant to be chosen if the operating system is macOS, and the second variant will be chosen if the environment has the available program `apt-get`.
 
 ```bash
 installer / [macos]
@@ -160,7 +166,7 @@ Artifact types are determined by the following examples:
 
 * `~/artifact/is/a/file` – path *with no* trailing `/`
 * `~/artifact/is/a/direcotry/` – path *with* trailing `/`
-* `program` – no path, just a name
+* `program` – name that can be found in one the paths specified by `$PATH` environment variable
 
 ### Additional notes
 
