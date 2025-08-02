@@ -1,5 +1,7 @@
 # nest-in
 
+![tests](https://github.com/shrpnsld/nest-in/actions/workflows/tests.yml/badge.svg)
+
 Setup your personal environment with a single command. Useful when *a shell-script becomes too complicated or not enough for this task*.
 
 ### Features
