@@ -434,7 +434,7 @@ validate-and-apply-options()
 		TWIGS_DESCRIPTOR=0
 	else
 		TWIGS_DESCRIPTOR=3
-		file-open $TWIGS_DESCRIPTOR "$TWIGS_PATH" >/dev/null 2>&1
+		file-open $TWIGS_DESCRIPTOR "$TWIGS_PATH"
 		if [[ $? != 0 ]]
 		then
 			printf-error 'failed to open config file "%s"' "$TWIGS_PATH"
@@ -453,7 +453,7 @@ file-open()
 	local descriptor=$1
 	local path=$2
 
-	eval "exec $descriptor< '$path'" > /dev/null > 2&>1
+	eval "exec $descriptor< '$path'" > /dev/null 2>&1
 	if [[ $? != 0 ]]
 	then
 		return 1
