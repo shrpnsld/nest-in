@@ -89,6 +89,8 @@ versions-equal()
 	local second=$2
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS='.'
 
 	if [[ -z $first || -z $second ]]
@@ -111,8 +113,6 @@ versions-equal()
 			break
 		fi
 	done
-
-	IFS="$old_IFS"
 
 	return $result
 }
@@ -475,6 +475,11 @@ file-peek-line()
 		return
 	fi
 
+	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
+	IFS=
+
 	read -u $descriptor -r FILE_PEEK_LINE_RETURN__LINE
 	if [[ $? != 0 ]]
 	then
@@ -621,6 +626,8 @@ extract-reqs-deps-arts()
 	fi
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 
 	local tokens=(${line#*/})
@@ -643,8 +650,6 @@ extract-reqs-deps-arts()
 				EXTRACT_REQS_DEPS_ARTS_RETURN__DEPENDENCIES+=("$token")
 		esac
 	done
-
-	IFS="$old_IFS"
 }
 
 array-contains-item()
@@ -667,9 +672,11 @@ array-contains-item()
 array-sort()
 {
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$'\n'
+
 	printf '%s\n' "$@" | sort
-	IFS="$old_IFS"
 }
 
 normalize-target-name()
@@ -803,9 +810,10 @@ target-requirements()
 	eval "requirements=(\"\${DB__REQUIREMENTS_${variable_name}[$variant]}\")"
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 	TARGET_REQUIREMENTS_RETURN__REQUIREMENTS=(${requirements[@]})
-	IFS="$old_IFS"
 }
 
 target-add-requirements()
@@ -814,9 +822,10 @@ target-add-requirements()
 	local requirements=("${@:2}")
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 	requirements="${requirements[@]}"
-	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
 	eval "DB__REQUIREMENTS_${target_variable_name}+=(\"$requirements\")"
@@ -870,9 +879,10 @@ target-dependencies()
 	eval "dependencies=(\"\${DB__DEPENDENCIES_${variable_name}[$variant]}\")"
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 	TARGET_DEPENDENCIES_RETURN__DEPENDENCIES=(${dependencies[@]})
-	IFS="$old_IFS"
 }
 
 target-dependencies-recursive-impl()
@@ -899,6 +909,11 @@ target-dependencies-recursive()
 {
 	local target=$1
 
+	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
+	IFS=$' '
+
 	TARGET_DEPENDENCIES_RECURSIVE_RETURN__DEPENDENCIES=()
 
 	target-dependencies-recursive-impl "$target"
@@ -911,9 +926,10 @@ target-add-dependencies()
 	local dependencies=("${@:2}")
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 	dependencies="${dependencies[@]}"
-	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
 	eval "DB__DEPENDENCIES_${target_variable_name}+=(\"$dependencies\")"
@@ -925,10 +941,11 @@ target-use-dependencies-variant()
 	local variant=$2
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 	target-dependencies "$target" $variant
 	local dependencies="${TARGET_DEPENDENCIES_RETURN__DEPENDENCIES[@]}"
-	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
 	eval "DB__DEPENDENCIES_${target_variable_name}[0]=\"$dependencies\""
@@ -950,9 +967,10 @@ target-artifacts()
 	eval "artifacts=(\"\${DB__ARTIFACTS_${variable_name}[$variant]}\")"
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 	TARGET_ARTIFACTS_RETURN__ARTIFACTS=(${artifacts[@]})
-	IFS="$old_IFS"
 }
 
 target-add-artifacts()
@@ -961,9 +979,10 @@ target-add-artifacts()
 	local artifacts=("${@:2}")
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 	artifacts="${artifacts[@]}"
-	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
 	eval "DB__ARTIFACTS_${target_variable_name}+=(\"$artifacts\")"
@@ -975,10 +994,11 @@ target-use-artifacts-variant()
 	local variant=$2
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$' '
 	target-artifacts "$target" $variant
 	local artifacts="${TARGET_ARTIFACTS_RETURN__ARTIFACTS[@]}"
-	IFS="$old_IFS"
 
 	local target_variable_name=$(variable-name-from-target "$target")
 	eval "DB__ARTIFACTS_${target_variable_name}[0]=\"$artifacts\""
@@ -1067,11 +1087,11 @@ predicate-from-requirement()
 	PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE=()
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=$':'
 
 	PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE=(${requirement[@]})
-
-	IFS="$old_IFS"
 }
 
 predicate-defined()
@@ -1109,6 +1129,8 @@ gather-twigs()
 	local descriptor=$1
 
 	local old_IFS="$IFS"
+	trap 'IFS="$old_IFS"' RETURN
+
 	IFS=
 
 	while true
@@ -1188,7 +1210,6 @@ gather-twigs()
 		local script="$READ_TARGET_SCRIPT_RETURN__SCRIPT"
 		target-add-script "$target" "$script"
 	done
-	IFS="$old_IFS"
 
 	targets-unmark "${ALL_TARGETS[@]}"
 }
