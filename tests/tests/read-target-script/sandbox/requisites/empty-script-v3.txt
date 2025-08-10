@@ -1,0 +1,2 @@
+other-target
+  configure stuff

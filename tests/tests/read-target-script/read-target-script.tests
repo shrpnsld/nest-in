@@ -1,0 +1,174 @@
+source $(SAMPLE nest-in)
+source $(PATH-TO 'utils/file')
+
+SETUP() {
+	FILE_PEEK_LINE_RETURN__LINE=''
+	FILE_PEEK_LINE_RETURN__PEEKED=false
+}
+
+USE-SANDBOX
+
+SECTION 'no script'
+
+TEST-CASE 'empty file'
+USE-REQUISITES 'empty-file.txt'
+	CHECK open-file 9 'empty-file.txt'
+
+	read-target-script 9
+	CHECK [ -z "$READ_TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+	CHECK close-file 9
+
+TEST-CASE 'empty script v1'
+USE-REQUISITES 'empty-script-v1.txt'
+	CHECK open-file 9 'empty-script-v1.txt'
+
+	read-target-script 9
+	CHECK [ -z "$READ_TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+	CHECK close-file 9
+
+TEST-CASE 'empty script v1'
+USE-REQUISITES 'empty-script-v2.txt'
+	CHECK open-file 9 'empty-script-v2.txt'
+
+	read-target-script 9
+	CHECK [ -z "$READ_TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+	CHECK close-file 9
+
+TEST-CASE 'empty script v3'
+USE-REQUISITES 'empty-script-v3.txt'
+	CHECK open-file 9 'empty-script-v3.txt'
+
+	read-target-script 9
+	CHECK [ -z "$READ_TARGET_SCRIPT_RETURN__SCRIPT" ]
+
+	CHECK close-file 9
+
+
+SECTION 'Indented with single space'
+
+TEST-CASE 'single line'
+USE-REQUISITES 'indented-with-spaces/single-space/single-line.txt'
+	CHECK open-file 9 'single-line.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $' one\n' ]
+
+	CHECK close-file 9
+
+TEST-CASE 'multiple lines'
+USE-REQUISITES 'indented-with-spaces/single-space/multiple-lines.txt'
+	CHECK open-file 9 'multiple-lines.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $' one\n two\n' ]
+
+	CHECK close-file 9
+
+
+SECTION 'Indented with multiple spaces'
+
+TEST-CASE 'single line'
+USE-REQUISITES 'indented-with-spaces/multiple-spaces/single-line.txt'
+	CHECK open-file 9 'single-line.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $'  one\n' ]
+
+	CHECK close-file 9
+
+TEST-CASE 'multiple lines'
+USE-REQUISITES 'indented-with-spaces/multiple-spaces/multiple-lines.txt'
+	CHECK open-file 9 'multiple-lines.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $'  one\n  two\n' ]
+
+	CHECK close-file 9
+
+
+SECTION 'Indented with single tab'
+
+TEST-CASE 'single line'
+USE-REQUISITES 'indented-with-tabs/single-tab/single-line.txt'
+	CHECK open-file 9 'single-line.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $'\tone\n' ]
+
+	CHECK close-file 9
+
+TEST-CASE 'multiple lines'
+USE-REQUISITES 'indented-with-tabs/single-tab/multiple-lines.txt'
+	CHECK open-file 9 'multiple-lines.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $'\tone\n\ttwo\n' ]
+
+	CHECK close-file 9
+
+
+SECTION 'Indented with multiple tabs'
+
+TEST-CASE 'single line'
+USE-REQUISITES 'indented-with-tabs/multiple-tabs/single-line.txt'
+	CHECK open-file 9 'single-line.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $'\t\tone\n' ]
+
+	CHECK close-file 9
+
+TEST-CASE 'multiple lines'
+USE-REQUISITES 'indented-with-tabs/multiple-tabs/multiple-lines.txt'
+	CHECK open-file 9 'multiple-lines.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $'\t\tone\n\t\ttwo\n' ]
+
+	CHECK close-file 9
+
+
+SECTION 'Indented with spaces and tabs'
+
+TEST-CASE 'single line'
+USE-REQUISITES 'indented-with-spaces-and-tabs/single-line.txt'
+	CHECK open-file 9 'single-line.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $' \tone\n' ]
+
+	CHECK close-file 9
+
+TEST-CASE 'multiple lines'
+USE-REQUISITES 'indented-with-spaces-and-tabs/multiple-lines.txt'
+	CHECK open-file 9 'multiple-lines.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $' \tone\n \ttwo\n' ]
+
+	CHECK close-file 9
+
+
+SECTION 'Indented with tabs and spaces'
+
+TEST-CASE 'single line'
+USE-REQUISITES 'indented-with-tabs-and-spaces/single-line.txt'
+	CHECK open-file 9 'single-line.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $'\t one\n' ]
+
+	CHECK close-file 9
+
+TEST-CASE 'multiple lines'
+USE-REQUISITES 'indented-with-tabs-and-spaces/multiple-lines.txt'
+	CHECK open-file 9 'multiple-lines.txt'
+
+	read-target-script 9
+	CHECK [ "$READ_TARGET_SCRIPT_RETURN__SCRIPT" == $'\t one\n\t two\n' ]
+
+	CHECK close-file 9
+
