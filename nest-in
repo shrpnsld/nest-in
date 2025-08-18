@@ -1079,19 +1079,24 @@ read-target-script()
 	done
 }
 
-PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE=()
-predicate-from-requirement()
+EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__PREDICATE=''
+EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__SPECIFIERS=()
+extract-predicate-and-specifiers-from-requirement()
 {
 	local requirement=$1
 
-	PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE=()
+	EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__PREDICATE=''
+	EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__SPECIFIERS=()
 
 	local old_IFS="$IFS"
-	trap 'IFS="$old_IFS"' RETURN
-
 	IFS=$':'
 
-	PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE=(${requirement[@]})
+	local tokens=(${requirement[@]})
+
+	IFS="$old_IFS"
+
+	EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__PREDICATE="${tokens[0]}"
+	EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__SPECIFIERS=(${tokens[@]:1})
 }
 
 predicate-defined()
@@ -1109,15 +1114,16 @@ check-requirements()
 
 	for requirement in "${requirements[@]}"
 	do
-		predicate-from-requirement "$requirement"
-		local predicate=("${PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE[@]}")
-		if ! predicate-defined "${predicate[0]}"
+		extract-predicate-and-specifiers-from-requirement "$requirement"
+		local predicate="$EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__PREDICATE"
+		local specifiers="$EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__SPECIFIERS"
+		if ! predicate-defined "$predicate"
 		then
-			CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME="${predicate[0]}"
+			CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME="$predicate"
 			return $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME
 		fi
 
-		if ! "${predicate[@]}"
+		if ! "$predicate" "${specifiers[@]}"
 		then
 			return 1
 		fi
@@ -1386,15 +1392,16 @@ resolve-requirements()
 
 	for requirement in "${requirements[@]}"
 	do
-		predicate-from-requirement "$requirement"
-		local predicate=("${PREDICATE_FROM_REQUIREMENT_RETURN__PREDICATE[@]}")
-		if ! predicate-defined "${predicate[0]}"
+		extract-predicate-and-specifiers-from-requirement "$requirement"
+		local predicate="$EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__PREDICATE"
+		local specifiers="$EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__SPECIFIERS"
+		if ! predicate-defined "$predicate"
 		then
-			RESOLVE_REQUIREMENTS_RETURN__UNKNOWN_NAME="${predicate[0]}"
+			RESOLVE_REQUIREMENTS_RETURN__UNKNOWN_NAME="$predicate"
 			return $RESOLVE_REQUIREMENTS_CODE__UNKNOWN_NAME
 		fi
 
-		if ! "${predicate[@]}"
+		if ! "$predicate" "${specifiers[@]}"
 		then
 			return 1
 		fi
