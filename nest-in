@@ -1702,7 +1702,7 @@ make-message-all-artifacts-already-exist()
 	local artifact
 	for artifact in "${artifacts[@]}"
 	do
-		printf '  %s' "$artifact"
+		printf '  * %s' "$artifact"
 		artifact-type "$artifact"
 		case $? in
 			$ARTIFACT_TYPE_CODE__PROGRAM)
