@@ -1116,7 +1116,7 @@ check-requirements()
 	do
 		extract-predicate-and-specifiers-from-requirement "$requirement"
 		local predicate="$EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__PREDICATE"
-		local specifiers="$EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__SPECIFIERS"
+		local specifiers=("${EXTRACT_PREDICATE_AND_SPECIFIERS_FROM_REQUIREMENT_RETURN__SPECIFIERS[@]}")
 		if ! predicate-defined "$predicate"
 		then
 			CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME="$predicate"

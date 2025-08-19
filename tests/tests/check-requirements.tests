@@ -1,0 +1,138 @@
+source $(SAMPLE nest-in)
+
+requirement-a()
+{
+	return 0
+}
+
+requirement-b()
+{
+	return 0
+}
+
+requirement-c()
+{
+	return 1
+}
+
+requirement-d()
+{
+	return 1
+}
+
+requirement-a-1()
+{
+	[[ $1 == 'a' ]]
+}
+
+requirement-b-1()
+{
+	[[ $1 == 'b' ]]
+}
+
+requirement-a-2()
+{
+	[[ $1 == 'a' && $2 == 'b' ]]
+}
+
+requirement-b-2()
+{
+	[[ $1 == 'c' && $2 == 'd' ]]
+}
+
+
+SECTION 'fulfilled'
+
+TEST-CASE 'no specifiers'
+	VARIANT 'set 1'
+		CHECK check-requirements 'requirement-a'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+	VARIANT 'set 2'
+		CHECK check-requirements 'requirement-b'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+TEST-CASE 'single specifier'
+	VARIANT 'set 1'
+		CHECK check-requirements 'requirement-a-1:a'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+	VARIANT 'set 2'
+		CHECK check-requirements 'requirement-b-1:b'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+TEST-CASE 'two specifiers'
+	VARIANT 'set 1'
+		CHECK check-requirements 'requirement-a-2:a:b'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+	VARIANT 'set 2'
+		CHECK check-requirements 'requirement-b-2:c:d'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+
+SECTION 'not fulfilled'
+
+TEST-CASE 'no specifiers'
+	VARIANT 'set 1'
+		CHECK ! check-requirements 'requirement-c'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+	VARIANT 'set 2'
+		CHECK ! check-requirements 'requirement-d'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+TEST-CASE 'single specifier'
+	VARIANT 'set 1'
+		CHECK ! check-requirements 'requirement-a-1:c'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+	VARIANT 'set 2'
+		CHECK ! check-requirements 'requirement-b-1:d'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+TEST-CASE 'two specifiers'
+	VARIANT 'set 1'
+		CHECK ! check-requirements 'requirement-a-2:b:c'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+	VARIANT 'set 2'
+		CHECK ! check-requirements 'requirement-b-2:d:e'
+		CHECK [ -z "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" ]
+
+
+SECTION 'invalid name'
+
+TEST-CASE 'no specifiers'
+	VARIANT 'set 1'
+		check-requirements 'some'
+		CHECK [ $? == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		CHECK [ "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" == 'some' ]
+
+	VARIANT 'set 2'
+		check-requirements 'another'
+		CHECK [ $? == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		CHECK [ "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" == 'another' ]
+
+TEST-CASE 'single specifier'
+	VARIANT 'set 1'
+		check-requirements 'some:a'
+		CHECK [ $? == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		CHECK [ "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" == 'some' ]
+
+	VARIANT 'set 2'
+		check-requirements 'another:b'
+		CHECK [ $? == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		CHECK [ "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" == 'another' ]
+
+TEST-CASE 'two specifiers'
+	VARIANT 'set 1'
+		check-requirements 'some:a:b'
+		CHECK [ $? == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		CHECK [ "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" == 'some' ]
+
+	VARIANT 'set 2'
+		check-requirements 'another:c:d'
+		CHECK [ $? == $CHECK_REQUIREMENTS_CODE__UNKNOWN_NAME ]
+		CHECK [ "$CHECK_REQUIREMENTS_RETURN__VIOLATING_NAME" == 'another' ]
+
