@@ -1,0 +1,27 @@
+source $(SAMPLE nest-in)
+
+predicate-a()
+{
+	:
+}
+
+predicate-b()
+{
+	:
+}
+
+predicate_c='$1 > $2'
+predicate_d='test'
+
+TEST-CASE 'not defined'
+	CHECK ! predicate-defined 'some-predicate'
+	CHECK ! predicate-defined 'another-predicate'
+
+TEST-CASE 'not a predicate'
+	CHECK ! predicate-defined 'predicate_c'
+	CHECK ! predicate-defined 'predicate_d'
+
+TEST-CASE 'defined'
+	CHECK predicate-defined 'predicate-a'
+	CHECK predicate-defined 'predicate-b'
+
